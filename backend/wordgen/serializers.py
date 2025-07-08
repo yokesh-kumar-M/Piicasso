@@ -5,7 +5,7 @@ class Piiserializer(serializers.Serializer):
     birth_year = serializers.CharField(required=False)
     pet_names = serializers.ListField(child=serializers.CharField(),required=False)
     spouse_name = serializers.CharField(required=False)
-    favourite_sports_team = serializers.CharField(required=False)
+    sports_team = serializers.CharField(required=False)
     childhood_nickname = serializers.CharField(required=False)
     first_car_model = serializers.CharField(required=False)
     hometown = serializers.CharField(required=False)
