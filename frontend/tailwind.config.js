@@ -8,7 +8,7 @@ module.exports = {
       fontFamily: {
         heading: ['"Bebas Neue"', 'sans-serif'],
         body: ['Roboto', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular'],
+        mono: ['Fira Code', 'monospace'],
       },
       animation: {
         'pulse-slow': 'pulse 3s ease-in-out infinite',

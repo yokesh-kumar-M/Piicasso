@@ -1,144 +1,161 @@
-// src/pages/HomePage.js
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import GeneratedPreview from '../components/GeneratedPreview';
-import LoadingSpinner from '../components/LoadingSpinner';
-import TerminalTitle from '../components/TerminalTitle';
-import Logo from '../components/Logo';
-import api from '../api/axios';
+// === File: src/pages/HomePage.js ===
+
+import React, { useState, useContext } from 'react'; // Added useContext
+import axios from 'axios'; // Import axios
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { AuthContext } from '../context/AuthContext'; // Import AuthContext
+
+import {
+  User, Calendar, Heart, Home, Film, Phone,
+  Shield, Zap, Lock, Wifi, Database, Code,
+  Activity, Map
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const fields = [
-  { label: 'Full Name', key: 'full_name' },
-  { label: 'Birth Year', key: 'birth_year' },
-  { label: 'Pet Names (comma-separated)', key: 'pet_names' },
-  { label: 'Spouse Name', key: 'spouse_name' },
-  { label: 'Sports Team', key: 'sports_team' },
-  { label: 'Childhood Nickname', key: 'nickname' },
-  { label: 'First Car Model', key: 'first_car' },
-  { label: 'Hometown', key: 'hometown' },
-  { label: 'Favourite Movies (comma-separated)', key: 'favourite_movies' },
-  { label: 'School Name', key: 'school' },
-  { label: 'Employer Name', key: 'employer' },
-  { label: 'Phone Suffix', key: 'phone_suffix' },
-  { label: 'Favourite Food', key: 'favourite_food' }
+  // IDENTITY_CORE
+  { key: 'full_name', label: 'TARGET_NAME', icon: <User className="w-4 h-4" />, placeholder: 'Enter full name...', category: 'identity', risk: 'HIGH' },
+  { key: 'birth_year', label: 'BIRTH_YEAR', icon: <Calendar className="w-4 h-4" />, placeholder: 'YYYY format...', category: 'identity', risk: 'HIGH' },
+  { key: 'gov_id', label: 'GOV_IDENTITY_TAG', icon: <Shield className="w-4 h-4" />, placeholder: 'National ID...', category: 'identity', risk: 'HIGH' },
+  { key: 'mother_maiden', label: 'MAIDEN_SOURCE_KEY', icon: <User className="w-4 h-4" />, placeholder: "Mother's maiden name...", category: 'identity', risk: 'HIGH' },
+  { key: 'passport_id', label: 'PASSPORT_HASH', icon: <Code className="w-4 h-4" />, placeholder: 'Passport number...', category: 'identity', risk: 'HIGH' },
+
+  // SOCIAL_GRAPH
+  { key: 'spouse_name', label: 'PARTNER_ID', icon: <Heart className="w-4 h-4" />, placeholder: 'Associated partner...', category: 'social', risk: 'HIGH' },
+  { key: 'social_handles', label: 'SOCIAL_PORTS', icon: <Wifi className="w-4 h-4" />, placeholder: '@username...', category: 'social', risk: 'HIGH' },
+  { key: 'relationship_status', label: 'BOND_STATUS', icon: <Heart className="w-4 h-4" />, placeholder: 'Single, Married...', category: 'social', risk: 'LOW' },
+
+  // GEO_INTEL
+  { key: 'hometown', label: 'ORIGIN_LOCATION', icon: <Home className="w-4 h-4" />, placeholder: 'Birth coordinates...', category: 'geo', risk: 'HIGH' },
+  { key: 'last_location', label: 'EXIT_VECTOR', icon: <Map className="w-4 h-4" />, placeholder: 'Last seen at...', category: 'geo', risk: 'HIGH' },
+  { key: 'travel_history', label: 'FLIGHT_MANIFEST', icon: <Zap className="w-4 h-4" />, placeholder: 'Destinations...', category: 'geo', risk: 'MED' },
+
+  // BEHAVIOR_PATTERN
+  { key: 'favourite_movies', label: 'MEDIA_PROFILE', icon: <Film className="w-4 h-4" />, placeholder: 'Content preferences...', category: 'behavioral', risk: 'LOW' },
+  { key: 'shopping_sites', label: 'ECOM_BEHAVIOR', icon: <Database className="w-4 h-4" />, placeholder: 'Amazon, Flipkart...', category: 'behavioral', risk: 'MED' },
+  { key: 'habit_patterns', label: 'ROUTINE_VECTOR', icon: <Activity className="w-4 h-4" />, placeholder: 'Sleep, eat, gym...', category: 'behavioral', risk: 'MED' },
+
+  // ASSET_REGISTRY
+  { key: 'phone_suffix', label: 'COMM_ENDPOINT', icon: <Phone className="w-4 h-4" />, placeholder: 'Last 4 digits...', category: 'assets', risk: 'HIGH' },
+  { key: 'bank_suffix', label: 'BANK_LINK_TAIL', icon: <Database className="w-4 h-4" />, placeholder: 'Last 4 of bank...', category: 'assets', risk: 'HIGH' },
+  { key: 'crypto_wallet', label: 'WALLET_HASH', icon: <Lock className="w-4 h-4" />, placeholder: 'Wallet address...', category: 'assets', risk: 'HIGH' },
 ];
 
 const HomePage = () => {
+  const { token } = useContext(AuthContext); // Get token from AuthContext
   const [formData, setFormData] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [generated, setGenerated] = useState([]);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false); // New state for success message
+  const navigate = useNavigate(); // Initialize useNavigate
+  const categories = [...new Set(fields.map(f => f.category))];
 
-  const handleChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+  const handleChange = (key, value) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false); // Reset success message
     try {
-      const response = await api.post('/api/submit-pii/', formData);
-      const wordlist = response.data.wordlist || [];
-      setGenerated(wordlist);
-      
-      // Store wordlist in sessionStorage for ResultPage
-      sessionStorage.setItem('generatedWordlist', JSON.stringify(wordlist));
-      
-      // Navigate to results page after generation
-      if (wordlist.length > 0) {
-        navigate('/results');
+      if (!token) {
+        // This check is primary. If no token, don't even try to send.
+        throw new Error('Authentication token not found. Please log in.');
       }
-    } catch (err) {
-      console.error('Generation failed:', err);
-      setError(err.response?.data?.error || 'Failed to generate wordlist');
-      setGenerated([]); 
+
+      // Filter out empty values from formData before sending
+      const filteredFormData = Object.fromEntries(
+        Object.entries(formData).filter(([, value]) => value !== '')
+      );
+
+      // ✅ Replace with your actual backend PII submission endpoint
+      const response = await axios.post('http://127.0.0.1:8000/api/pii-submit/', filteredFormData, {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Use token from AuthContext
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('PII submitted successfully:', response.data);
+      setSubmitSuccess(true); // Set success message
+      setFormData({}); // Clear form after successful submission (optional, depending on UX)
+      // ✅ Navigate to dashboard page on success after a short delay for user to see success message
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500); // Navigate after 1.5 seconds
+    } catch (error) {
+      console.error('PII submission failed:', error.response?.data || error.message);
+      // More specific error message handling
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.error ||
+        error.message ||
+        'Failed to submit PII. Please check your input and try again.';
+      setSubmitError(errorMessage);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const downloadWordlist = () => {
-    if (generated.length === 0) return;
-    
-    const blob = new Blob([generated.join('\n')], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'piicasso_wordlist.txt';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  };
-
   return (
-    <div className="min-h-screen bg-[#0b0b0b] text-white font-mono p-4">
-      <TerminalTitle />
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-3xl mx-auto mt-6 bg-black bg-opacity-30 backdrop-blur-md p-8 rounded-xl border border-red-700 shadow-2xl"
-      >
-        <div className="flex flex-col items-center mb-6">
-          <Logo />
-          <div className="w-32 border-b-2 border-red-700 mt-2" />
-        </div>
+    <div className="min-h-screen bg-black text-white px-6 py-12">
+      {/* Added drop-shadow-lg and tracking-wide for the main title */}
+      <h1 className="text-5xl font-bold text-red-600 mb-12 text-center drop-shadow-lg tracking-wide">PIIcasso</h1>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-900 bg-opacity-50 border border-red-600 rounded text-red-200 text-center">
-            {error}
+      {categories.map(cat => (
+        <div key={cat} className="mb-10">
+          <h2 className="text-2xl font-semibold mb-4 text-red-400">{cat}</h2>
+
+          {/* Added scrollbar-track-zinc-900 for a consistent scrollbar */}
+          <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-red-800 scrollbar-track-zinc-900">
+            {fields.filter(f => f.category === cat).map(field => (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                key={field.key}
+                // Changed from-gray-800 to-gray-900 to from-zinc-800 to-zinc-900 for consistency, added border
+                className="min-w-[280px] bg-gradient-to-br from-zinc-800 to-zinc-900 p-5 rounded-2xl shadow-lg hover:shadow-red-700/40 transition-all duration-300 border border-zinc-700"
+              >
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-red-600/20 p-2 rounded-full">{field.icon}</div>
+                  <div className="text-lg font-medium">{field.label}</div>
+                </div>
+                <input
+                  type="text"
+                  placeholder={field.placeholder}
+                  value={formData[field.key] || ''}
+                  onChange={(e) => handleChange(field.key, e.target.value)}
+                  // Refined input styles for consistency, added focus:border-red-500, placeholder-zinc-500
+                  className="w-full bg-black border border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 placeholder-zinc-500 text-white"
+                />
+              </motion.div>
+            ))}
           </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {fields.map(({ label, key }) => (
-            <div key={key} className="flex flex-col">
-              <label className="text-sm text-red-400 mb-1">{label}</label>
-              <input
-                type="text"
-                value={formData[key] || ''}
-                onChange={(e) => handleChange(key, e.target.value)}
-                className="bg-[#1a1a1a] border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition font-mono text-sm"
-                placeholder={`Enter ${label.toLowerCase()}`}
-              />
-            </div>
-          ))}
         </div>
+      ))}
 
-        <button
-          type="submit"
-          className={`mt-8 w-full py-2 rounded text-lg font-semibold transition ${
-            loading ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white'
-          }`}
-          disabled={loading}
+      {/* Submit Button Section */}
+      <div className="mt-12 text-center">
+        <motion.button
+          onClick={handleSubmit}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          // Disable button if submitting, or if no token is available
+          disabled={isSubmitting || !token}
+          className="bg-gradient-to-r from-red-600 to-red-800 text-white font-bold py-4 px-10 rounded-xl text-xl shadow-lg hover:shadow-red-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Generating...' : 'Generate Password List'}
-        </button>
-      </form>
-
-      {loading && <LoadingSpinner message="Generating your custom wordlist..." />}
-
-      {!loading && Array.isArray(generated) && generated.length > 0 && (
-        <div className="mt-8">
-          <GeneratedPreview list={generated.slice(0, 10)} />
-          <div className="text-center mt-4">
-            <button
-              onClick={downloadWordlist}
-              className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded text-white font-semibold mr-4"
-            >
-              Download Full Wordlist
-            </button>
-            <button
-              onClick={() => navigate('/results')}
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded text-white font-semibold"
-            >
-              View Full Results
-            </button>
-          </div>
-        </div>
-      )}
+          {isSubmitting ? 'Transmitting Data...' : 'Initiate PII Scan'}
+        </motion.button>
+        {submitError && (
+          <p className="text-red-400 mt-4 text-sm font-medium">{submitError}</p>
+        )}
+        {submitSuccess && (
+          <p className="text-green-400 mt-4 text-sm font-medium">PII submitted successfully! Redirecting...</p>
+        )}
+        {!token && ( // Message if not authenticated, ensuring users know why they can't submit
+          <p className="text-zinc-500 mt-4 text-sm">Please log in to submit PII data.</p>
+        )}
+      </div>
     </div>
   );
 };

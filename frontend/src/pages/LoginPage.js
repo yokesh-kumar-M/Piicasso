@@ -21,12 +21,14 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const success = await login(credentials.username, credentials.password);
+    
+    const result = await login(credentials.username, credentials.password);
     setLoading(false);
-    if (success) {
+    
+    if (result.success) {
       navigate('/dashboard');
     } else {
-      setError('Invalid username or password');
+      setError(result.error || 'Invalid username or password');
     }
   };
 

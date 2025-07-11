@@ -1,99 +1,74 @@
-// src/context/AuthContext.js
 import { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api/axios'; // 👈 use your configured axios instance
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Configure axios defaults
+  // 🔄 Sync token from localStorage on first load
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Optionally verify token and get user info
-      verifyToken();
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-      setLoading(false);
+    const savedToken = localStorage.getItem('access_token');
+    if (savedToken) {
+      setToken(savedToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
     }
-  }, [token]);
+    setLoading(false);
+  }, []);
 
-  const verifyToken = async () => {
-    try {
-      // You can add a token verification endpoint here
-      // const response = await axios.get('http://127.0.0.1:8000/api/verify-token/');
-      // setUser(response.data.user);
-      setLoading(false);
-    } catch (error) {
-      console.error('Token verification failed:', error);
-      logout();
-    }
-  };
-
+  // ✅ Login Function
   const login = async (username, password) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/token/', {
+      const response = await axios.post('/api/token/', {
         username,
         password,
       });
 
       const access = response.data.access;
-      
+      const refresh = response.data.refresh;
+
       if (access) {
-        localStorage.setItem('token', access);
+        localStorage.setItem('access_token', access);
+        localStorage.setItem('refresh_token', refresh);
+
         setToken(access);
         axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
         return { success: true };
       } else {
         return { success: false, error: 'No access token received' };
       }
-
     } catch (error) {
       console.error('Login failed:', error);
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.error || 
-                          'Login failed';
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.error ||
+        'Login failed';
       return { success: false, error: errorMessage };
     }
   };
 
-  const register = async (userData) => {
-    try {
-      const response = await axios.post('http://127.0.0.1:8000/api/register/', userData);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('Registration failed:', error);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.detail ||
-                          'Registration failed';
-      return { success: false, error: errorMessage };
-    }
-  };
-
+  // ✅ Logout Function
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);
-    delete axios.defaults.headers.common['Authorization'];
-  };
-
-  const isAuthenticated = !!token;
-
-  const value = {
-    token,
-    user,
-    isAuthenticated,
-    loading,
-    login,
-    register,
-    logout
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        loading,
+        isAuthenticated: !!token,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
