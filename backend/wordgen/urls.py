@@ -5,6 +5,7 @@ from .views import (
     HistoryView,
     export_history_csv,
     download_wordlist,
+    delete_history_entry,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -15,4 +16,6 @@ urlpatterns = [
     path('export-csv/', export_history_csv, name='export_csv'),
     path('download/<int:id>/', download_wordlist, name='download_wordlist'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('history/<int:id>/', delete_history_entry, name='delete_history_entry'),
 ]
+

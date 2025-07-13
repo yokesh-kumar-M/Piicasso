@@ -1,4 +1,3 @@
-# ===== Fixed backend/wordgen/views.py =====
 import csv
 import json
 
@@ -8,6 +7,8 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -49,14 +50,18 @@ class PiiSubmitView(APIView):
                 return Response({"error": "No PII data provided"}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
+                print(f"PII Data received: {pii_data}")  # Log PII data
                 prompt = build_prompt(pii_data)
+                print(f"Generated prompt: {prompt}")  # Log prompt
                 wordlist_raw = call_gemini_api(prompt)
+                print(f"Raw wordlist from Gemini: {wordlist_raw}")  # Log raw wordlist
 
                 if wordlist_raw.startswith("Error"):
                     return Response({"error": wordlist_raw}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 # Clean and validate wordlist
                 wordlist = [line.strip() for line in wordlist_raw.split("\n") if line.strip()]
+                print(f"Cleaned wordlist: {wordlist}")  # Log cleaned wordlist
                 
                 if not wordlist:
                     return Response({"error": "No valid passwords generated"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -71,6 +76,7 @@ class PiiSubmitView(APIView):
                 return Response({"wordlist": wordlist})
 
             except Exception as e:
+                print(f"Exception during wordlist generation: {str(e)}")  # Log exceptions
                 return Response({"error": f"Failed to generate wordlist: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -96,8 +102,8 @@ class HistoryView(APIView):
                 {
                     "id": h.id,
                     "timestamp": h.timestamp,
-                    "pii_data": h.pii_data,
                     "wordlist_count": len(h.wordlist) if h.wordlist else 0,
+                    "pii_data": h.pii_data,
                     "ip_address": h.ip_address
                 }
                 for h in history
@@ -106,6 +112,18 @@ class HistoryView(APIView):
         except Exception as e:
             return Response({"error": f"Failed to fetch history: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_history_entry(request, id):
+    """Deletes a specific history entry."""
+    try:
+        record = GenerationHistory.objects.get(id=id)
+        record.delete()
+        return Response({"message": "History entry deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    except GenerationHistory.DoesNotExist:
+        return Response({"error": "History entry not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": f"Failed to delete history entry: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def download_wordlist(request, id):
     """Download a specific wordlist as a text file"""
@@ -131,15 +149,17 @@ def export_history_csv(request):
         writer.writerow(['ID', 'Timestamp', 'IP Address', 'PII Data', 'Wordlist Count', 'Sample Passwords'])
 
         for r in rows:
+            sample_passwords = ', '.join(r.wordlist[:5]) + ('...' if len(r.wordlist) > 5 else '') if r.wordlist else 'N/A'
             writer.writerow([
                 r.id,
                 r.timestamp,
                 r.ip_address,
                 json.dumps(r.pii_data),
                 len(r.wordlist) if r.wordlist else 0,
-                " | ".join(r.wordlist[:5]) + "..." if r.wordlist else "None"
+                sample_passwords
             ])
 
         return response
     except Exception as e:
+        return HttpResponse(f"Error generating CSV: {str(e)}", status=500)
         return HttpResponse(f"Error generating CSV: {str(e)}", status=500)

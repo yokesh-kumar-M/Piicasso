@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
-import axios from '../api/axios'; // 👈 use your configured axios instance
-
+import axios from '../api/axios';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -8,7 +7,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔄 Sync token from localStorage on first load
   useEffect(() => {
     const savedToken = localStorage.getItem('access_token');
     if (savedToken) {
@@ -18,21 +16,15 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // ✅ Login Function
   const login = async (username, password) => {
     try {
-      const response = await axios.post('/api/token/', {
-        username,
-        password,
-      });
-
+            const response = await axios.post('/api/token/', { username, password });
       const access = response.data.access;
       const refresh = response.data.refresh;
 
       if (access) {
         localStorage.setItem('access_token', access);
         localStorage.setItem('refresh_token', refresh);
-
         setToken(access);
         axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
         return { success: true };
@@ -41,15 +33,9 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Login failed:', error);
-      const errorMessage =
-        error.response?.data?.detail ||
-        error.response?.data?.error ||
-        'Login failed';
-      return { success: false, error: errorMessage };
-    }
-  };
-
-  // ✅ Logout Function
+            return { success: false, error: error.response?.data?.detail || error.message || 'Login failed' };
+        }
+    };
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -59,16 +45,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        token,
-        user,
-        loading,
-        isAuthenticated: !!token,
-        login,
-        logout,
-      }}
-    >
+        <AuthContext.Provider value={{ token, user, loading, isAuthenticated: !!token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
