@@ -1,3 +1,4 @@
+# ===== Fixed backend/wordgen/views.py =====
 import csv
 import json
 
@@ -7,7 +8,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from .llm_handler import build_prompt, call_gemini_api
@@ -22,13 +23,19 @@ class RegisterView(APIView):
         password = request.data.get('password')
 
         if not username or not password:
-            return Response({'error': 'Missing fields'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Missing required fields: username and password'}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
-        User.objects.create_user(username=username, email=email, password=password)
-        return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+        if email and User.objects.filter(email=email).exists():
+            return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            User.objects.create_user(username=username, email=email, password=password)
+            return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': f'Failed to create user: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PiiSubmitView(APIView):
@@ -37,45 +44,71 @@ class PiiSubmitView(APIView):
         if serializer.is_valid():
             pii_data = serializer.validated_data
 
-            prompt = build_prompt(pii_data)
-            wordlist_raw = call_gemini_api(prompt)
+            # Check if any data was provided
+            if not any(pii_data.values()):
+                return Response({"error": "No PII data provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-            if wordlist_raw.startswith("Error"):
-                return Response({"error": wordlist_raw}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            try:
+                prompt = build_prompt(pii_data)
+                wordlist_raw = call_gemini_api(prompt)
 
-            wordlist = [line.strip() for line in wordlist_raw.split("\n") if line.strip()]
+                if wordlist_raw.startswith("Error"):
+                    return Response({"error": wordlist_raw}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            GenerationHistory.objects.create(
-                pii_data=pii_data,
-                wordlist=wordlist,
-                ip_address=request.META.get('REMOTE_ADDR')
-            )
+                # Clean and validate wordlist
+                wordlist = [line.strip() for line in wordlist_raw.split("\n") if line.strip()]
+                
+                if not wordlist:
+                    return Response({"error": "No valid passwords generated"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            return Response({"wordlist": wordlist})
+                # Save to database
+                GenerationHistory.objects.create(
+                    pii_data=pii_data,
+                    wordlist=wordlist,
+                    ip_address=self.get_client_ip(request)
+                )
+
+                return Response({"wordlist": wordlist})
+
+            except Exception as e:
+                return Response({"error": f"Failed to generate wordlist: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def get_client_ip(self, request):
+        """Get the client's IP address"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
 
 class HistoryView(APIView):
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        history = GenerationHistory.objects.all().order_by('-timestamp')[:50]
-        data = [
-            {
-                "id": h.id,
-                "timestamp": h.timestamp,
-                "pii_data": h.pii_data,
-                "wordlist": h.wordlist,
-                "ip_address": h.ip_address
-            }
-            for h in history
-        ]
-        return Response(data)
+        try:
+            history = GenerationHistory.objects.all().order_by('-timestamp')[:50]
+            data = [
+                {
+                    "id": h.id,
+                    "timestamp": h.timestamp,
+                    "pii_data": h.pii_data,
+                    "wordlist_count": len(h.wordlist) if h.wordlist else 0,
+                    "ip_address": h.ip_address
+                }
+                for h in history
+            ]
+            return Response(data)
+        except Exception as e:
+            return Response({"error": f"Failed to fetch history: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def download_wordlist(request, id):
+    """Download a specific wordlist as a text file"""
     try:
         record = GenerationHistory.objects.get(id=id)
         wordlist_text = "\n".join(record.wordlist)
@@ -83,22 +116,30 @@ def download_wordlist(request, id):
         response['Content-Disposition'] = f'attachment; filename=wordlist_{id}.txt'
         return response
     except GenerationHistory.DoesNotExist:
-        return HttpResponse("Not found", status=404)
+        return HttpResponse("Wordlist not found", status=404)
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}", status=500)
 
 
 def export_history_csv(request):
-    rows = GenerationHistory.objects.all()
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=history.csv'
-    writer = csv.writer(response)
-    writer.writerow(['Timestamp', 'IP Address', 'PII Data', 'Wordlist (first 10)'])
+    """Export generation history as CSV"""
+    try:
+        rows = GenerationHistory.objects.all().order_by('-timestamp')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=history.csv'
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Timestamp', 'IP Address', 'PII Data', 'Wordlist Count', 'Sample Passwords'])
 
-    for r in rows:
-        writer.writerow([
-            r.timestamp,
-            r.ip_address,
-            json.dumps(r.pii_data),
-            " | ".join(r.wordlist[:10]) + "..."
-        ])
+        for r in rows:
+            writer.writerow([
+                r.id,
+                r.timestamp,
+                r.ip_address,
+                json.dumps(r.pii_data),
+                len(r.wordlist) if r.wordlist else 0,
+                " | ".join(r.wordlist[:5]) + "..." if r.wordlist else "None"
+            ])
 
-    return response
+        return response
+    except Exception as e:
+        return HttpResponse(f"Error generating CSV: {str(e)}", status=500)
