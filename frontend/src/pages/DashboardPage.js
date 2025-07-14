@@ -24,7 +24,6 @@ const formatWordListCount = (wordlist) => {
 const DashboardPage = () => {
   const { token, logout, loading: authLoading } = useContext(AuthContext);
   const [history, setHistory] = useState([]);
- const [wordlist, setWordlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedEntryId, setExpandedEntryId] = useState(null);

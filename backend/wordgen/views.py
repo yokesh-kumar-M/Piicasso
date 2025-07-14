@@ -102,8 +102,8 @@ class HistoryView(APIView):
                 {
                     "id": h.id,
                     "timestamp": h.timestamp,
-                    "wordlist_count": len(h.wordlist) if h.wordlist else 0,
                     "pii_data": h.pii_data,
+                    "wordlist": h.wordlist,
                     "ip_address": h.ip_address
                 }
                 for h in history
@@ -161,5 +161,4 @@ def export_history_csv(request):
 
         return response
     except Exception as e:
-        return HttpResponse(f"Error generating CSV: {str(e)}", status=500)
         return HttpResponse(f"Error generating CSV: {str(e)}", status=500)

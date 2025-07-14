@@ -79,7 +79,7 @@ const HomePage = () => {
         throw new Error('Please fill in at least one field before submitting.');
       }
 
-      const response = await axiosInstance.post('/api/submit-pii/', filteredFormData);
+      const response = await axiosInstance.post('/submit-pii/', filteredFormData);
       console.log('PII submitted successfully:', response.data);
       setSubmitSuccess(true);
       setFormData({});
