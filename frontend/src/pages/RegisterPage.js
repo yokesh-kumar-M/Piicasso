@@ -1,146 +1,113 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import axiosInstance from '../api/axios'; // Use configured axios instance
+import { Link, useNavigate } from 'react-router-dom';
+import axios from '../api/axios';
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '', // Added confirm password field
-  });
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    // ✅ Basic password confirmation validation
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     setLoading(true);
-    setError(null);
-
-    // Client-side validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      setLoading(false);
-      return;
-    }
 
     try {
-      // Don't send confirmPassword to backend
-      const { confirmPassword, ...submitData } = formData;
-      await axiosInstance.post('/api/register/', submitData);
-      navigate('/login', { 
-        state: { message: 'Registration successful! Please log in.' } 
+      const response = await axios.post('register/', {
+        username,
+        email,
+        password
       });
+
+      if (response.status === 201) {
+        navigate('/login'); // redirect on success
+      }
     } catch (err) {
-      console.error('Registration failed:', err);
-      const errorMessage = 
-        err.response?.data?.detail ||
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        'Registration failed. Please try a different username or email.';
-      setError(errorMessage);
+      if (err.response && err.response.data) {
+        // Show backend's actual error message if available
+        setError(err.response.data.error || 'Registration failed. Please try again.');
+      } else {
+        setError('Network error. Please check your connection.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-black bg-opacity-40 backdrop-blur-md p-8 rounded-xl shadow-lg border border-red-600">
-        <h2 className="text-3xl text-red-600 font-bold text-center mb-6 font-heading">Register</h2>
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-zinc-900 p-6 rounded shadow-lg w-full max-w-sm"
+      >
+        <h2 className="text-2xl font-bold text-center mb-4 text-red-500">
+          Register
+        </h2>
 
-        {error && (
-          <div className="mb-4 p-3 text-red-400 text-sm text-center bg-red-900/20 border border-red-800 rounded">
-            {error}
-          </div>
-        )}
+        {error && <p className="text-red-400 mb-3 text-center">{error}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="username" className="text-sm text-gray-300">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              minLength={3}
-              className="w-full mt-1 px-3 py-2 bg-[#1e1e1e] border border-gray-600 rounded outline-none focus:ring-2 focus:ring-red-600 font-body"
-            />
-          </div>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full mb-3 p-2 rounded bg-black border border-gray-600"
+          required
+        />
 
-          <div>
-            <label htmlFor="email" className="text-sm text-gray-300">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full mt-1 px-3 py-2 bg-[#1e1e1e] border border-gray-600 rounded outline-none focus:ring-2 focus:ring-red-600 font-body"
-            />
-          </div>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full mb-3 p-2 rounded bg-black border border-gray-600"
+        />
 
-          <div>
-            <label htmlFor="password" className="text-sm text-gray-300">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength={6}
-              className="w-full mt-1 px-3 py-2 bg-[#1e1e1e] border border-gray-600 rounded outline-none focus:ring-2 focus:ring-red-600 font-body"
-            />
-          </div>
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full mb-3 p-2 rounded bg-black border border-gray-600"
+          required
+        />
 
-          <div>
-            <label htmlFor="confirmPassword" className="text-sm text-gray-300">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              minLength={6}
-              className="w-full mt-1 px-3 py-2 bg-[#1e1e1e] border border-gray-600 rounded outline-none focus:ring-2 focus:ring-red-600 font-body"
-            />
-          </div>
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full mb-4 p-2 rounded bg-black border border-gray-600"
+          required
+        />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-2 font-semibold rounded transition text-white font-body ${
-              loading ? 'bg-gray-600' : 'bg-red-600 hover:bg-red-700'
-            }`}
-          >
-            {loading ? 'Registering...' : 'Register'}
-          </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-red-600 hover:bg-red-700 py-2 rounded"
+        >
+          {loading ? 'Registering...' : 'Register'}
+        </button>
 
-          <div className="mt-4 text-center text-sm text-gray-400">
-            Already have an account?{" "}
-            <Link to="/login" className="text-red-500 hover:underline">
-              Sign in here
-            </Link>
-          </div>
-        </form>
-      </div>
+        <p className="mt-4 text-sm text-center">
+          Already have an account?{' '}
+          <Link to="/login" className="text-red-400 hover:underline">
+            Sign in here
+          </Link>
+        </p>
+      </form>
     </div>
   );
 };

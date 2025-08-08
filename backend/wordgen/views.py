@@ -1,16 +1,18 @@
+# backend/wordgen/views.py
+import os
 import csv
 import json
+from io import BytesIO
 
 from django.contrib.auth.models import User
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
 
 from .llm_handler import build_prompt, call_gemini_api
 from .models import GenerationHistory
@@ -18,6 +20,8 @@ from .serializers import Piiserializer
 
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')
@@ -40,55 +44,59 @@ class RegisterView(APIView):
 
 
 class PiiSubmitView(APIView):
-    def post(self, request):
-        serializer = Piiserializer(data=request.data)
-        if serializer.is_valid():
-            pii_data = serializer.validated_data
-
-            # Check if any data was provided
-            if not any(pii_data.values()):
-                return Response({"error": "No PII data provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-            try:
-                print(f"PII Data received: {pii_data}")  # Log PII data
-                prompt = build_prompt(pii_data)
-                print(f"Generated prompt: {prompt}")  # Log prompt
-                wordlist_raw = call_gemini_api(prompt)
-                print(f"Raw wordlist from Gemini: {wordlist_raw}")  # Log raw wordlist
-
-                if wordlist_raw.startswith("Error"):
-                    return Response({"error": wordlist_raw}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                # Clean and validate wordlist
-                wordlist = [line.strip() for line in wordlist_raw.split("\n") if line.strip()]
-                print(f"Cleaned wordlist: {wordlist}")  # Log cleaned wordlist
-                
-                if not wordlist:
-                    return Response({"error": "No valid passwords generated"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                # Save to database
-                GenerationHistory.objects.create(
-                    pii_data=pii_data,
-                    wordlist=wordlist,
-                    ip_address=self.get_client_ip(request)
-                )
-
-                return Response({"wordlist": wordlist})
-
-            except Exception as e:
-                print(f"Exception during wordlist generation: {str(e)}")  # Log exceptions
-                return Response({"error": f"Failed to generate wordlist: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     def get_client_ip(self, request):
-        """Get the client's IP address"""
+        """Extract client IP address from request"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
+
+    def post(self, request):
+        serializer = Piiserializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        pii_data = serializer.validated_data
+
+        # Ensure at least some meaningful value
+        non_empty_values = [v for v in pii_data.values() if v and v != '' and v != []]
+        if not non_empty_values:
+            return Response({"error": "No meaningful PII data provided. Please fill in at least one field."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Gemini API key check
+        if not os.environ.get("GEMINI_API_KEY"):
+            return Response({"error": "API service is not configured. Please contact administrator."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            prompt = build_prompt(pii_data)
+            wordlist_raw = call_gemini_api(prompt)
+
+            if isinstance(wordlist_raw, str) and wordlist_raw.startswith("Error"):
+                return Response({"error": wordlist_raw}, status=status.HTTP_502_BAD_GATEWAY)
+
+            # Normalize output to a clean list
+            wordlist = [line.strip() for line in wordlist_raw.splitlines() if line.strip()]
+            if not wordlist:
+                return Response({"error": "No valid passwords generated. Please try again with different data."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Enforce limit
+            if len(wordlist) > 1000:
+                wordlist = wordlist[:1000]
+
+            # Save record
+            record = GenerationHistory.objects.create(
+                pii_data=pii_data,
+                wordlist=wordlist,
+                ip_address=self.get_client_ip(request)
+            )
+
+            # Return generated list and record id for download if needed
+            return Response({"wordlist": wordlist, "id": record.id}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": f"Failed to generate wordlist: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class HistoryView(APIView):
@@ -97,7 +105,7 @@ class HistoryView(APIView):
 
     def get(self, request):
         try:
-            history = GenerationHistory.objects.all().order_by('-timestamp')[:50]
+            qs = GenerationHistory.objects.all().order_by('-timestamp')[:50]
             data = [
                 {
                     "id": h.id,
@@ -106,16 +114,17 @@ class HistoryView(APIView):
                     "wordlist": h.wordlist,
                     "ip_address": h.ip_address
                 }
-                for h in history
+                for h in qs
             ]
             return Response(data)
         except Exception as e:
             return Response({"error": f"Failed to fetch history: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 @api_view(['DELETE'])
+@authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_history_entry(request, id):
-    """Deletes a specific history entry."""
     try:
         record = GenerationHistory.objects.get(id=id)
         record.delete()
@@ -125,31 +134,39 @@ def delete_history_entry(request, id):
     except Exception as e:
         return Response({"error": f"Failed to delete history entry: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def download_wordlist(request, id):
     """Download a specific wordlist as a text file"""
     try:
         record = GenerationHistory.objects.get(id=id)
-        wordlist_text = "\n".join(record.wordlist)
+        wordlist_text = "\n".join(record.wordlist or [])
         response = HttpResponse(wordlist_text, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename=wordlist_{id}.txt'
         return response
     except GenerationHistory.DoesNotExist:
-        return HttpResponse("Wordlist not found", status=404)
+        return Response({"error": "Wordlist not found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return HttpResponse(f"Error: {str(e)}", status=500)
+        return Response({"error": f"Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def export_history_csv(request):
     """Export generation history as CSV"""
     try:
         rows = GenerationHistory.objects.all().order_by('-timestamp')
+        # Build CSV in memory
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=history.csv'
         writer = csv.writer(response)
         writer.writerow(['ID', 'Timestamp', 'IP Address', 'PII Data', 'Wordlist Count', 'Sample Passwords'])
 
         for r in rows:
-            sample_passwords = ', '.join(r.wordlist[:5]) + ('...' if len(r.wordlist) > 5 else '') if r.wordlist else 'N/A'
+            sample_passwords = ', '.join((r.wordlist or [])[:5]) + ('...' if r.wordlist and len(r.wordlist) > 5 else '')
             writer.writerow([
                 r.id,
                 r.timestamp,
@@ -161,4 +178,4 @@ def export_history_csv(request):
 
         return response
     except Exception as e:
-        return HttpResponse(f"Error generating CSV: {str(e)}", status=500)
+        return Response({"error": f"Error generating CSV: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

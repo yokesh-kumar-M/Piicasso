@@ -4,7 +4,12 @@ import os
 import sys
 import dotenv
 
-dotenv.load_dotenv()
+# Safe dotenv import
+try:
+    import dotenv
+    dotenv.load_dotenv()
+except ImportError:
+    pass
 
 def main():
     """Run administrative tasks."""

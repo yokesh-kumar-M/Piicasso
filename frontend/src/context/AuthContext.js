@@ -1,3 +1,4 @@
+// src/context/AuthContext.js
 import { createContext, useState, useEffect } from 'react';
 import axios from '../api/axios';
 export const AuthContext = createContext();
@@ -18,7 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-            const response = await axios.post('/api/token/', { username, password });
+      const response = await axios.post('token/', { username, password });
       const access = response.data.access;
       const refresh = response.data.refresh;
 
@@ -33,9 +34,10 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Login failed:', error);
-            return { success: false, error: error.response?.data?.detail || error.message || 'Login failed' };
-        }
-    };
+      return { success: false, error: error.response?.data?.detail || error.message || 'Login failed' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -45,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-        <AuthContext.Provider value={{ token, user, loading, isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ token, user, loading, isAuthenticated: !!token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
