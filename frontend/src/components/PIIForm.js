@@ -1,39 +1,94 @@
-// src/components/PIIForm.js
-import React from 'react';
+import React, { useState } from 'react';
+import axiosInstance from '../api/axios';
+import { useNavigate } from 'react-router-dom';
 
-const fields = [
-  'Full Name', 'Birth Year', 'Pet Names (comma-separated)', 'Spouse Name',
-  'Sports Team', 'Childhood Nickname', 'First Car Model', 'Hometown',
-  'Favourite Movies (comma-separated)', 'School Name', 'Employer Name',
-  'Phone Suffix', 'Favourite Food'
-];
+const initial = {
+  full_name: '',
+  birth_year: '',
+  pet_names: '',
+  spouse_name: '',
+  sports_team: '',
+  childhood_nickname: '',
+  first_car_model: '',
+  hometown: '',
+  favourite_movies: '',
+  school_name: '',
+  employer_name: '',
+  phone_suffix: '',
+  favourite_food: '',
+};
 
 const PIIForm = () => {
+  const [form, setForm] = useState(initial);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const buildPayload = () => ({
+    full_name: form.full_name,
+    birth_year: form.birth_year,
+    pet_names: form.pet_names ? form.pet_names.split(',').map(s => s.trim()).filter(Boolean) : [],
+    spouse_name: form.spouse_name,
+    sports_team: form.sports_team,
+    childhood_nickname: form.childhood_nickname,
+    first_car_model: form.first_car_model,
+    hometown: form.hometown,
+    favourite_movies: form.favourite_movies ? form.favourite_movies.split(',').map(s => s.trim()).filter(Boolean) : [],
+    school_name: form.school_name,
+    employer_name: form.employer_name,
+    phone_suffix: form.phone_suffix,
+    favourite_food: form.favourite_food,
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    const payload = buildPayload();
+    if (!Object.values(payload).some(v => (Array.isArray(v) ? v.length : !!v))) {
+      setError('Please fill at least one field.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await axiosInstance.post('submit-pii/', payload);
+      if (res.status === 201) {
+        sessionStorage.setItem('generatedWordlist', JSON.stringify(res.data.wordlist));
+        navigate('/result');
+      } else {
+        setError(res.data?.error || 'Generation failed');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Submission failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#0b0b0b] text-white font-mono flex items-center justify-center p-4">
-      <form className="w-full max-w-2xl bg-black bg-opacity-30 backdrop-blur-md p-8 rounded-xl border border-red-700 shadow-2xl">
-        <h1 className="text-3xl font-bold text-red-600 mb-6 text-center tracking-wider">
-          PIIcasso Generator
-        </h1>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {fields.map((field, i) => (
-            <div key={i} className="flex flex-col">
-              <label className="text-sm text-red-400 mb-1">{field}</label>
-              <input
-                type="text"
-                placeholder=""
-                className="bg-[#1a1a1a] border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
-              />
-            </div>
-          ))}
+    <div className="min-h-screen bg-[#0b0b0b] flex items-center justify-center p-6 text-white">
+      <form onSubmit={handleSubmit} className="w-full max-w-2xl p-6 bg-black bg-opacity-30 rounded">
+        <h1 className="text-2xl text-red-500 text-center mb-4">PIIcasso Generator</h1>
+        {error && <div className="text-red-400 mb-3 text-center">{error}</div>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <input name="full_name" value={form.full_name} onChange={handleChange} placeholder="Full Name" className="p-2 bg-[#111]" />
+          <input name="birth_year" value={form.birth_year} onChange={handleChange} placeholder="Birth Year" className="p-2 bg-[#111]" />
+          <input name="pet_names" value={form.pet_names} onChange={handleChange} placeholder="Pet Names (comma-separated)" className="p-2 bg-[#111]" />
+          <input name="spouse_name" value={form.spouse_name} onChange={handleChange} placeholder="Spouse Name" className="p-2 bg-[#111]" />
+          <input name="sports_team" value={form.sports_team} onChange={handleChange} placeholder="Sports Team" className="p-2 bg-[#111]" />
+          <input name="childhood_nickname" value={form.childhood_nickname} onChange={handleChange} placeholder="Childhood Nickname" className="p-2 bg-[#111]" />
+          <input name="first_car_model" value={form.first_car_model} onChange={handleChange} placeholder="First Car Model" className="p-2 bg-[#111]" />
+          <input name="hometown" value={form.hometown} onChange={handleChange} placeholder="Hometown" className="p-2 bg-[#111]" />
+          <input name="favourite_movies" value={form.favourite_movies} onChange={handleChange} placeholder="Favourite Movies (comma-separated)" className="p-2 bg-[#111]" />
+          <input name="school_name" value={form.school_name} onChange={handleChange} placeholder="School Name" className="p-2 bg-[#111]" />
+          <input name="employer_name" value={form.employer_name} onChange={handleChange} placeholder="Employer Name" className="p-2 bg-[#111]" />
+          <input name="phone_suffix" value={form.phone_suffix} onChange={handleChange} placeholder="Phone Suffix" className="p-2 bg-[#111]" />
+          <input name="favourite_food" value={form.favourite_food} onChange={handleChange} placeholder="Favourite Food" className="p-2 bg-[#111]" />
         </div>
 
-        <button
-          type="submit"
-          className="mt-8 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded text-lg transition"
-        >
-          Generate Password List
+        <button type="submit" disabled={loading} className="mt-4 w-full bg-red-600 py-2 rounded">
+          {loading ? 'Generating...' : 'Generate Password List'}
         </button>
       </form>
     </div>

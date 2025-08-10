@@ -1,8 +1,11 @@
 from django.db import models
-from django.core.validators import validate_ipv4_address, validate_ipv6_address
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
+User = get_user_model()
+
 class GenerationHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # NEW
     timestamp = models.DateTimeField(auto_now_add=True)
     pii_data = models.JSONField()
     wordlist = models.JSONField()
@@ -20,11 +23,11 @@ class GenerationHistory(models.Model):
             raise ValidationError("Wordlist cannot be empty")
         
         if len(self.wordlist) > 1000:
-            raise ValidationError("Wordlist tool")
-        
+            raise ValidationError("Wordlist too large")
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-        
+
     def __str__(self):
         return f"Generated @ {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"

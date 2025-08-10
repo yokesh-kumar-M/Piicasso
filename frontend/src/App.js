@@ -1,38 +1,26 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import ErrorBoundary from './components/ErrorBoundary';
-import HomePage from './pages/HomePage';
-import ResultPage from './pages/ResultPage';
-import DashboardPage from './pages/DashboardPage';
-import LoginPage from './pages/LoginPage';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import RegisterPage from './pages/RegisterPage';
-import Layout from './components/Layout';
-import PrivateRoute from './components/PrivateRoute';
-// Remove AuthProvider import from here since it's already in index.js
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import ResultPage from './pages/ResultPage';
+import PIIForm from './components/PIIForm';
 
-const App = () => {
+function App() {
   return (
-    <ErrorBoundary>
-      <Router>
+    <AuthProvider>
+      <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<PIIForm />} />
+          <Route path="/result" element={<ResultPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route element={<Layout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/results" element={<ResultPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <DashboardPage />
-                </PrivateRoute>
-              }
-            />
-          </Route>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
         </Routes>
-      </Router>
-    </ErrorBoundary>
+      </BrowserRouter>
+    </AuthProvider>
   );
-};
+}
 
 export default App;

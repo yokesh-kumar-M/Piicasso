@@ -1,115 +1,37 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from '../api/axios';
+import React, { useState, useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
-const RegisterPage = () => {
+const LoginPage = () => {
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
-    // ✅ Basic password confirmation validation
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await axios.post('register/', {
-        username,
-        email,
-        password
-      });
-
-      if (response.status === 201) {
-        navigate('/login'); // redirect on success
-      }
-    } catch (err) {
-      if (err.response && err.response.data) {
-        // Show backend's actual error message if available
-        setError(err.response.data.error || 'Registration failed. Please try again.');
-      } else {
-        setError('Network error. Please check your connection.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    setError(''); setLoading(true);
+    const res = await login(form.username, form.password);
+    setLoading(false);
+    if (res.success) navigate('/dashboard');
+    else setError(res.error || 'Login failed');
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-zinc-900 p-6 rounded shadow-lg w-full max-w-sm"
-      >
-        <h2 className="text-2xl font-bold text-center mb-4 text-red-500">
-          Register
-        </h2>
-
-        {error && <p className="text-red-400 mb-3 text-center">{error}</p>}
-
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full mb-3 p-2 rounded bg-black border border-gray-600"
-          required
-        />
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-3 p-2 rounded bg-black border border-gray-600"
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-3 p-2 rounded bg-black border border-gray-600"
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full mb-4 p-2 rounded bg-black border border-gray-600"
-          required
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-red-600 hover:bg-red-700 py-2 rounded"
-        >
-          {loading ? 'Registering...' : 'Register'}
-        </button>
-
-        <p className="mt-4 text-sm text-center">
-          Already have an account?{' '}
-          <Link to="/login" className="text-red-400 hover:underline">
-            Sign in here
-          </Link>
-        </p>
+    <div className="min-h-screen bg-[#0b0b0b] flex items-center justify-center text-white">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-black bg-opacity-40 p-6 rounded">
+        <h2 className="text-2xl text-red-500 mb-4 text-center">Sign In</h2>
+        {error && <div className="mb-3 text-red-400 text-center">{error}</div>}
+        <input name="username" value={form.username} onChange={handleChange} placeholder="Username" className="w-full mb-2 p-2 bg-[#111]" required />
+        <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" className="w-full mb-4 p-2 bg-[#111]" required />
+        <button type="submit" disabled={loading} className="w-full bg-red-600 py-2 rounded">{loading ? 'Signing in...' : 'Login'}</button>
+        <p className="mt-3 text-sm text-center">Don’t have an account? <Link to="/register" className="text-red-400">Register</Link></p>
       </form>
     </div>
   );
 };
 
-export default RegisterPage;
+export default LoginPage;
