@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import axiosInstance from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 const initial = {
   full_name: '',
@@ -18,11 +19,19 @@ const initial = {
   favourite_food: '',
 };
 
+
 const PIIForm = () => {
+  const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -45,6 +54,11 @@ const PIIForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!isAuthenticated) {
+      setError('You must be logged in to submit PII.');
+      navigate('/login');
+      return;
+    }
     const payload = buildPayload();
     if (!Object.values(payload).some(v => (Array.isArray(v) ? v.length : !!v))) {
       setError('Please fill at least one field.');
@@ -60,7 +74,14 @@ const PIIForm = () => {
         setError(res.data?.error || 'Generation failed');
       }
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Submission failed');
+      if (err.response?.status === 429) {
+        setError('Rate limit exceeded. Please try again later.');
+      } else if (err.response?.status === 401) {
+        setError('Session expired. Please log in again.');
+        navigate('/login');
+      } else {
+        setError(err.response?.data?.error || err.message || 'Submission failed');
+      }
     } finally {
       setLoading(false);
     }

@@ -16,10 +16,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .llm_handler import build_prompt, call_gemini_api
 from .models import GenerationHistory
 from .serializers import Piiserializer
+from .decorators import rate_limit
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
+    @rate_limit(key_prefix='register', limit=5, period=3600)  # 5 registrations per hour
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')
@@ -53,6 +55,7 @@ class PiiSubmitView(APIView):
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
+    @rate_limit(key_prefix='pii_submit', limit=50, period=3600)  # 50 submissions per hour
     def post(self, request):
         serializer = Piiserializer(data=request.data)
         if not serializer.is_valid():
@@ -96,17 +99,32 @@ class HistoryView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @rate_limit(key_prefix='history_view', limit=100, period=3600)  # 100 history views per hour
     def get(self, request):
         try:
-            qs = GenerationHistory.objects.all().order_by('-timestamp')[:50]
-            data = [
-                {
-                "id": h.id,
-                "timestamp": h.timestamp,
-                "pii_data": h.pii_data,
-                "wordlist": h.wordlist,
-                "ip_address": h.ip_address
-            } for h in qs]
+            page = int(request.query_params.get('page', 1))
+            page_size = int(request.query_params.get('page_size', 10))
+            
+            start = (page - 1) * page_size
+            end = start + page_size
+            
+            qs = GenerationHistory.objects.all().order_by('-timestamp')
+            total = qs.count()
+            
+            entries = qs[start:end]
+            data = {
+                'results': [{
+                    "id": h.id,
+                    "timestamp": h.timestamp,
+                    "pii_data": h.pii_data,
+                    "wordlist": h.wordlist,
+                    "ip_address": h.ip_address
+                } for h in entries],
+                'total': total,
+                'page': page,
+                'page_size': page_size,
+                'total_pages': (total + page_size - 1) // page_size
+            }
             return Response(data)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -3,6 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axiosInstance from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { Trash2, Download, Eye } from 'lucide-react';
+import Pagination from '../components/Pagination';
 
 const DashboardPage = () => {
   const { logout, token, loading: authLoading } = useContext(AuthContext);
@@ -10,17 +11,23 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Fetch History
   useEffect(() => {
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        const res = await axiosInstance.get('history/');
-        setHistory(res.data);
+        const res = await axiosInstance.get(`history/?page=${page}&page_size=${pageSize}`);
+        setHistory(res.data.results);
+        setTotalPages(res.data.total_pages);
       } catch (e) {
         if (e.response?.status === 401) {
           logout();
+        } else if (e.response?.status === 429) {
+          setError('Rate limit exceeded. Please try again later.');
         } else {
           setError(e.message || 'Failed to fetch history');
         }
@@ -30,7 +37,7 @@ const DashboardPage = () => {
     };
 
     if (token && !authLoading) fetchHistory();
-  }, [token, authLoading, logout]);
+  }, [token, authLoading, logout, page, pageSize]);
 
   // Delete Entry
   const handleDelete = async (id) => {
@@ -114,6 +121,15 @@ const DashboardPage = () => {
       {/* No history message */}
       {!loading && history.length === 0 && (
         <div className="text-zinc-500 mt-8">No PII scans yet. Run your first scan!</div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={(newPage) => setPage(newPage)}
+        />
       )}
 
       {/* Modal for Selected Entry */}
