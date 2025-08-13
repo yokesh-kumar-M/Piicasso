@@ -83,7 +83,7 @@ class PiiSubmitView(APIView):
                 wordlist = wordlist[:1000]
 
             record = GenerationHistory.objects.create(
-                user=request.user if request.user_is_authenticated else None,
+                user=request.user if getattr(request.user, 'is_authenticated', False) else None,
                 pii_data=pii_data,
                 wordlist=wordlist,
                 ip_address=self.get_client_ip(request)
@@ -108,7 +108,7 @@ class HistoryView(APIView):
             start = (page - 1) * page_size
             end = start + page_size
             
-            qs = GenerationHistory.objects.all().order_by('-timestamp')
+            qs = GenerationHistory.objects.filter(user=request.user).order_by('-timestamp')
             total = qs.count()
             
             entries = qs[start:end]
