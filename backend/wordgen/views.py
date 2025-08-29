@@ -14,34 +14,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .llm_handler import build_prompt, call_gemini_api
-from .models import GenerationHistory
+from .models import GenerationHistory, UserProfile
 from .serializers import Piiserializer
 from .decorators import rate_limit
-
-class RegisterView(APIView):
-    permission_classes = [AllowAny]
-
-    @rate_limit(key_prefix='register', limit=5, period=3600)  # 5 registrations per hour
-    def post(self, request):
-        username = request.data.get('username')
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        if not username or not password:
-            return Response({'error': 'Missing required fields: username and password'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if User.objects.filter(username=username).exists():
-            return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if email and User.objects.filter(email=email).exists():
-            return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            User.objects.create_user(username=username, email=email, password=password)
-            return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class PiiSubmitView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -57,6 +32,15 @@ class PiiSubmitView(APIView):
 
     @rate_limit(key_prefix='pii_submit', limit=50, period=3600)  # 50 submissions per hour
     def post(self, request):
+        # Check if user's email is verified
+        profile = UserProfile.get_or_create_profile(request.user)
+        if not profile.email_verified:
+            return Response({
+                "error": "Email verification required. Please verify your email address before using this feature.",
+                "email_not_verified": True,
+                "email": request.user.email
+            }, status=status.HTTP_403_FORBIDDEN)
+
         serializer = Piiserializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -83,7 +67,7 @@ class PiiSubmitView(APIView):
                 wordlist = wordlist[:1000]
 
             record = GenerationHistory.objects.create(
-                user=request.user if getattr(request.user, 'is_authenticated', False) else None,
+                user=request.user,
                 pii_data=pii_data,
                 wordlist=wordlist,
                 ip_address=self.get_client_ip(request)
@@ -101,6 +85,15 @@ class HistoryView(APIView):
 
     @rate_limit(key_prefix='history_view', limit=100, period=3600)  # 100 history views per hour
     def get(self, request):
+        # Check email verification
+        profile = UserProfile.get_or_create_profile(request.user)
+        if not profile.email_verified:
+            return Response({
+                "error": "Email verification required. Please verify your email address.",
+                "email_not_verified": True,
+                "email": request.user.email
+            }, status=status.HTTP_403_FORBIDDEN)
+
         try:
             page = int(request.query_params.get('page', 1))
             page_size = int(request.query_params.get('page_size', 10))
@@ -134,8 +127,17 @@ class HistoryView(APIView):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def delete_history_entry(request, id):
+    # Check email verification
+    profile = UserProfile.get_or_create_profile(request.user)
+    if not profile.email_verified:
+        return Response({
+            "error": "Email verification required. Please verify your email address.",
+            "email_not_verified": True,
+            "email": request.user.email
+        }, status=status.HTTP_403_FORBIDDEN)
+
     try:
-        r = GenerationHistory.objects.get(id=id)
+        r = GenerationHistory.objects.get(id=id, user=request.user)  # Ensure user owns the record
         r.delete()
         return Response({"message": "Deleted"}, status=status.HTTP_204_NO_CONTENT)
     except GenerationHistory.DoesNotExist:
@@ -146,8 +148,17 @@ def delete_history_entry(request, id):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def download_wordlist(request, id):
+    # Check email verification
+    profile = UserProfile.get_or_create_profile(request.user)
+    if not profile.email_verified:
+        return Response({
+            "error": "Email verification required. Please verify your email address.",
+            "email_not_verified": True,
+            "email": request.user.email
+        }, status=status.HTTP_403_FORBIDDEN)
+
     try:
-        r = GenerationHistory.objects.get(id=id)
+        r = GenerationHistory.objects.get(id=id, user=request.user)  # Ensure user owns the record
         txt = "\n".join(r.wordlist or [])
         resp = HttpResponse(txt, content_type='text/plain')
         resp['Content-Disposition'] = f'attachment; filename=wordlist_{id}.txt'
@@ -162,8 +173,17 @@ def download_wordlist(request, id):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def export_history_csv(request):
+    # Check email verification
+    profile = UserProfile.get_or_create_profile(request.user)
+    if not profile.email_verified:
+        return Response({
+            "error": "Email verification required. Please verify your email address.",
+            "email_not_verified": True,
+            "email": request.user.email
+        }, status=status.HTTP_403_FORBIDDEN)
+
     try:
-        rows = GenerationHistory.objects.all().order_by('-timestamp')
+        rows = GenerationHistory.objects.filter(user=request.user).order_by('-timestamp')  # User's own data only
         buf = StringIO()
         writer = csv.writer(buf)
         writer.writerow(['ID', 'Timestamp', 'IP Address', 'PII Data', 'Wordlist Count', 'Sample Passwords'])
