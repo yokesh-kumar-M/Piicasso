@@ -1,61 +1,58 @@
-
-
 import React, { useContext, useState, useEffect } from 'react';
 import axiosInstance from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import {
-  User, Calendar, Heart, Home, Film, Phone,
-  Shield, Zap, Lock, Wifi, Database, Code,
-  Activity, Map, Users, Globe, Crosshair, 
-  MapPin, Search, Clock, Truck, Building
+  User, Calendar, Heart, Home, Film, Phone, Shield, Zap, Lock, 
+  Wifi, Database, Code, Activity, Map, Users, Globe, Crosshair, 
+  MapPin, Search, Clock, Truck, Building, ChevronRight, 
+  ChevronLeft, AlertCircle, CheckCircle, Info, Eye, EyeOff
 } from 'lucide-react';
 
 const fields = [
-  // IDENTITY_CORE
-  { key: 'full_name', label: 'Target Name', icon: <User className="w-4 h-4" />, placeholder: 'Enter full name...', category: 'identity', risk: 'HIGH' },
-  { key: 'birth_year', label: 'Birth Year', icon: <Calendar className="w-4 h-4" />, placeholder: 'YYYY format...', category: 'identity', risk: 'HIGH' },
-  { key: 'gov_id', label: 'Gov Identity', icon: <Shield className="w-4 h-4" />, placeholder: 'National ID...', category: 'identity', risk: 'HIGH' },
-  { key: 'mother_maiden', label: 'Mother Maiden', icon: <User className="w-4 h-4" />, placeholder: "Mother's maiden name...", category: 'identity', risk: 'HIGH' },
-  { key: 'passport_id', label: 'Passport ID', icon: <Code className="w-4 h-4" />, placeholder: 'Passport number...', category: 'identity', risk: 'HIGH' },
-
-  // SOCIAL_GRAPH
-  { key: 'spouse_name', label: 'Spouse Name', icon: <Heart className="w-4 h-4" />, placeholder: 'Associated partner...', category: 'social', risk: 'HIGH' },
-  { key: 'social_handles', label: 'Social Handle', icon: <Wifi className="w-4 h-4" />, placeholder: '@username...', category: 'social', risk: 'HIGH' },
-  { key: 'relationship_status', label: 'Relationship Status', icon: <Heart className="w-4 h-4" />, placeholder: 'Single, Married...', category: 'social', risk: 'LOW' },
-  { key: 'close_contacts', label: 'Close Contacts', icon: <Users className="w-4 h-4" />, placeholder: 'Frequent callers...', category: 'social', risk: 'MED' },
-  { key: 'group_affiliations', label: 'Group Affiliation', icon: <Globe className="w-4 h-4" />, placeholder: 'Clubs, communities...', category: 'social', risk: 'LOW' },
-
-  // GEO_INTEL
-  { key: 'hometown', label: 'HomeTown', icon: <Home className="w-4 h-4" />, placeholder: 'Birth coordinates...', category: 'geo', risk: 'HIGH' },
-  { key: 'last_location', label: 'Last Location', icon: <Map className="w-4 h-4" />, placeholder: 'Last seen at...', category: 'geo', risk: 'HIGH' },
-  { key: 'travel_history', label: 'Travel History', icon: <Zap className="w-4 h-4" />, placeholder: 'Destinations...', category: 'geo', risk: 'MED' },
-  { key: 'live_coordinates', label: 'Live Coordinates', icon: <Crosshair className="w-4 h-4" />, placeholder: 'Real-time location...', category: 'geo', risk: 'HIGH' },
-  { key: 'frequent_places', label: 'Frequent Places', icon: <MapPin className="w-4 h-4" />, placeholder: 'Work, cafe, gym...', category: 'geo', risk: 'MED' },
-
-  // BEHAVIOR_PATTERN
-  { key: 'favourite_movies', label: 'Favourite Movie', icon: <Film className="w-4 h-4" />, placeholder: 'Content preferences...', category: 'behavioral', risk: 'LOW' },
-  { key: 'shopping_sites', label: 'Shopping site', icon: <Database className="w-4 h-4" />, placeholder: 'Amazon, Flipkart...', category: 'behavioral', risk: 'MED' },
-  { key: 'habit_patterns', label: 'Habits', icon: <Activity className="w-4 h-4" />, placeholder: 'Sleep, eat, gym...', category: 'behavioral', risk: 'MED' },
-  { key: 'search_keywords', label: 'Search Keywords', icon: <Search className="w-4 h-4" />, placeholder: 'Recent searches...', category: 'behavioral', risk: 'MED' },
-  { key: 'content_timing', label: 'Content Timing', icon: <Clock className="w-4 h-4" />, placeholder: 'Late night usage...', category: 'behavioral', risk: 'LOW' },
-
-  // ASSET_REGISTRY
-  { key: 'phone_suffix', label: 'Phone Suffix', icon: <Phone className="w-4 h-4" />, placeholder: 'Last 4 digits...', category: 'assets', risk: 'HIGH' },
-  { key: 'bank_suffix', label: 'Bank Suffix', icon: <Database className="w-4 h-4" />, placeholder: 'Last 4 of bank...', category: 'assets', risk: 'HIGH' },
-  { key: 'crypto_wallet', label: 'Crypto Wallet', icon: <Lock className="w-4 h-4" />, placeholder: 'Wallet address...', category: 'assets', risk: 'HIGH' },
-  { key: 'vehicle_reg', label: 'Vehicle Reg.', icon: <Truck className="w-4 h-4" />, placeholder: 'License plate...', category: 'assets', risk: 'HIGH' },
-  { key: 'property_id', label: 'Property ID', icon: <Building className="w-4 h-4" />, placeholder: 'Registry ID...', category: 'assets', risk: 'HIGH' },
+  // IDENTITY_CORE - Highest priority
+  { key: 'full_name', label: 'Full Name', icon: <User className="w-4 h-4" />, placeholder: 'John Smith', category: 'identity', risk: 'HIGH', priority: 1, description: 'Primary target identification' },
+  { key: 'birth_year', label: 'Birth Year', icon: <Calendar className="w-4 h-4" />, placeholder: '1985', category: 'identity', risk: 'HIGH', priority: 1, description: 'Common password component' },
+  { key: 'phone_suffix', label: 'Phone Last 4', icon: <Phone className="w-4 h-4" />, placeholder: '1234', category: 'identity', risk: 'HIGH', priority: 1, description: 'Frequently used in passwords' },
+  
+  // PERSONAL_CONNECTIONS - High priority
+  { key: 'pet_names', label: 'Pet Names', icon: <Heart className="w-4 h-4" />, placeholder: 'Buddy, Luna', category: 'personal', risk: 'HIGH', priority: 2, description: 'Very common password base (comma-separated)' },
+  { key: 'spouse_name', label: 'Spouse/Partner', icon: <Heart className="w-4 h-4" />, placeholder: 'Sarah', category: 'personal', risk: 'HIGH', priority: 2, description: 'Loved ones often used in passwords' },
+  { key: 'childhood_nickname', label: 'Childhood Nickname', icon: <User className="w-4 h-4" />, placeholder: 'Johnny', category: 'personal', risk: 'HIGH', priority: 2, description: 'Personal identifier in passwords' },
+  
+  // LOCATION_DATA - Medium priority
+  { key: 'hometown', label: 'Hometown', icon: <Home className="w-4 h-4" />, placeholder: 'Chicago', category: 'location', risk: 'MED', priority: 3, description: 'Geographic password component' },
+  { key: 'school_name', label: 'School Name', icon: <Building className="w-4 h-4" />, placeholder: 'Lincoln High', category: 'location', risk: 'MED', priority: 3, description: 'Educational institution reference' },
+  
+  // INTERESTS - Lower priority but useful
+  { key: 'favourite_movies', label: 'Favorite Movies', icon: <Film className="w-4 h-4" />, placeholder: 'Inception, Matrix', category: 'interests', risk: 'LOW', priority: 4, description: 'Entertainment preferences (comma-separated)' },
+  { key: 'sports_team', label: 'Favorite Team', icon: <Activity className="w-4 h-4" />, placeholder: 'Lakers', category: 'interests', risk: 'LOW', priority: 4, description: 'Sports team loyalty' },
+  { key: 'first_car_model', label: 'First Car', icon: <Truck className="w-4 h-4" />, placeholder: 'Honda Civic', category: 'interests', risk: 'LOW', priority: 4, description: 'Memorable possession' },
+  
+  // PROFESSIONAL - Medium priority
+  { key: 'employer_name', label: 'Employer', icon: <Building className="w-4 h-4" />, placeholder: 'TechCorp Inc', category: 'professional', risk: 'MED', priority: 3, description: 'Workplace identifier' },
+  { key: 'social_media_handle', label: 'Social Handle', icon: <Wifi className="w-4 h-4" />, placeholder: '@johnsmith', category: 'professional', risk: 'MED', priority: 3, description: 'Online identity marker' },
 ];
 
-const categories = [...new Set(fields.map(f => f.category))];
+const categories = [
+  { id: 'identity', name: 'Core Identity', description: 'Basic identifying information', color: 'red' },
+  { id: 'personal', name: 'Personal Connections', description: 'Family, pets, relationships', color: 'pink' },
+  { id: 'location', name: 'Places & Locations', description: 'Geographic and institutional ties', color: 'blue' },
+  { id: 'interests', name: 'Interests & Hobbies', description: 'Entertainment and personal preferences', color: 'green' },
+  { id: 'professional', name: 'Professional Life', description: 'Work and online presence', color: 'purple' }
+];
 
-const PIIForm = () => {
+const EnhancedPIIForm = () => {
   const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [formMode, setFormMode] = useState('guided'); // 'guided' or 'advanced'
+  const [validationErrors, setValidationErrors] = useState({});
+  const [showPreview, setShowPreview] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,43 +63,85 @@ const PIIForm = () => {
 
   const handleChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+    // Clear validation error when user starts typing
+    if (validationErrors[key]) {
+      setValidationErrors(prev => ({ ...prev, [key]: null }));
+    }
+  };
+
+  const validateField = (key, value) => {
+    const field = fields.find(f => f.key === key);
+    if (!field) return null;
+
+    if (key === 'birth_year' && value) {
+      const year = parseInt(value);
+      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+        return 'Please enter a valid birth year';
+      }
+    }
+    
+    if (key === 'phone_suffix' && value) {
+      if (!/^\d{3,4}$/.test(value)) {
+        return 'Please enter 3-4 digits';
+      }
+    }
+
+    return null;
+  };
+
+  const validateCurrentStep = () => {
+    const currentCategory = categories[currentStep];
+    const categoryFields = fields.filter(f => f.category === currentCategory.id);
+    const errors = {};
+    
+    categoryFields.forEach(field => {
+      const value = formData[field.key];
+      const error = validateField(field.key, value);
+      if (error) errors[field.key] = error;
+    });
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const buildPayload = () => {
-    // Convert comma-separated lists for certain fields
     const payload = { ...formData };
-    if (payload.pet_names) {
-      payload.pet_names = payload.pet_names.split(',').map(s => s.trim()).filter(Boolean);
-    }
-    if (payload.favourite_movies) {
-      payload.favourite_movies = payload.favourite_movies.split(',').map(s => s.trim()).filter(Boolean);
-    }
+    // Convert comma-separated lists
+    ['pet_names', 'favourite_movies'].forEach(key => {
+      if (payload[key]) {
+        payload[key] = payload[key].split(',').map(s => s.trim()).filter(Boolean);
+      }
+    });
     return payload;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError('');
-    setSubmitSuccess(false);
+    setSuccess('');
+    
     if (!isAuthenticated) {
       setError('You must be logged in to submit PII.');
       navigate('/login');
       return;
     }
+
     const payload = buildPayload();
-    if (!Object.values(payload).some(v => (Array.isArray(v) ? v.length : !!v))) {
+    const nonEmptyFields = Object.values(payload).filter(v => 
+      Array.isArray(v) ? v.length > 0 : !!v
+    );
+
+    if (nonEmptyFields.length === 0) {
       setError('Please fill at least one field.');
       return;
     }
+
     setLoading(true);
     try {
       const res = await axiosInstance.post('submit-pii/', payload);
       if (res.status === 201) {
         sessionStorage.setItem('generatedWordlist', JSON.stringify(res.data.wordlist));
-        setSubmitSuccess(true);
-        setTimeout(() => navigate('/result'), 1200);
-      } else {
-        setError(res.data?.error || 'Generation failed');
+        setSuccess('PII processed successfully! Redirecting to results...');
+        setTimeout(() => navigate('/result'), 2000);
       }
     } catch (err) {
       if (err.response?.status === 429) {
@@ -111,64 +150,244 @@ const PIIForm = () => {
         setError('Session expired. Please log in again.');
         navigate('/login');
       } else {
-        setError(err.response?.data?.error || err.message || 'Submission failed');
+        setError(err.response?.data?.error || 'Submission failed. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const nextStep = () => {
+    if (formMode === 'guided' && currentStep < categories.length - 1) {
+      if (validateCurrentStep()) {
+        setCurrentStep(prev => prev + 1);
+      }
+    }
+  };
+
+  const prevStep = () => {
+    if (formMode === 'guided' && currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const getFilledFieldsCount = () => {
+    return Object.values(formData).filter(v => 
+      Array.isArray(v) ? v.length > 0 : !!v
+    ).length;
+  };
+
+  const getRiskColor = (risk) => {
+    switch(risk) {
+      case 'HIGH': return 'text-red-400 bg-red-500/20';
+      case 'MED': return 'text-yellow-400 bg-yellow-500/20';
+      case 'LOW': return 'text-green-400 bg-green-500/20';
+      default: return 'text-gray-400 bg-gray-500/20';
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-red-500 text-xl animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-12">
-      <h1 className="text-5xl font-bold text-red-600 mb-12 text-center drop-shadow-lg tracking-wide">PIIcasso</h1>
-      {error && <div className="text-red-400 mb-3 text-center">{error}</div>}
-      {submitSuccess && <div className="text-green-400 mb-3 text-center">PII submitted successfully! Redirecting...</div>}
-      {categories.map(cat => (
-        <div key={cat} className="mb-10">
-          <h2 className="text-2xl font-semibold mb-4 text-red-400 capitalize">{cat}</h2>
-          <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-red-800 scrollbar-track-zinc-900">
-            {fields.filter(f => f.category === cat).map(field => (
-              <div
-                key={field.key}
-                className="min-w-[280px] bg-gradient-to-br from-zinc-800 to-zinc-900 p-5 rounded-2xl shadow-lg hover:shadow-red-700/40 transition-all duration-300 border border-zinc-700 hover:scale-105 transform"
-              >
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="bg-red-600/20 p-2 rounded-full">{field.icon}</div>
-                  <div className="text-lg font-medium">{field.label}</div>
-                  <div className={`text-xs px-2 py-1 rounded-full ${
-                    field.risk === 'HIGH' ? 'bg-red-600/20 text-red-400' :
-                    field.risk === 'MED' ? 'bg-yellow-600/20 text-yellow-400' :
-                    'bg-green-600/20 text-green-400'
-                  }`}>
-                    {field.risk}
-                  </div>
-                </div>
-                <input
-                  type="text"
-                  placeholder={field.placeholder}
-                  value={formData[field.key] || ''}
-                  onChange={(e) => handleChange(field.key, e.target.value)}
-                  className="w-full bg-black border border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 placeholder-zinc-500 text-white"
-                />
-              </div>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+      {/* Header */}
+      <div className="pt-8 pb-6 text-center">
+        <h1 className="text-5xl font-bold text-red-500 mb-4 tracking-wide">PIIcasso</h1>
+        <p className="text-gray-400 text-lg">Password Intelligence Engine</p>
+        
+        {/* Progress indicator */}
+        <div className="mt-6 flex justify-center items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <span className="text-sm">{getFilledFieldsCount()} fields completed</span>
+          </div>
+          {formMode === 'guided' && (
+            <div className="text-sm text-gray-500">
+              Step {currentStep + 1} of {categories.length}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mode Toggle */}
+      <div className="flex justify-center mb-6">
+        <div className="bg-gray-800 rounded-lg p-1 flex">
+          <button
+            onClick={() => setFormMode('guided')}
+            className={`px-4 py-2 rounded text-sm transition-all ${
+              formMode === 'guided' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Guided Mode
+          </button>
+          <button
+            onClick={() => setFormMode('advanced')}
+            className={`px-4 py-2 rounded text-sm transition-all ${
+              formMode === 'advanced' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Advanced Mode
+          </button>
+        </div>
+      </div>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="max-w-4xl mx-auto mb-6 px-6">
+          <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 flex items-center space-x-3">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <span className="text-red-300">{error}</span>
           </div>
         </div>
-      ))}
-      <div className="mt-12 text-center">
-        <button
-          onClick={handleSubmit}
-          disabled={loading || !isAuthenticated}
-          className="bg-gradient-to-r from-red-600 to-red-800 text-white font-bold py-4 px-10 rounded-xl text-xl shadow-lg hover:shadow-red-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-102 transform"
-        >
-          {loading ? 'Generating...' : 'Initiate PII Scan'}
-        </button>
-        {!isAuthenticated && (
-          <p className="text-zinc-500 mt-4 text-sm">Please log in to submit PII data.</p>
+      )}
+
+      {success && (
+        <div className="max-w-4xl mx-auto mb-6 px-6">
+          <div className="bg-green-500/20 border border-green-500 rounded-lg p-4 flex items-center space-x-3">
+            <CheckCircle className="w-5 h-5 text-green-400" />
+            <span className="text-green-300">{success}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Form Content */}
+      <div className="max-w-6xl mx-auto px-6 pb-12">
+        {formMode === 'guided' ? (
+          // Guided Mode - Step by Step
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-semibold text-white mb-2">
+                {categories[currentStep].name}
+              </h2>
+              <p className="text-gray-400">{categories[currentStep].description}</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {fields
+                .filter(f => f.category === categories[currentStep].id)
+                .map(field => (
+                  <div
+                    key={field.key}
+                    className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-red-500/50 transition-all duration-300"
+                  >
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="bg-red-500/20 p-2 rounded-lg">{field.icon}</div>
+                      <div>
+                        <h3 className="text-lg font-medium">{field.label}</h3>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getRiskColor(field.risk)}`}>
+                          {field.risk} PRIORITY
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-400 text-sm mb-4">{field.description}</p>
+                    
+                    <input
+                      type="text"
+                      placeholder={field.placeholder}
+                      value={formData[field.key] || ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      className={`w-full bg-black/50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-500 text-white transition-all ${
+                        validationErrors[field.key] ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                    />
+                    
+                    {validationErrors[field.key] && (
+                      <p className="text-red-400 text-sm mt-2">{validationErrors[field.key]}</p>
+                    )}
+                  </div>
+                ))}
+            </div>
+
+            {/* Navigation */}
+            <div className="flex justify-between items-center mt-8">
+              <button
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="flex items-center space-x-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </button>
+
+              {currentStep === categories.length - 1 ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || !isAuthenticated}
+                  className="flex items-center space-x-2 px-8 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg transition-all"
+                >
+                  {loading ? 'Processing...' : 'Generate Wordlist'}
+                </button>
+              ) : (
+                <button
+                  onClick={nextStep}
+                  className="flex items-center space-x-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg transition-all"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          // Advanced Mode - All fields visible
+          <div className="space-y-8">
+            {categories.map(category => (
+              <div key={category.id} className="space-y-4">
+                <h2 className="text-2xl font-semibold text-white border-l-4 border-red-500 pl-4">
+                  {category.name}
+                </h2>
+                
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {fields
+                    .filter(f => f.category === category.id)
+                    .map(field => (
+                      <div
+                        key={field.key}
+                        className="bg-gray-800/30 rounded-xl p-4 border border-gray-700 hover:border-red-500/50 transition-all duration-300"
+                      >
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className="bg-red-500/20 p-1.5 rounded">{field.icon}</div>
+                          <span className="text-sm font-medium">{field.label}</span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${getRiskColor(field.risk)}`}>
+                            {field.risk}
+                          </span>
+                        </div>
+                        
+                        <input
+                          type="text"
+                          placeholder={field.placeholder}
+                          value={formData[field.key] || ''}
+                          onChange={(e) => handleChange(field.key, e.target.value)}
+                          className="w-full bg-black/50 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-500 placeholder-gray-500 text-white text-sm"
+                        />
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Submit Button */}
+            <div className="text-center pt-8">
+              <button
+                onClick={handleSubmit}
+                disabled={loading || !isAuthenticated}
+                className="px-12 py-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg text-lg font-semibold transition-all"
+              >
+                {loading ? 'Processing PII Data...' : 'Generate Password Wordlist'}
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
   );
 };
 
-export default PIIForm;
+export default EnhancedPIIForm;

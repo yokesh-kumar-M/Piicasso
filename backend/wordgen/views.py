@@ -92,8 +92,21 @@ class PiiSubmitView(APIView):
             return Response({"wordlist": wordlist, "id": record.id}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response({"error": f"Generation failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            error_response = {
+            'error': 'Generation failed',
+            'type': 'server_error',
+            'timestamp': timezone.now().isoformat(),
+        }
+        
+        # Add specific error handling
+        if 'api key' in str(e).lower():
+            error_response['error'] = 'Service temporarily unavailable'
+            error_response['type'] = 'service_error'
+        elif 'timeout' in str(e).lower():
+            error_response['error'] = 'Request timed out'
+            error_response['type'] = 'timeout_error'
+        
+        return Response(error_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HistoryView(APIView):
     authentication_classes = [JWTAuthentication]
