@@ -1,25 +1,96 @@
+# backend/wordgen/email_utils.py
 import logging
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.auth.models import User
 from .models import EmailVerification, UserProfile
 
 logger = logging.getLogger(__name__)
 
-def get_frontend_url():
-    """Get the frontend URL from settings"""
-    return getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
+def get_user_by_email_or_user(identifier):
+    """
+    Safely get user by email string or User object
+    Returns: (User|None, error_message)
+    """
+    if isinstance(identifier, User):
+        return identifier, None
+    
+    if isinstance(identifier, str):
+        try:
+            user = User.objects.get(email=identifier.lower())
+            return user, None
+        except User.DoesNotExist:
+            # Don't reveal if email exists - security measure
+            return None, "If an account with this email exists, a verification email will be sent"
+        except User.MultipleObjectsReturned:
+            logger.warning(f"Multiple users found for email: {identifier}")
+            return None, "Multiple accounts found. Please contact support"
+    
+    return None, "Invalid user identifier"
 
-def send_verification_email(user, request=None):
-    """Send email verification email"""
+def send_verification_email_safe(user_or_email, request=None):
+    """
+    Robust verification email sender with rate limiting
+    Returns: (success: bool, message: str, user_email: str|None)
+    """
+    
+    # Step 1: Get user safely
+    user, error = get_user_by_email_or_user(user_or_email)
+    if not user:
+        # For security, always return success-like message
+        return True, "If an account with this email exists, a verification email will be sent", None
+    
+    # Step 2: Get or create profile
     try:
-        # Clean up old unused verification tokens
-        EmailVerification.objects.filter(
+        profile = UserProfile.get_or_create_profile(user)
+    except Exception as e:
+        logger.error(f"Failed to get profile for user {user.username}: {str(e)}")
+        return False, "Profile creation failed. Please try again", user.email
+    
+    # Step 3: Check if already verified
+    if profile.email_verified:
+        return False, "Email is already verified", user.email
+    
+    # Step 4: Check rate limiting
+    can_send, rate_message = profile.can_send_verification_email()
+    if not can_send:
+        logger.info(f"Rate limit hit for user {user.username}: {rate_message}")
+        return False, rate_message, user.email
+    
+    # Step 5: Send email
+    try:
+        success = _send_verification_email_internal(user, request)
+        
+        if success:
+            # Record successful send
+            profile.record_verification_email_sent()
+            logger.info(f"Verification email sent to {user.email}")
+            return True, "Verification email sent successfully", user.email
+        else:
+            logger.error(f"Failed to send verification email to {user.email}")
+            return False, "Failed to send email. Please try again", user.email
+            
+    except Exception as e:
+        logger.error(f"Exception sending verification email to {user.email}: {str(e)}")
+        return False, "Email service temporarily unavailable", user.email
+
+def _send_verification_email_internal(user, request=None):
+    """Internal email sending logic"""
+    try:
+        # Clean up old unused verification tokens (don't delete, mark expired)
+        old_tokens = EmailVerification.objects.filter(
             user=user, 
             verification_type='email_verify',
             is_used=False
-        ).delete()
+        )
+        
+        # Mark old tokens as expired instead of deleting
+        for token in old_tokens:
+            if not token.is_expired:
+                token.is_used = True  # Mark as used to prevent reuse
+                token.save()
         
         # Create new verification token
         verification = EmailVerification.objects.create(
@@ -28,7 +99,7 @@ def send_verification_email(user, request=None):
         )
         
         # Build verification URL
-        frontend_url = get_frontend_url()
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
         verification_url = f"{frontend_url}/verify-email/{verification.token}"
         
         # Email context
@@ -54,87 +125,58 @@ def send_verification_email(user, request=None):
             fail_silently=False,
         )
         
-        if result == 1:
-            logger.info(f"Verification email sent to {user.email}")
-            return True
-        else:
-            logger.error(f"Failed to send verification email to {user.email}")
-            return False
-            
+        return result == 1
+        
     except Exception as e:
-        logger.error(f"Failed to send verification email to {user.email}: {str(e)}")
+        logger.error(f"Internal email send failed for {user.email}: {str(e)}")
         return False
 
-def send_welcome_email(user):
-    """Send welcome email after successful verification"""
-    try:
-        frontend_url = get_frontend_url()
-        login_url = f"{frontend_url}/login"
-        
-        context = {
-            'user': user,
-            'login_url': login_url,
-            'site_name': 'PIIcasso',
-        }
-        
-        subject = 'Welcome to PIIcasso!'
-        html_message = render_to_string('emails/welcome.html', context)
-        plain_message = render_to_string('emails/welcome.txt', context)
-        
-        result = send_mail(
-            subject=subject,
-            message=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
-        
-        if result == 1:
-            logger.info(f"Welcome email sent to {user.email}")
-            return True
-        else:
-            logger.error(f"Failed to send welcome email to {user.email}")
-            return False
-            
-    except Exception as e:
-        logger.error(f"Failed to send welcome email to {user.email}: {str(e)}")
-        return False
+# Backward compatibility
+def resend_verification_email(user_or_email):
+    """Legacy function for backward compatibility"""
+    success, message, email = send_verification_email_safe(user_or_email)
+    return success, message
+
+def send_verification_email(user, request=None):
+    """Legacy function for backward compatibility"""
+    success, message, email = send_verification_email_safe(user, request)
+    return success
 
 def send_password_reset_email(user, request=None):
-    """Send password reset email"""
+    """Send a password reset email. Returns True on success, False on failure."""
     try:
-        # Clean up old unused reset tokens
-        EmailVerification.objects.filter(
-            user=user, 
+        # Mark any old unused password-reset tokens as used to prevent reuse
+        old_tokens = EmailVerification.objects.filter(
+            user=user,
             verification_type='password_reset',
             is_used=False
-        ).delete()
-        
-        # Create new reset token
+        )
+        for token in old_tokens:
+            if not token.is_expired:
+                token.is_used = True
+                token.save()
+
+        # Create a new password-reset token
         verification = EmailVerification.objects.create(
             user=user,
             verification_type='password_reset'
         )
-        
+
         # Build reset URL
-        frontend_url = get_frontend_url()
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
         reset_url = f"{frontend_url}/reset-password/{verification.token}"
-        
-        # Email context
+
         context = {
             'user': user,
             'reset_url': reset_url,
             'site_name': 'PIIcasso',
             'token': verification.token,
         }
-        
-        # Render email content
-        subject = 'PIIcasso - Password Reset Request'
+
+        subject = 'PIIcasso - Reset Your Password'
         html_message = render_to_string('emails/password_reset.html', context)
         plain_message = render_to_string('emails/password_reset.txt', context)
-        
-        # Send email
+
         result = send_mail(
             subject=subject,
             message=plain_message,
@@ -143,28 +185,9 @@ def send_password_reset_email(user, request=None):
             html_message=html_message,
             fail_silently=False,
         )
-        
-        if result == 1:
-            logger.info(f"Password reset email sent to {user.email}")
-            return True
-        else:
-            logger.error(f"Failed to send password reset email to {user.email}")
-            return False
-            
-    except Exception as e:
-        logger.error(f"Failed to send password reset email to {user.email}: {str(e)}")
-        return False
 
-def resend_verification_email(user):
-    """Resend verification email"""
-    profile = UserProfile.get_or_create_profile(user)
-    
-    if profile.email_verified:
-        return False, "Email is already verified."
-    
-    success = send_verification_email(user)
-    
-    if success:
-        return True, "Verification email sent successfully."
-    else:
-        return False, "Failed to send verification email."
+        return result == 1
+
+    except Exception as e:
+        logger.error(f"Password reset email failed for {getattr(user, 'email', None)}: {e}")
+        return False

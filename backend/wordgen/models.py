@@ -83,18 +83,58 @@ class EmailVerification(models.Model):
 
 
 class UserProfile(models.Model):
-    """Extended user profile with email verification status"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     email_verified = models.BooleanField(default=False)
     email_verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Rate limiting fields
+    last_verification_sent = models.DateTimeField(null=True, blank=True)
+    verification_email_count = models.PositiveIntegerField(default=0)
+    verification_cooldown_until = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.user.username} - Email Verified: {self.email_verified}"
+    def can_send_verification_email(self):
+        """Check if user can receive another verification email"""
+        now = timezone.now()
+        
+        # Check cooldown period
+        if self.verification_cooldown_until and now < self.verification_cooldown_until:
+            remaining = (self.verification_cooldown_until - now).total_seconds()
+            return False, f"Please wait {int(remaining // 60)} minutes before requesting another email"
+        
+        # Check daily limit (max 5 per day)
+        if self.last_verification_sent:
+            if (now - self.last_verification_sent) < timedelta(hours=24):
+                if self.verification_email_count >= 5:
+                    return False, "Daily email limit reached. Please try again tomorrow"
+            else:
+                # Reset daily counter
+                self.verification_email_count = 0
+        
+        return True, "OK"
+    
+    def record_verification_email_sent(self):
+        """Record that a verification email was sent"""
+        now = timezone.now()
+        
+        # Reset counter if it's a new day
+        if not self.last_verification_sent or (now - self.last_verification_sent) >= timedelta(hours=24):
+            self.verification_email_count = 0
+        
+        self.verification_email_count += 1
+        self.last_verification_sent = now
+        
+        # Set cooldown (5 minutes for first 2 emails, 15 minutes after that)
+        if self.verification_email_count <= 2:
+            cooldown_minutes = 5
+        else:
+            cooldown_minutes = 15
+            
+        self.verification_cooldown_until = now + timedelta(minutes=cooldown_minutes)
+        self.save()
 
     @classmethod
     def get_or_create_profile(cls, user):
-        """Get or create user profile"""
         profile, created = cls.objects.get_or_create(user=user)
         return profile

@@ -120,21 +120,20 @@ class VerifyEmailView(APIView):
             )
 
 class ResendVerificationView(APIView):
-    """Resend email verification"""
     permission_classes = [AllowAny]
     
-    @rate_limit(key_prefix='resend_verification', limit=3, period=900)  # 3 resends per 15 minutes
+    @rate_limit(key_prefix='resend_verification', limit=3, period=900)
     def post(self, request):
-        serializer = ResendVerificationSerializer(data=request.data)
+        email = request.data.get('email', '').strip().lower()
         
-        if not serializer.is_valid():
+        if not email:
             return Response(
-                {'error': 'Invalid data', 'details': serializer.errors},
+                {'error': 'Email address is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        user = serializer.user
-        success, message = resend_verification_email(user)
+        # Use the new robust function
+        success, message, user_email = send_verification_email_safe(email, request)
         
         if success:
             return Response({
