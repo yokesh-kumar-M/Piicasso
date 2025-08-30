@@ -5,6 +5,7 @@ from io import StringIO
 
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.utils import timezone
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,12 +17,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .llm_handler import build_prompt, call_gemini_api
 from .models import GenerationHistory
 from .serializers import Piiserializer
-from .decorators import enhanced_rate_limit as rate_limit
+from .decorators import enhanced_rate_limit as rate_limit       
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
-    @rate_limit(key_prefix='register', limit=5, period=3600)  # 5 registrations per hour
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')
@@ -55,7 +55,6 @@ class PiiSubmitView(APIView):
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
-    @rate_limit(key_prefix='pii_submit', limit=50, period=3600)  # 50 submissions per hour
     def post(self, request):
         serializer = Piiserializer(data=request.data)
         if not serializer.is_valid():
@@ -112,7 +111,6 @@ class HistoryView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @rate_limit(key_prefix='history_view', limit=100, period=3600)  # 100 history views per hour
     def get(self, request):
         try:
             page = int(request.query_params.get('page', 1))
