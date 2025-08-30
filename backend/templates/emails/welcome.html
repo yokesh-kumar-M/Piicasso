@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to PIIcasso!</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #16a34a; color: white; padding: 20px; text-align: center; }
+        .content { background: #f9f9f9; padding: 30px; }
+        .button { background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to PIIcasso!</h1>
+        </div>
+        <div class="content">
+            <h3>Hello {{ user.username }}!</h3>
+            <p>🎉 Your email has been verified successfully!</p>
+            <p>You can now access all PIIcasso intelligence features.</p>
+            <p><a href="{{ login_url }}" class="button">Login to PIIcasso</a></p>
+            <p>Thank you for joining our platform!</p>
+        </div>
+    </div>
+</body>
+</html>

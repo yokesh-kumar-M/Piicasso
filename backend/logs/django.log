@@ -1870,3 +1870,132 @@ INFO 2025-08-30 04:38:25,916 basehttp "GET /api/profile/ HTTP/1.1" 200 212
 INFO 2025-08-30 04:38:25,925 basehttp "GET /api/profile/ HTTP/1.1" 200 212
 INFO 2025-08-30 04:38:25,934 basehttp "GET /api/profile/ HTTP/1.1" 200 212
 INFO 2025-08-30 04:38:33,939 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 16:58:13,495 autoreload Watching for file changes with StatReloader
+WARNING 2025-08-30 17:02:30,614 log Bad Request: /api/register/
+WARNING 2025-08-30 17:02:30,617 basehttp "POST /api/register/ HTTP/1.1" 400 152
+INFO 2025-08-30 17:03:39,736 email_utils Verification email sent to test2@example.com
+INFO 2025-08-30 17:03:39,737 basehttp "POST /api/register/ HTTP/1.1" 201 132
+INFO 2025-08-30 17:04:29,157 basehttp "OPTIONS /api/profile/ HTTP/1.1" 200 0
+INFO 2025-08-30 17:04:29,161 basehttp "OPTIONS /api/profile/ HTTP/1.1" 200 0
+INFO 2025-08-30 17:04:29,166 basehttp "OPTIONS /api/profile/ HTTP/1.1" 200 0
+INFO 2025-08-30 17:04:29,167 basehttp "OPTIONS /api/profile/ HTTP/1.1" 200 0
+WARNING 2025-08-30 17:04:29,194 log Unauthorized: /api/profile/
+WARNING 2025-08-30 17:04:29,195 basehttp "GET /api/profile/ HTTP/1.1" 401 172
+WARNING 2025-08-30 17:04:29,199 log Unauthorized: /api/profile/
+WARNING 2025-08-30 17:04:29,200 basehttp "GET /api/profile/ HTTP/1.1" 401 172
+WARNING 2025-08-30 17:04:29,204 log Unauthorized: /api/profile/
+WARNING 2025-08-30 17:04:29,205 basehttp "GET /api/profile/ HTTP/1.1" 401 172
+WARNING 2025-08-30 17:04:29,209 log Unauthorized: /api/profile/
+WARNING 2025-08-30 17:04:29,210 basehttp "GET /api/profile/ HTTP/1.1" 401 172
+INFO 2025-08-30 17:04:29,215 basehttp "OPTIONS /api/token/refresh/ HTTP/1.1" 200 0
+ERROR 2025-08-30 17:04:29,324 log Internal Server Error: /api/token/refresh/
+Traceback (most recent call last):
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework_simplejwt\views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework_simplejwt\serializers.py", line 116, in validate
+    user := get_user_model().objects.get(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        **{api_settings.USER_ID_FIELD: user_id}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+django.contrib.auth.models.User.DoesNotExist: User matching query does not exist.
+ERROR 2025-08-30 17:04:29,338 basehttp "POST /api/token/refresh/ HTTP/1.1" 500 125854
+INFO 2025-08-30 17:05:36,383 basehttp "OPTIONS /api/register/ HTTP/1.1" 200 0
+INFO 2025-08-30 17:05:37,373 email_utils Verification email sent to test4@example.com
+INFO 2025-08-30 17:05:37,376 basehttp "POST /api/register/ HTTP/1.1" 201 132
+INFO 2025-08-30 17:06:08,799 basehttp "OPTIONS /api/login/ HTTP/1.1" 200 0
+WARNING 2025-08-30 17:06:09,494 log Bad Request: /api/login/
+WARNING 2025-08-30 17:06:09,494 basehttp "POST /api/login/ HTTP/1.1" 400 162
+INFO 2025-08-30 17:07:21,330 email_utils Verification email sent to yoheb36257@noidem.com
+INFO 2025-08-30 17:07:21,333 basehttp "POST /api/register/ HTTP/1.1" 201 136
+WARNING 2025-08-30 17:07:45,830 log Bad Request: /api/login/
+WARNING 2025-08-30 17:07:45,830 basehttp "POST /api/login/ HTTP/1.1" 400 166
+INFO 2025-08-30 17:07:47,655 basehttp "OPTIONS /api/resend-verification/ HTTP/1.1" 200 0
+WARNING 2025-08-30 17:07:47,666 log Bad Request: /api/resend-verification/
+WARNING 2025-08-30 17:07:47,668 basehttp "POST /api/resend-verification/ HTTP/1.1" 400 77
+INFO 2025-08-30 17:14:05,466 email_utils Verification email sent to yoheb36257@noidem.com
+INFO 2025-08-30 17:14:05,468 basehttp "POST /api/resend-verification/ HTTP/1.1" 200 69
+WARNING 2025-08-30 17:14:48,069 log Bad Request: /api/login/
+WARNING 2025-08-30 17:14:48,069 basehttp "POST /api/login/ HTTP/1.1" 400 166
+INFO 2025-08-30 17:18:13,159 basehttp "OPTIONS /api/verify-email/ HTTP/1.1" 200 0
+INFO 2025-08-30 17:18:13,163 basehttp "OPTIONS /api/verify-email/ HTTP/1.1" 200 0
+INFO 2025-08-30 17:18:13,235 email_utils Welcome email sent to yoheb36257@noidem.com
+INFO 2025-08-30 17:18:13,236 views_auth Email verified for user: testuser5
+INFO 2025-08-30 17:18:13,243 basehttp "POST /api/verify-email/ HTTP/1.1" 200 78
+INFO 2025-08-30 17:18:13,350 email_utils Welcome email sent to yoheb36257@noidem.com
+INFO 2025-08-30 17:18:13,362 views_auth Email verified for user: testuser5
+INFO 2025-08-30 17:18:13,381 basehttp "POST /api/verify-email/ HTTP/1.1" 200 78
+INFO 2025-08-30 17:18:28,611 views_auth Successful login for user: testuser5
+INFO 2025-08-30 17:18:28,613 basehttp "POST /api/login/ HTTP/1.1" 200 583
+INFO 2025-08-30 17:18:29,794 views_auth Successful login for user: testuser5
+INFO 2025-08-30 17:18:29,796 basehttp "POST /api/login/ HTTP/1.1" 200 583
+INFO 2025-08-30 17:18:29,815 basehttp "OPTIONS /api/history/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-08-30 17:18:29,823 basehttp "OPTIONS /api/history/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-08-30 17:18:29,836 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 17:18:29,840 basehttp "GET /api/history/?page=1&page_size=10 HTTP/1.1" 200 64
+INFO 2025-08-30 17:18:29,852 basehttp "GET /api/history/?page=1&page_size=10 HTTP/1.1" 200 64
+INFO 2025-08-30 17:20:41,632 basehttp "OPTIONS /api/submit-pii/ HTTP/1.1" 200 0
+INFO 2025-08-30 17:20:41,651 llm_handler Sending request to Gemini API with 3 data fields
+INFO 2025-08-30 17:20:41,653 llm_handler Making request to Gemini API...
+INFO 2025-08-30 17:20:50,979 llm_handler Successfully generated 181 passwords
+INFO 2025-08-30 17:20:50,995 basehttp "POST /api/submit-pii/ HTTP/1.1" 201 2273
+INFO 2025-08-30 17:21:44,273 basehttp "GET /api/history/?page=1&page_size=10 HTTP/1.1" 200 2482
+INFO 2025-08-30 17:21:44,292 basehttp "GET /api/history/?page=1&page_size=10 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:03:10,494 basehttp "OPTIONS /api/history/?page=1&page_size=12 HTTP/1.1" 200 0
+INFO 2025-08-30 18:03:10,500 basehttp "OPTIONS /api/history/?page=1&page_size=12 HTTP/1.1" 200 0
+INFO 2025-08-30 18:03:10,513 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:03:10,525 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:05:48,725 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:05:48,732 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:05:48,742 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:05:48,754 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:05:48,779 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:05:48,791 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:06:01,879 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:06:01,892 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:06:09,192 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:06:09,207 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:12:30,939 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:12:30,963 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:12:30,979 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:12:30,993 basehttp "GET /api/profile/ HTTP/1.1" 200 230
+INFO 2025-08-30 18:12:31,150 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:12:31,160 basehttp "GET /api/history/?page=1&page_size=12 HTTP/1.1" 200 2482
+INFO 2025-08-30 18:13:05,254 email_utils Verification email sent to paarimannan@gmail.com
+INFO 2025-08-30 18:13:05,255 basehttp "POST /api/register/ HTTP/1.1" 201 136
+WARNING 2025-08-30 18:13:32,090 log Bad Request: /api/login/
+WARNING 2025-08-30 18:13:32,092 basehttp "POST /api/login/ HTTP/1.1" 400 166
+INFO 2025-08-30 18:23:22,071 autoreload C:\Users\yokes\OneDrive\Documents\Full-stack\Django\PIIcasso\PIIcasso\backend\wordgen\email_utils.py changed, reloading.
+INFO 2025-08-30 18:23:23,986 autoreload Watching for file changes with StatReloader

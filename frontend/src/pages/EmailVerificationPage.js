@@ -3,6 +3,18 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { CheckCircle, XCircle, RefreshCw, Mail, AlertCircle } from 'lucide-react';
 
+const EmailTroubleshooting = ({ email }) => (
+  <div className="mt-6 bg-yellow-900/20 border border-yellow-500 rounded-lg p-4">
+    <h3 className="text-yellow-400 font-semibold mb-3">📧 Email Not Received?</h3>
+    <div className="text-yellow-200 text-sm space-y-2">
+      <p><strong>1. Check Spam/Junk Folder</strong> - Gmail, Yahoo often filter verification emails</p>
+      <p><strong>2. Wait 2-3 minutes</strong> - Email servers can be slow</p>
+      <p><strong>3. Check email address:</strong> <code className="bg-yellow-800 px-1 rounded">{email}</code></p>
+      <p><strong>4. Add to Safe Senders:</strong> noreply@piicasso.com</p>
+      <p><strong>5. Try different email:</strong> Gmail, Yahoo, Outlook work best</p>
+    </div>
+  </div>
+);
 const EmailVerificationPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -142,6 +154,7 @@ const EmailVerificationPage = () => {
                 </button>
               </div>
             </div>
+            <EmailTroubleshooting email={resendEmail} />
           </div>
         );
 

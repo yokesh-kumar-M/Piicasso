@@ -108,6 +108,7 @@ const RegisterPage = () => {
             </div>
           </div>
         </div>
+         <EmailTroubleshooting email={email} />
       </div>
     );
   }

@@ -1,0 +1,14 @@
+PIIcasso - Email Verification Required
+
+Hello {{ user.username }}!
+
+Welcome to PIIcasso! To complete your registration and access all features, please verify your email address.
+
+Click this link to verify: {{ verification_url }}
+
+This verification link will expire in 24 hours for security reasons.
+
+If you didn't create an account with PIIcasso, please ignore this email.
+
+---
+© 2024 PIIcasso Intelligence Platform

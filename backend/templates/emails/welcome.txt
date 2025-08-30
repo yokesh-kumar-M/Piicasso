@@ -1,0 +1,11 @@
+Welcome to PIIcasso!
+
+Hello {{ user.username }}!
+
+Your email has been verified successfully!
+
+You can now access all PIIcasso intelligence features.
+
+Login to PIIcasso: {{ login_url }}
+
+Thank you for joining our platform!

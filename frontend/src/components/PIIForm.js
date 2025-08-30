@@ -8,54 +8,55 @@ import {
   Shield, Zap, Lock, Wifi, Database, Code,
   Activity, Map, Users, Globe, Crosshair, 
   MapPin, Search, Clock, Truck, Building,
-  AlertCircle, ArrowRight, Mail, Settings
+  AlertCircle, ArrowRight, Settings, Play
 } from 'lucide-react';
 
 const fields = [
   // IDENTITY_CORE
-  { key: 'full_name', label: 'Target Name', icon: <User className="w-4 h-4" />, placeholder: 'Enter full name...', category: 'identity', risk: 'HIGH' },
-  { key: 'birth_year', label: 'Birth Year', icon: <Calendar className="w-4 h-4" />, placeholder: 'YYYY format...', category: 'identity', risk: 'HIGH' },
-  { key: 'gov_id', label: 'Gov Identity', icon: <Shield className="w-4 h-4" />, placeholder: 'National ID...', category: 'identity', risk: 'HIGH' },
-  { key: 'mother_maiden', label: 'Mother Maiden', icon: <User className="w-4 h-4" />, placeholder: "Mother's maiden name...", category: 'identity', risk: 'HIGH' },
-  { key: 'passport_id', label: 'Passport ID', icon: <Code className="w-4 h-4" />, placeholder: 'Passport number...', category: 'identity', risk: 'HIGH' },
+  { key: 'full_name', label: 'Target Name', icon: <User className="w-5 h-5" />, placeholder: 'Enter full name...', category: 'Identity Core', risk: 'HIGH' },
+  { key: 'birth_year', label: 'Birth Year', icon: <Calendar className="w-5 h-5" />, placeholder: 'YYYY format...', category: 'Identity Core', risk: 'HIGH' },
+  { key: 'gov_id', label: 'Gov Identity', icon: <Shield className="w-5 h-5" />, placeholder: 'National ID...', category: 'Identity Core', risk: 'HIGH' },
+  { key: 'mother_maiden', label: 'Mother Maiden', icon: <User className="w-5 h-5" />, placeholder: "Mother's maiden name...", category: 'Identity Core', risk: 'HIGH' },
+  { key: 'passport_id', label: 'Passport ID', icon: <Code className="w-5 h-5" />, placeholder: 'Passport number...', category: 'Identity Core', risk: 'HIGH' },
 
   // SOCIAL_GRAPH
-  { key: 'spouse_name', label: 'Spouse Name', icon: <Heart className="w-4 h-4" />, placeholder: 'Associated partner...', category: 'social', risk: 'HIGH' },
-  { key: 'social_handles', label: 'Social Handle', icon: <Wifi className="w-4 h-4" />, placeholder: '@username...', category: 'social', risk: 'HIGH' },
-  { key: 'relationship_status', label: 'Relationship Status', icon: <Heart className="w-4 h-4" />, placeholder: 'Single, Married...', category: 'social', risk: 'LOW' },
-  { key: 'close_contacts', label: 'Close Contacts', icon: <Users className="w-4 h-4" />, placeholder: 'Frequent callers...', category: 'social', risk: 'MED' },
-  { key: 'group_affiliations', label: 'Group Affiliation', icon: <Globe className="w-4 h-4" />, placeholder: 'Clubs, communities...', category: 'social', risk: 'LOW' },
+  { key: 'spouse_name', label: 'Spouse Name', icon: <Heart className="w-5 h-5" />, placeholder: 'Associated partner...', category: 'Social Graph', risk: 'HIGH' },
+  { key: 'social_handles', label: 'Social Handle', icon: <Wifi className="w-5 h-5" />, placeholder: '@username...', category: 'Social Graph', risk: 'HIGH' },
+  { key: 'relationship_status', label: 'Relationship Status', icon: <Heart className="w-5 h-5" />, placeholder: 'Single, Married...', category: 'Social Graph', risk: 'LOW' },
+  { key: 'close_contacts', label: 'Close Contacts', icon: <Users className="w-5 h-5" />, placeholder: 'Frequent callers...', category: 'Social Graph', risk: 'MED' },
+  { key: 'group_affiliations', label: 'Group Affiliation', icon: <Globe className="w-5 h-5" />, placeholder: 'Clubs, communities...', category: 'Social Graph', risk: 'LOW' },
 
   // GEO_INTEL
-  { key: 'hometown', label: 'HomeTown', icon: <Home className="w-4 h-4" />, placeholder: 'Birth coordinates...', category: 'geo', risk: 'HIGH' },
-  { key: 'last_location', label: 'Last Location', icon: <Map className="w-4 h-4" />, placeholder: 'Last seen at...', category: 'geo', risk: 'HIGH' },
-  { key: 'travel_history', label: 'Travel History', icon: <Zap className="w-4 h-4" />, placeholder: 'Destinations...', category: 'geo', risk: 'MED' },
-  { key: 'live_coordinates', label: 'Live Coordinates', icon: <Crosshair className="w-4 h-4" />, placeholder: 'Real-time location...', category: 'geo', risk: 'HIGH' },
-  { key: 'frequent_places', label: 'Frequent Places', icon: <MapPin className="w-4 h-4" />, placeholder: 'Work, cafe, gym...', category: 'geo', risk: 'MED' },
+  { key: 'hometown', label: 'HomeTown', icon: <Home className="w-5 h-5" />, placeholder: 'Birth coordinates...', category: 'Geographic Intelligence', risk: 'HIGH' },
+  { key: 'last_location', label: 'Last Location', icon: <Map className="w-5 h-5" />, placeholder: 'Last seen at...', category: 'Geographic Intelligence', risk: 'HIGH' },
+  { key: 'travel_history', label: 'Travel History', icon: <Zap className="w-5 h-5" />, placeholder: 'Destinations...', category: 'Geographic Intelligence', risk: 'MED' },
+  { key: 'live_coordinates', label: 'Live Coordinates', icon: <Crosshair className="w-5 h-5" />, placeholder: 'Real-time location...', category: 'Geographic Intelligence', risk: 'HIGH' },
+  { key: 'frequent_places', label: 'Frequent Places', icon: <MapPin className="w-5 h-5" />, placeholder: 'Work, cafe, gym...', category: 'Geographic Intelligence', risk: 'MED' },
 
   // BEHAVIOR_PATTERN
-  { key: 'favourite_movies', label: 'Favourite Movie', icon: <Film className="w-4 h-4" />, placeholder: 'Content preferences...', category: 'behavioral', risk: 'LOW' },
-  { key: 'shopping_sites', label: 'Shopping site', icon: <Database className="w-4 h-4" />, placeholder: 'Amazon, Flipkart...', category: 'behavioral', risk: 'MED' },
-  { key: 'habit_patterns', label: 'Habits', icon: <Activity className="w-4 h-4" />, placeholder: 'Sleep, eat, gym...', category: 'behavioral', risk: 'MED' },
-  { key: 'search_keywords', label: 'Search Keywords', icon: <Search className="w-4 h-4" />, placeholder: 'Recent searches...', category: 'behavioral', risk: 'MED' },
-  { key: 'content_timing', label: 'Content Timing', icon: <Clock className="w-4 h-4" />, placeholder: 'Late night usage...', category: 'behavioral', risk: 'LOW' },
+  { key: 'favourite_movies', label: 'Favourite Movie', icon: <Film className="w-5 h-5" />, placeholder: 'Content preferences...', category: 'Behavioral Patterns', risk: 'LOW' },
+  { key: 'shopping_sites', label: 'Shopping site', icon: <Database className="w-5 h-5" />, placeholder: 'Amazon, Flipkart...', category: 'Behavioral Patterns', risk: 'MED' },
+  { key: 'habit_patterns', label: 'Habits', icon: <Activity className="w-5 h-5" />, placeholder: 'Sleep, eat, gym...', category: 'Behavioral Patterns', risk: 'MED' },
+  { key: 'search_keywords', label: 'Search Keywords', icon: <Search className="w-5 h-5" />, placeholder: 'Recent searches...', category: 'Behavioral Patterns', risk: 'MED' },
+  { key: 'content_timing', label: 'Content Timing', icon: <Clock className="w-5 h-5" />, placeholder: 'Late night usage...', category: 'Behavioral Patterns', risk: 'LOW' },
 
   // ASSET_REGISTRY
-  { key: 'phone_suffix', label: 'Phone Suffix', icon: <Phone className="w-4 h-4" />, placeholder: 'Last 4 digits...', category: 'assets', risk: 'HIGH' },
-  { key: 'bank_suffix', label: 'Bank Suffix', icon: <Database className="w-4 h-4" />, placeholder: 'Last 4 of bank...', category: 'assets', risk: 'HIGH' },
-  { key: 'crypto_wallet', label: 'Crypto Wallet', icon: <Lock className="w-4 h-4" />, placeholder: 'Wallet address...', category: 'assets', risk: 'HIGH' },
-  { key: 'vehicle_reg', label: 'Vehicle Reg.', icon: <Truck className="w-4 h-4" />, placeholder: 'License plate...', category: 'assets', risk: 'HIGH' },
-  { key: 'property_id', label: 'Property ID', icon: <Building className="w-4 h-4" />, placeholder: 'Registry ID...', category: 'assets', risk: 'HIGH' },
+  { key: 'phone_suffix', label: 'Phone Suffix', icon: <Phone className="w-5 h-5" />, placeholder: 'Last 4 digits...', category: 'Asset Registry', risk: 'HIGH' },
+  { key: 'bank_suffix', label: 'Bank Suffix', icon: <Database className="w-5 h-5" />, placeholder: 'Last 4 of bank...', category: 'Asset Registry', risk: 'HIGH' },
+  { key: 'crypto_wallet', label: 'Crypto Wallet', icon: <Lock className="w-5 h-5" />, placeholder: 'Wallet address...', category: 'Asset Registry', risk: 'HIGH' },
+  { key: 'vehicle_reg', label: 'Vehicle Reg.', icon: <Truck className="w-5 h-5" />, placeholder: 'License plate...', category: 'Asset Registry', risk: 'HIGH' },
+  { key: 'property_id', label: 'Property ID', icon: <Building className="w-5 h-5" />, placeholder: 'Registry ID...', category: 'Asset Registry', risk: 'HIGH' },
 ];
 
 const categories = [...new Set(fields.map(f => f.category))];
 
 const PIIForm = () => {
-  const { isAuthenticated, isEmailVerified, needsEmailVerification, user, loading: authLoading } = useContext(AuthContext);
+  const { isAuthenticated, isEmailVerified, needsEmailVerification, loading: authLoading } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,7 +70,6 @@ const PIIForm = () => {
   };
 
   const buildPayload = () => {
-    // Convert comma-separated lists for certain fields
     const payload = { ...formData };
     if (payload.pet_names) {
       payload.pet_names = payload.pet_names.split(',').map(s => s.trim()).filter(Boolean);
@@ -128,126 +128,178 @@ const PIIForm = () => {
     }
   };
 
-  // Show loading while checking auth
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-red-500 text-xl animate-pulse">
-          Loading...
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex items-center space-x-4">
+          <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-white text-xl font-medium">Loading PIIcasso...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-12">
-      <h1 className="text-5xl font-bold text-red-600 mb-6 text-center drop-shadow-lg tracking-wide">PIIcasso</h1>
-      
-      {/* Email Verification Banner */}
-      {needsEmailVerification && (
-        <div className="max-w-4xl mx-auto mb-8">
-          <EmailVerificationBanner showDismiss={false} />
-        </div>
-      )}
-
-      {/* Access Restriction Notice for Non-Verified Users */}
-      {isAuthenticated && !isEmailVerified && (
-        <div className="max-w-4xl mx-auto mb-8 bg-red-900/20 border border-red-500 rounded-lg p-6">
-          <div className="flex items-center mb-4">
-            <AlertCircle className="w-6 h-6 text-red-400 mr-3" />
-            <h2 className="text-xl font-semibold text-red-400">Access Restricted</h2>
-          </div>
-          <p className="text-red-200 mb-4">
-            Email verification is required to access PIIcasso's intelligence features. This security measure ensures:
+    <div className="min-h-screen bg-black text-white">
+      {/* Netflix-style Hero Section */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black"></div>
+        <div className="relative px-8 py-16 text-center">
+          <h1 className="text-7xl font-black text-white mb-4 tracking-tight">
+            PII<span className="text-red-600">casso</span>
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            Advanced intelligence gathering platform for security professionals
           </p>
-          <ul className="text-red-200 text-sm space-y-1 mb-6 ml-4">
-            <li>• Secure account access</li>
-            <li>• Data integrity and privacy</li>
-            <li>• Protection against unauthorized usage</li>
-            <li>• Compliance with security protocols</li>
-          </ul>
-          <p className="text-red-300 text-sm mb-6">
-            Please verify your email address to continue using the platform.
-          </p>
-
-          {/* Navigation Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Go to Dashboard</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            
-            {user?.email && (
-              <div className="flex items-center space-x-2 bg-zinc-800 text-zinc-300 px-4 py-2 rounded-lg">
-                <Mail className="w-4 h-4" />
-                <span className="text-sm">Check: {user.email}</span>
-              </div>
-            )}
-          </div>
         </div>
-      )}
-
-      {error && <div className="text-red-400 mb-6 text-center max-w-4xl mx-auto bg-red-900/20 border border-red-500 rounded-lg p-3">{error}</div>}
-      {submitSuccess && <div className="text-green-400 mb-6 text-center max-w-4xl mx-auto bg-green-900/20 border border-green-500 rounded-lg p-3">PII submitted successfully! Redirecting...</div>}
-      
-      {/* Form Fields - Disabled if email not verified */}
-      <div className={`transition-opacity duration-300 ${!isEmailVerified ? 'opacity-50 pointer-events-none' : ''}`}>
-        {categories.map(cat => (
-          <div key={cat} className="mb-10 max-w-6xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-4 text-red-400 capitalize">{cat}</h2>
-            <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-red-800 scrollbar-track-zinc-900">
-              {fields.filter(f => f.category === cat).map(field => (
-                <div
-                  key={field.key}
-                  className="min-w-[280px] bg-gradient-to-br from-zinc-800 to-zinc-900 p-5 rounded-2xl shadow-lg hover:shadow-red-700/40 transition-all duration-300 border border-zinc-700 hover:scale-105 transform"
-                >
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="bg-red-600/20 p-2 rounded-full">{field.icon}</div>
-                    <div className="text-lg font-medium">{field.label}</div>
-                    <div className={`text-xs px-2 py-1 rounded-full ${
-                      field.risk === 'HIGH' ? 'bg-red-600/20 text-red-400' :
-                      field.risk === 'MED' ? 'bg-yellow-600/20 text-yellow-400' :
-                      'bg-green-600/20 text-green-400'
-                    }`}>
-                      {field.risk}
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder={field.placeholder}
-                    value={formData[field.key] || ''}
-                    onChange={(e) => handleChange(field.key, e.target.value)}
-                    disabled={!isEmailVerified}
-                    className="w-full bg-black border border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 placeholder-zinc-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
       </div>
 
-      {/* Submit Button */}
-      <div className="mt-12 text-center">
-        <button
-          onClick={handleSubmit}
-          disabled={loading || !isAuthenticated || !isEmailVerified}
-          className="bg-gradient-to-r from-red-600 to-red-800 text-white font-bold py-4 px-10 rounded-xl text-xl shadow-lg hover:shadow-red-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-102 transform"
-        >
-          {loading ? 'Generating...' : 'Initiate PII Scan'}
-        </button>
-        
-        {!isAuthenticated && (
-          <p className="text-zinc-500 mt-4 text-sm">Please log in to submit PII data.</p>
+      <div className="px-8 pb-16">
+        {/* Email Verification Banner */}
+        {needsEmailVerification && (
+          <div className="max-w-7xl mx-auto mb-8">
+            <EmailVerificationBanner showDismiss={false} />
+          </div>
         )}
-        
+
+        {/* Access Restriction for Non-Verified Users */}
         {isAuthenticated && !isEmailVerified && (
-          <p className="text-red-400 mt-4 text-sm">Email verification required to proceed.</p>
+          <div className="max-w-4xl mx-auto mb-8 bg-gradient-to-r from-red-900/20 to-red-800/20 border border-red-500/30 rounded-2xl p-8 backdrop-blur-sm">
+            <div className="flex items-center mb-6">
+              <AlertCircle className="w-8 h-8 text-red-400 mr-4" />
+              <h2 className="text-2xl font-bold text-red-400">Access Restricted</h2>
+            </div>
+            <p className="text-red-200 text-lg mb-6">
+              Email verification required to access intelligence features.
+            </p>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105"
+              >
+                <Settings className="w-5 h-5" />
+                <span>Dashboard</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
         )}
+
+        {/* Error Messages */}
+        {error && (
+          <div className="max-w-7xl mx-auto mb-8 bg-red-900/20 border border-red-500 rounded-xl p-4 backdrop-blur-sm">
+            <div className="flex items-center">
+              <AlertCircle className="w-5 h-5 text-red-400 mr-3" />
+              <span className="text-red-300">{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {submitSuccess && (
+          <div className="max-w-7xl mx-auto mb-8 bg-green-900/20 border border-green-500 rounded-xl p-4 backdrop-blur-sm">
+            <div className="flex items-center">
+              <div className="w-5 h-5 bg-green-500 rounded-full mr-3 flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
+              <span className="text-green-300">Intelligence scan initiated successfully! Redirecting...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Netflix-style Form Categories */}
+        <div className={`max-w-7xl mx-auto transition-opacity duration-500 ${!isEmailVerified ? 'opacity-40 pointer-events-none' : ''}`}>
+          {categories.map((category, categoryIndex) => (
+            <div key={category} className="mb-12">
+              <div className="flex items-center mb-6">
+                <h2 className="text-2xl font-bold text-white mr-4">{category}</h2>
+                <div className="flex-1 h-px bg-gradient-to-r from-gray-600 to-transparent"></div>
+              </div>
+              
+              {/* Netflix-style Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {fields.filter(f => f.category === category).map((field, index) => (
+                  <div
+                    key={field.key}
+                    className="group relative bg-zinc-900/60 hover:bg-zinc-800/80 rounded-xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-2xl backdrop-blur-sm border border-zinc-800 hover:border-zinc-700"
+                    onMouseEnter={() => setHoveredCard(field.key)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                  >
+                    {/* Risk Badge */}
+                    <div className="absolute top-4 right-4">
+                      <div className={`px-2 py-1 rounded-full text-xs font-bold ${
+                        field.risk === 'HIGH' ? 'bg-red-600/20 text-red-400' :
+                        field.risk === 'MED' ? 'bg-yellow-600/20 text-yellow-400' :
+                        'bg-green-600/20 text-green-400'
+                      }`}>
+                        {field.risk}
+                      </div>
+                    </div>
+
+                    {/* Icon and Label */}
+                    <div className="flex items-center mb-4">
+                      <div className="bg-red-600/10 p-3 rounded-lg mr-3 group-hover:bg-red-600/20 transition-colors">
+                        {field.icon}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white group-hover:text-red-400 transition-colors">
+                          {field.label}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Input Field */}
+                    <input
+                      type="text"
+                      placeholder={field.placeholder}
+                      value={formData[field.key] || ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      disabled={!isEmailVerified}
+                      className="w-full bg-black/50 border border-zinc-700 hover:border-zinc-600 focus:border-red-500 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+
+                    {/* Hover Gradient Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/5 to-red-600/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Netflix-style Submit Button */}
+        <div className="max-w-7xl mx-auto text-center mt-16">
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !isAuthenticated || !isEmailVerified}
+            className="group relative bg-red-600 hover:bg-red-700 disabled:bg-zinc-800 disabled:cursor-not-allowed text-white font-bold py-6 px-12 rounded-xl text-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-red-600/25 disabled:opacity-50 disabled:hover:scale-100"
+          >
+            <div className="flex items-center justify-center space-x-3">
+              {loading ? (
+                <>
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing Intelligence...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                  <span>Initiate Intelligence Scan</span>
+                </>
+              )}
+            </div>
+            
+            {/* Button Gradient Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-red-700 via-red-600 to-red-700 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity"></div>
+          </button>
+          
+          {!isAuthenticated && (
+            <p className="text-zinc-500 mt-6 text-lg">Please log in to access intelligence features.</p>
+          )}
+          
+          {isAuthenticated && !isEmailVerified && (
+            <p className="text-red-400 mt-6 text-lg">Email verification required to proceed.</p>
+          )}
+        </div>
       </div>
     </div>
   );

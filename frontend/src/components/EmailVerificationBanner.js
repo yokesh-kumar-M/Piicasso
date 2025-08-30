@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import axiosInstance from '../api/axios';
 import { Mail, AlertCircle, CheckCircle, RefreshCw, X } from 'lucide-react';
 
+
 const EmailVerificationBanner = ({ showDismiss = false }) => {
   const { user, isEmailVerified, refreshUserProfile } = useContext(AuthContext);
   const [isResending, setIsResending] = useState(false);
