@@ -14,24 +14,47 @@ const fields = [
   { key: 'full_name', label: 'Full Name', icon: <User className="w-4 h-4" />, placeholder: 'John Smith', category: 'identity', risk: 'HIGH', priority: 1, description: 'Primary target identification' },
   { key: 'birth_year', label: 'Birth Year', icon: <Calendar className="w-4 h-4" />, placeholder: '1985', category: 'identity', risk: 'HIGH', priority: 1, description: 'Common password component' },
   { key: 'phone_suffix', label: 'Phone Last 4', icon: <Phone className="w-4 h-4" />, placeholder: '1234', category: 'identity', risk: 'HIGH', priority: 1, description: 'Frequently used in passwords' },
+  { key: 'gov_id', label: 'Gov Identity', icon: <Shield className="w-4 h-4" />, placeholder: 'National ID...', category: 'identity', risk: 'HIGH', priority: 1, description: 'Government identification' },
+  { key: 'mother_maiden', label: 'Mother Maiden', icon: <User className="w-4 h-4" />, placeholder: "Mother's maiden name...", category: 'identity', risk: 'HIGH', priority: 1, description: 'Security question answer' },
+  { key: 'passport_id', label: 'Passport ID', icon: <Code className="w-4 h-4" />, placeholder: 'Passport number...', category: 'identity', risk: 'HIGH', priority: 1, description: 'Travel document ID' },
   
   // PERSONAL_CONNECTIONS - High priority
   { key: 'pet_names', label: 'Pet Names', icon: <Heart className="w-4 h-4" />, placeholder: 'Buddy, Luna', category: 'personal', risk: 'HIGH', priority: 2, description: 'Very common password base (comma-separated)' },
   { key: 'spouse_name', label: 'Spouse/Partner', icon: <Heart className="w-4 h-4" />, placeholder: 'Sarah', category: 'personal', risk: 'HIGH', priority: 2, description: 'Loved ones often used in passwords' },
   { key: 'childhood_nickname', label: 'Childhood Nickname', icon: <User className="w-4 h-4" />, placeholder: 'Johnny', category: 'personal', risk: 'HIGH', priority: 2, description: 'Personal identifier in passwords' },
-  
+  { key: 'social_handles', label: 'Social Handle', icon: <Wifi className="w-4 h-4" />, placeholder: '@username...', category: 'personal', risk: 'HIGH', priority: 2, description: 'Online identity' },
+  { key: 'relationship_status', label: 'Relationship Status', icon: <Heart className="w-4 h-4" />, placeholder: 'Single, Married...', category: 'personal', risk: 'LOW', priority: 4, description: 'Personal status' },
+  { key: 'close_contacts', label: 'Close Contacts', icon: <Users className="w-4 h-4" />, placeholder: 'Frequent callers...', category: 'personal', risk: 'MED', priority: 3, description: 'Important relationships' },
+  { key: 'group_affiliations', label: 'Group Affiliation', icon: <Globe className="w-4 h-4" />, placeholder: 'Clubs, communities...', category: 'personal', risk: 'LOW', priority: 4, description: 'Social groups' },
+
   // LOCATION_DATA - Medium priority
   { key: 'hometown', label: 'Hometown', icon: <Home className="w-4 h-4" />, placeholder: 'Chicago', category: 'location', risk: 'MED', priority: 3, description: 'Geographic password component' },
   { key: 'school_name', label: 'School Name', icon: <Building className="w-4 h-4" />, placeholder: 'Lincoln High', category: 'location', risk: 'MED', priority: 3, description: 'Educational institution reference' },
-  
+  { key: 'last_location', label: 'Last Location', icon: <Map className="w-4 h-4" />, placeholder: 'Last seen at...', category: 'location', risk: 'HIGH', priority: 2, description: 'Recent whereabouts' },
+  { key: 'travel_history', label: 'Travel History', icon: <Zap className="w-4 h-4" />, placeholder: 'Destinations...', category: 'location', risk: 'MED', priority: 3, description: 'Travel patterns' },
+  { key: 'live_coordinates', label: 'Live Coordinates', icon: <Crosshair className="w-4 h-4" />, placeholder: 'Real-time location...', category: 'location', risk: 'HIGH', priority: 1, description: 'Current location data' },
+  { key: 'frequent_places', label: 'Frequent Places', icon: <MapPin className="w-4 h-4" />, placeholder: 'Work, cafe, gym...', category: 'location', risk: 'MED', priority: 3, description: 'Regular locations' },
+
   // INTERESTS - Lower priority but useful
   { key: 'favourite_movies', label: 'Favorite Movies', icon: <Film className="w-4 h-4" />, placeholder: 'Inception, Matrix', category: 'interests', risk: 'LOW', priority: 4, description: 'Entertainment preferences (comma-separated)' },
   { key: 'sports_team', label: 'Favorite Team', icon: <Activity className="w-4 h-4" />, placeholder: 'Lakers', category: 'interests', risk: 'LOW', priority: 4, description: 'Sports team loyalty' },
   { key: 'first_car_model', label: 'First Car', icon: <Truck className="w-4 h-4" />, placeholder: 'Honda Civic', category: 'interests', risk: 'LOW', priority: 4, description: 'Memorable possession' },
-  
+  { key: 'shopping_sites', label: 'Shopping Sites', icon: <Database className="w-4 h-4" />, placeholder: 'Amazon, Flipkart...', category: 'interests', risk: 'MED', priority: 3, description: 'Online shopping preferences' },
+  { key: 'habit_patterns', label: 'Habits', icon: <Activity className="w-4 h-4" />, placeholder: 'Sleep, eat, gym...', category: 'interests', risk: 'MED', priority: 3, description: 'Daily routines' },
+  { key: 'search_keywords', label: 'Search Keywords', icon: <Search className="w-4 h-4" />, placeholder: 'Recent searches...', category: 'interests', risk: 'MED', priority: 3, description: 'Search patterns' },
+  { key: 'content_timing', label: 'Content Timing', icon: <Clock className="w-4 h-4" />, placeholder: 'Late night usage...', category: 'interests', risk: 'LOW', priority: 4, description: 'Usage patterns' },
+  { key: 'favourite_food', label: 'Favourite Food', icon: <Heart className="w-4 h-4" />, placeholder: 'Pizza, Sushi...', category: 'interests', risk: 'LOW', priority: 4, description: 'Food preferences' },
+
   // PROFESSIONAL - Medium priority
   { key: 'employer_name', label: 'Employer', icon: <Building className="w-4 h-4" />, placeholder: 'TechCorp Inc', category: 'professional', risk: 'MED', priority: 3, description: 'Workplace identifier' },
   { key: 'social_media_handle', label: 'Social Handle', icon: <Wifi className="w-4 h-4" />, placeholder: '@johnsmith', category: 'professional', risk: 'MED', priority: 3, description: 'Online identity marker' },
+
+  // ASSET_REGISTRY - High risk
+  { key: 'bank_suffix', label: 'Bank Last 4', icon: <Database className="w-4 h-4" />, placeholder: 'Last 4 of bank...', category: 'assets', risk: 'HIGH', priority: 1, description: 'Financial identifier' },
+  { key: 'crypto_wallet', label: 'Crypto Wallet', icon: <Lock className="w-4 h-4" />, placeholder: 'Wallet address...', category: 'assets', risk: 'HIGH', priority: 1, description: 'Digital asset address' },
+  { key: 'vehicle_reg', label: 'Vehicle Registration', icon: <Truck className="w-4 h-4" />, placeholder: 'License plate...', category: 'assets', risk: 'HIGH', priority: 2, description: 'Vehicle identifier' },
+  { key: 'property_id', label: 'Property ID', icon: <Building className="w-4 h-4" />, placeholder: 'Registry ID...', category: 'assets', risk: 'HIGH', priority: 2, description: 'Real estate identifier' },
+  { key: 'plate_number_partial', label: 'Plate Number Partial', icon: <Truck className="w-4 h-4" />, placeholder: 'ABC-123...', category: 'assets', risk: 'HIGH', priority: 2, description: 'Vehicle plate reference' }
 ];
 
 const categories = [
@@ -39,7 +62,8 @@ const categories = [
   { id: 'personal', name: 'Personal Connections', description: 'Family, pets, relationships', color: 'pink' },
   { id: 'location', name: 'Places & Locations', description: 'Geographic and institutional ties', color: 'blue' },
   { id: 'interests', name: 'Interests & Hobbies', description: 'Entertainment and personal preferences', color: 'green' },
-  { id: 'professional', name: 'Professional Life', description: 'Work and online presence', color: 'purple' }
+  { id: 'professional', name: 'Professional Life', description: 'Work and online presence', color: 'purple' },
+  { id: 'assets', name: 'Assets & Registry', description: 'Financial and property information', color: 'yellow' }
 ];
 
 const EnhancedPIIForm = () => {

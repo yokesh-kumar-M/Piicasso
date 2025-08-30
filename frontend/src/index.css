@@ -52,3 +52,35 @@ code {
   90% { clip: rect(0, 9999px, 15px, 0); }
   100% { clip: rect(0, 9999px, 0, 0); }
 }
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Netflix-style hover effects */
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Custom scrollbar for wordlist preview */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f1f1f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dc2626;
+  border-radius: 4px;
+}

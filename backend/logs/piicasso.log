@@ -1,1 +1,21 @@
 INFO 2025-08-31 03:52:07,805 autoreload 21892 11128 Watching for file changes with StatReloader
+INFO 2025-08-31 04:22:05,199 autoreload 932 13152 Watching for file changes with StatReloader
+ERROR 2025-08-31 04:22:43,469 log 932 15584 Internal Server Error: /api/submit-pii/
+Traceback (most recent call last):
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\deprecation.py", line 122, in __call__
+    response = self.process_response(request, response)
+  File "C:\Users\yokes\OneDrive\Documents\Full-stack\Django\PIIcasso\Piicasso\backend\wordgen\middleware.py", line 59, in process_response
+    self.log_pii_submission(request, response, duration)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yokes\OneDrive\Documents\Full-stack\Django\PIIcasso\Piicasso\backend\wordgen\middleware.py", line 140, in log_pii_submission
+    request_data = json.loads(request.body.decode('utf-8'))
+                              ^^^^^^^^^^^^
+  File "C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\http\request.py", line 379, in body
+    raise RawPostDataException(
+        "You cannot access body after reading from request's data stream"
+    )
+django.http.request.RawPostDataException: You cannot access body after reading from request's data stream
+INFO 2025-08-31 04:24:25,342 autoreload 932 13152 C:\Users\yokes\OneDrive\Documents\Full-stack\Django\PIIcasso\Piicasso\backend\backend\settings.py changed, reloading.
+INFO 2025-08-31 04:24:26,445 autoreload 15452 20628 Watching for file changes with StatReloader

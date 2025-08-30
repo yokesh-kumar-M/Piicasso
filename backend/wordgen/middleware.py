@@ -22,6 +22,14 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
         """Log incoming requests with security context."""
         request.start_time = time.time()
         
+        # Store request body early before it's consumed
+        if request.method == 'POST' and hasattr(request, 'body'):
+            try:
+                # Store the raw body data before it gets consumed
+                request._cached_body = request.body
+            except Exception:
+                request._cached_body = None
+        
         # Get client information
         ip_address = self.get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
@@ -33,7 +41,7 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
                 f"User-Agent={user_agent}, Path={request.path}"
             )
         
-        # Rate limiting check
+        # Rate limiting check (simplified)
         if self.check_rate_limit(request, ip_address):
             logger.warning(f"Rate limit exceeded for IP: {ip_address}")
             return JsonResponse(
@@ -108,9 +116,9 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
         
         # Different limits for different endpoints
         limits = {
-            '/api/submit-pii/': 5,  # 5 per hour
-            '/api/token/': 10,      # 10 per hour
-            '/api/register/': 3,    # 3 per hour
+            '/api/submit-pii/': 50,  # 50 per hour
+            '/api/token/': 20,       # 20 per hour
+            '/api/register/': 10,    # 10 per hour
         }
         
         limit = limits.get(request.path, 100)  # Default 100 per hour
@@ -129,34 +137,36 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
         log_data = {
             'event': 'pii_submission',
             'user_id': user.id if user.is_authenticated else None,
-            'ip_address': request.security_context['ip_address'],
+            'ip_address': getattr(request, 'security_context', {}).get('ip_address', 'Unknown'),
             'status_code': response.status_code,
             'duration': round(duration, 3),
         }
         
-        # Add sanitized request data for successful submissions
-        if response.status_code == 201:
+        # Try to get request data safely
+        if response.status_code == 201 and hasattr(request, '_cached_body') and request._cached_body:
             try:
-                request_data = json.loads(request.body.decode('utf-8'))
+                request_data = json.loads(request._cached_body.decode('utf-8'))
                 sanitized_data = self.sanitize_pii_data(request_data)
                 log_data['fields_submitted'] = list(sanitized_data.keys())
-            except (json.JSONDecodeError, UnicodeDecodeError):
+            except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
                 pass
         
         logger.info(f"PII submission: {json.dumps(log_data)}")
     
     def log_auth_attempt(self, request, response, duration):
         """Log authentication attempts."""
-        try:
-            request_data = json.loads(request.body.decode('utf-8'))
-            username = request_data.get('username', 'Unknown')
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            username = 'Unknown'
+        username = 'Unknown'
+        if hasattr(request, '_cached_body') and request._cached_body:
+            try:
+                request_data = json.loads(request._cached_body.decode('utf-8'))
+                username = request_data.get('username', 'Unknown')
+            except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
+                pass
         
         log_data = {
             'event': 'auth_attempt',
             'username': username,
-            'ip_address': request.security_context['ip_address'],
+            'ip_address': getattr(request, 'security_context', {}).get('ip_address', 'Unknown'),
             'status_code': response.status_code,
             'duration': round(duration, 3),
             'success': response.status_code == 200,
@@ -174,8 +184,8 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
             'path': request.path,
             'method': request.method,
             'status_code': response.status_code,
-            'ip_address': request.security_context['ip_address'],
-            'user_agent': request.security_context['user_agent'],
+            'ip_address': getattr(request, 'security_context', {}).get('ip_address', 'Unknown'),
+            'user_agent': getattr(request, 'security_context', {}).get('user_agent', 'Unknown'),
             'duration': round(duration, 3),
         }
         
