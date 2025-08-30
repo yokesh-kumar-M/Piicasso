@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
       return { success: true };
     } catch (e) {
+      console.error('Login error:', e);
       return { success: false, error: e.response?.data?.detail || e.response?.data?.error || e.message };
     }
   };
