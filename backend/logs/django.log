@@ -1999,3 +1999,12 @@ WARNING 2025-08-30 18:13:32,090 log Bad Request: /api/login/
 WARNING 2025-08-30 18:13:32,092 basehttp "POST /api/login/ HTTP/1.1" 400 166
 INFO 2025-08-30 18:23:22,071 autoreload C:\Users\yokes\OneDrive\Documents\Full-stack\Django\PIIcasso\PIIcasso\backend\wordgen\email_utils.py changed, reloading.
 INFO 2025-08-30 18:23:23,986 autoreload Watching for file changes with StatReloader
+INFO 2025-08-30 18:53:19,267 autoreload C:\Users\yokes\OneDrive\Documents\Full-stack\Django\PIIcasso\PIIcasso\backend\wordgen\email_utils.py changed, reloading.
+INFO 2025-08-30 18:53:20,555 autoreload Watching for file changes with StatReloader
+INFO 2025-08-30 18:53:44,581 autoreload Watching for file changes with StatReloader
+WARNING 2025-08-30 18:55:05,847 log Bad Request: /api/register/
+WARNING 2025-08-30 18:55:05,849 basehttp "POST /api/register/ HTTP/1.1" 400 95
+WARNING 2025-08-30 18:55:21,811 log Bad Request: /api/register/
+WARNING 2025-08-30 18:55:21,814 basehttp "POST /api/register/ HTTP/1.1" 400 95
+INFO 2025-08-30 18:56:31,149 email_utils Verification email sent to gahohil986@lespedia.com
+INFO 2025-08-30 18:56:31,170 basehttp "POST /api/register/ HTTP/1.1" 201 138
