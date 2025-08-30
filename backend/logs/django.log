@@ -1856,3 +1856,17 @@ Traceback (most recent call last):
 django.db.utils.OperationalError: no such table: wordgen_userprofile
 ERROR 2025-08-30 04:17:41,691 basehttp "GET /api/history/?page=1&page_size=10 HTTP/1.1" 500 187163
 INFO 2025-08-30 04:29:58,225 autoreload Watching for file changes with StatReloader
+INFO 2025-08-30 04:30:15,286 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:30:15,299 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:30:15,308 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:30:15,318 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:30:22,592 basehttp "OPTIONS /api/resend-verification/ HTTP/1.1" 200 0
+ERROR 2025-08-30 04:30:22,714 email_utils Failed to send verification email to sudharsanthirupatti@gmail.com: emails/email_verification.html
+WARNING 2025-08-30 04:30:22,715 log Bad Request: /api/resend-verification/
+WARNING 2025-08-30 04:30:22,716 basehttp "POST /api/resend-verification/ HTTP/1.1" 400 83
+INFO 2025-08-30 04:38:17,501 autoreload Watching for file changes with StatReloader
+INFO 2025-08-30 04:38:25,903 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:38:25,916 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:38:25,925 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:38:25,934 basehttp "GET /api/profile/ HTTP/1.1" 200 212
+INFO 2025-08-30 04:38:33,939 basehttp "GET /api/profile/ HTTP/1.1" 200 212

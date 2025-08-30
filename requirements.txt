@@ -1,7 +1,17 @@
-Django==5.2.4
-djangorestframework==3.15.2
-djangorestframework-simplejwt==5.3.0
-django-cors-headers==4.3.1
-python-dotenv==1.0.0
-requests==2.31.0
-django-ratelimit==4.1.0
+# backend/requirements.txt
+Django>=5.2.4
+djangorestframework>=3.14.0
+djangorestframework-simplejwt>=5.3.0
+django-cors-headers>=4.3.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Google OAuth dependencies
+google-auth>=2.23.4
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+
+# Production dependencies (optional)
+gunicorn>=21.2.0
+psycopg2-binary>=2.9.7  # For PostgreSQL
+whitenoise>=6.5.0       # For static files
