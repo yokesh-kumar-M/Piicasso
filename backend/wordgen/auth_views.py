@@ -1,5 +1,17 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken
+import requests
+import random
+import string
+from visualization.models import UserActivity
+
+User = get_user_model()
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -26,20 +38,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
-from visualization.models import UserActivity
-
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.tokens import RefreshToken
-import requests
-import random
-import string
-
-User = get_user_model()
 
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
@@ -73,11 +71,20 @@ class GoogleLoginView(APIView):
                 while User.objects.filter(username=username).exists():
                     username = f"{username}{random.randint(100, 999)}"
                 
+                # Split name properly
+                first_name = ''
+                last_name = ''
+                if name:
+                    parts = name.split()
+                    first_name = parts[0]
+                    if len(parts) > 1:
+                        last_name = ' '.join(parts[1:])
+
                 user = User.objects.create(
                     username=username,
                     email=email,
-                    first_name=name.split()[0] if name else '',
-                    last_name=' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''
+                    first_name=first_name,
+                    last_name=last_name
                 )
                 user.set_unusable_password()
                 user.save()

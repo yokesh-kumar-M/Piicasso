@@ -63,8 +63,40 @@ The easiest way to run PIIcasso is using Docker Compose. This sets up the Backen
     docker-compose up --build -d
     ```
 
-4.  **Access the Application**:
+4.  **Initialize Database**:
+    Use the included helper script to set up the database schema and create a superuser.
+    
+    **Windows**:
+    ```batch
+    .\db_ops.bat init
+    ```
+    **Linux/Mac**:
+    ```bash
+    chmod +x db_ops.sh
+    ./db_ops.sh init
+    ```
+
+5.  **Access the Application**:
     Open [http://localhost](http://localhost) in your browser.
+
+---
+
+## 🗄️ Database Management
+
+We provide a helper script `db_ops.bat` (Windows) / `db_ops.sh` (Linux) to manage common database tasks without complex Docker commands.
+
+| Command | Description |
+|---------|-------------|
+| `init` | Runs initial migrations and creates a superuser. |
+| `migrate` | Applies pending database migrations. |
+| `backup` | Creates a SQL dump of the database (saved to project root). |
+| `shell` | Opens the Django shell inside the container. |
+| `dbshell` | Opens the PostgreSQL CLI (psql) inside the container. |
+
+**Example Usage:**
+```bash
+./db_ops.sh backup
+```
 
 ---
 
@@ -127,28 +159,6 @@ If you prefer to run the services individually:
 | `POSTGRES_USER` | Database User | `piicasso_user` |
 | `POSTGRES_PASSWORD` | Database Password | `piicasso_password` |
 | `REDIS_URL` | Redis Connection URL | `redis://redis:6379/1` |
-
----
-
-## 📁 Project Structure
-
-```
-PIIcasso/
-├── backend/                # Django Backend
-│   ├── wordgen/            # Core Generation App
-│   ├── visualization/      # Threat Map & Data App
-│   ├── generator/          # History & Logic
-│   └── ...
-├── frontend/               # React Frontend
-│   ├── src/
-│   │   ├── components/     # UI Components (Globe, Radar, etc.)
-│   │   └── pages/          # Main Pages (Home, Dashboard)
-│   └── public/
-├── nginx/                  # Nginx Configuration
-├── Dockerfile              # Unified Build Dockerfile
-├── docker-compose.yml      # Orchestration
-└── requirements.txt        # Python Dependencies
-```
 
 ---
 

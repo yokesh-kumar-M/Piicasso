@@ -1,0 +1,14 @@
+# Environment
+.env
+.env.local
+.env.*.local
+.vscode/
+.idea/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sqlite-shm
+*.sqlite-wal
