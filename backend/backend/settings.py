@@ -3,6 +3,7 @@ Enhanced Django settings with better security and configuration management.
 """
 import os
 import logging.config
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -96,13 +97,17 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database with connection pooling
 DATABASES = {
-    'default': {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    ) if os.getenv('DATABASE_URL') else {
         'ENGINE': 'django.db.backends.postgresql' if ENV == 'production' else 'django.db.backends.sqlite3',
-        'NAME': os.getenv('DATABASE_NAME', BASE_DIR / 'db.sqlite3'),
-        'USER': os.getenv('DATABASE_USER', ''),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
-        'HOST': os.getenv('DATABASE_HOST', ''),
-        'PORT': os.getenv('DATABASE_PORT', ''),
+        'NAME': os.getenv('DATABASE_NAME', os.getenv('POSTGRES_DB', BASE_DIR / 'db.sqlite3')),
+        'USER': os.getenv('DATABASE_USER', os.getenv('POSTGRES_USER', '')),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', os.getenv('POSTGRES_PASSWORD', '')),
+        'HOST': os.getenv('DATABASE_HOST', 'db'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
         'OPTIONS': {
             'MAX_CONNS': 20,
             'conn_max_age': 300,
