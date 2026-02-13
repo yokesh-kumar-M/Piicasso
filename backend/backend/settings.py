@@ -22,7 +22,7 @@ if not SECRET_KEY:
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 ENV = os.getenv('ENV', 'development')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com').split(',')
+ALLOWED_HOSTS = ['*']
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
