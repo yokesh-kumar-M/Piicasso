@@ -46,3 +46,19 @@ class Piiserializer(serializers.Serializer):
     favourite_food = serializers.CharField(required=False, allow_blank=True)
     social_media_handle = serializers.CharField(required=False, allow_blank=True)
     plate_number_partial = serializers.CharField(required=False, allow_blank=True)
+
+from operations.models import SystemLog
+
+class SystemLogSerializer(serializers.ModelSerializer):
+    timestamp = serializers.DateTimeField(format="%H:%M:%S")
+
+    class Meta:
+        model = SystemLog
+        fields = ['timestamp', 'level', 'message', 'source']
+
+class ThreatMapSerializer(serializers.Serializer):
+    lat = serializers.FloatField()
+    lng = serializers.FloatField()
+    size = serializers.FloatField()
+    color = serializers.CharField()
+    label = serializers.CharField(required=False)

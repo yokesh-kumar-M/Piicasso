@@ -1,167 +1,206 @@
-// src/pages/DashboardPage.js
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
 import axiosInstance from '../api/axios';
-import { AuthContext } from '../context/AuthContext';
-import { Trash2, Download, Eye } from 'lucide-react';
-import Pagination from '../components/Pagination';
+import {
+  Grid, List, Search, Filter, Download, Trash2,
+  MoreHorizontal, Eye, ShieldAlert, FileText, FileDown
+} from 'lucide-react';
 
 const DashboardPage = () => {
-  const { logout, token, loading: authLoading } = useContext(AuthContext);
+  const [view, setView] = useState('grid');
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedEntry, setSelectedEntry] = useState(null);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch History
   useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const res = await axiosInstance.get(`history/?page=${page}&page_size=${pageSize}`);
-        setHistory(res.data.results);
-        setTotalPages(res.data.total_pages);
-      } catch (e) {
-        if (e.response?.status === 401) {
-          logout();
-        } else if (e.response?.status === 429) {
-          setError('Rate limit exceeded. Please try again later.');
-        } else {
-          setError(e.message || 'Failed to fetch history');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchHistory();
+  }, []);
 
-    if (token && !authLoading) fetchHistory();
-  }, [token, authLoading, logout, page, pageSize]);
-
-  // Delete Entry
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this entry?')) return;
+  const fetchHistory = async () => {
     try {
-      await axiosInstance.delete(`history/${id}/`);
-      setHistory((prev) => prev.filter((entry) => entry.id !== id));
-    } catch (e) {
-      alert('Delete failed');
+      const res = await axiosInstance.get('history/');
+      setHistory(res.data.results);
+    } catch (err) {
+      console.error("Failed to fetch history", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Download Wordlist
-  const handleDownload = (wordlist) => {
-    const blob = new Blob([wordlist.join('\n')], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'wordlist.txt';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  const downloadPDF = (id) => {
+    // Remove trailing slash if present to avoid double slash issues
+    const baseUrl = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
+    const url = `${baseUrl}/pdf/${id}/`;
+    window.open(url, '_blank');
   };
 
+  const deleteItem = async (id) => {
+    if (!window.confirm("CONFIRM DELETION: This intelligence record will be permanently erased.")) return;
+    try {
+      await axiosInstance.delete(`history/${id}/`);
+      fetchHistory();
+    } catch (e) {
+      console.error("Deletion failed", e);
+    }
+  };
+
+  const filteredHistory = history.filter(item => {
+    const term = searchTerm.toLowerCase();
+    const name = (item.pii_data?.full_name || item.pii_data?.username || 'Unknown Target').toLowerCase();
+    const id = item.id.toString();
+    return name.includes(term) || id.includes(term);
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black text-white p-6">
-      <h1 className="text-4xl font-bold text-red-600 mb-6 tracking-wide">
-        🎬 PIIcasso Intelligence Hub
-      </h1>
+    <div className="bg-[#0a0a0a] min-h-screen text-white font-body selection:bg-netflix-red selection:text-white">
+      <Navbar />
 
-      {loading && <div className="text-zinc-400 animate-pulse">Loading your data...</div>}
-      {error && <div className="text-red-500">{error}</div>}
-
-      {/* History Section */}
-      {!loading && history.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Recent PII Scans</h2>
-          <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4">
-            {history.map((entry) => (
-              <div
-                key={entry.id}
-                className="bg-zinc-900 rounded-lg shadow-lg p-4 w-72 flex-shrink-0 hover:scale-105 transition-transform"
-              >
-                <div className="text-sm text-zinc-400">
-                  {new Date(entry.timestamp).toLocaleString()}
-                </div>
-                <div className="mt-2 text-sm text-green-400">IP: {entry.ip_address}</div>
-                <div className="mt-2 text-xs text-zinc-300 line-clamp-2">
-                  {JSON.stringify(entry.pii_data)}
-                </div>
-                <div className="mt-3 text-red-400">
-                  Wordlist Count: {entry.wordlist?.length || 0}
-                </div>
-
-                <div className="flex mt-4 space-x-2">
-                  <button
-                    onClick={() => setSelectedEntry(entry)}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-sm px-2 py-1 rounded flex items-center justify-center"
-                  >
-                    <Eye size={16} className="mr-1" /> View
-                  </button>
-                  <button
-                    onClick={() => handleDownload(entry.wordlist || [])}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-sm px-2 py-1 rounded flex items-center justify-center"
-                  >
-                    <Download size={16} className="mr-1" /> Save
-                  </button>
-                  <button
-                    onClick={() => handleDelete(entry.id)}
-                    className="flex-1 bg-zinc-700 hover:bg-zinc-800 text-sm px-2 py-1 rounded flex items-center justify-center"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
+      <div className="pt-24 px-6 md:px-12 pb-20">
+        {/* ... Header ... */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-zinc-800 pb-4">
+          <div>
+            <h1 className="text-3xl font-heading tracking-wide mb-1">INTELLIGENCE <span className="text-gray-500">ARCHIVE</span></h1>
+            <p className="text-xs text-gray-500 font-mono">SECURE VAULT // ACCESS LEVEL 4</p>
           </div>
-        </div>
-      )}
 
-      {/* No history message */}
-      {!loading && history.length === 0 && (
-        <div className="text-zinc-500 mt-8">No PII scans yet. Run your first scan!</div>
-      )}
+          <div className="flex gap-4 mt-4 md:mt-0">
+            <div className="bg-zinc-900 flex items-center px-3 py-2 rounded border border-zinc-800 focus-within:border-netflix-red transition-colors">
+              <Search className="w-4 h-4 text-gray-500 mr-2" />
+              <input
+                type="text"
+                placeholder="Search archives..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm text-white w-40 placeholder-gray-600"
+              />
+            </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={(newPage) => setPage(newPage)}
-        />
-      )}
-
-      {/* Modal for Selected Entry */}
-      {selectedEntry && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 rounded-lg p-6 max-w-4xl w-full relative">
-            <button
-              onClick={() => setSelectedEntry(null)}
-              className="absolute top-3 right-3 text-red-500 hover:text-red-400"
-            >
-              ✖
-            </button>
-            <h2 className="text-2xl font-bold text-red-500 mb-4">Scan Details</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg text-green-400 mb-2">PII Data</h3>
-                <pre className="bg-zinc-800 p-3 rounded text-xs overflow-auto">
-                  {JSON.stringify(selectedEntry.pii_data, null, 2)}
-                </pre>
-              </div>
-              <div>
-                <h3 className="text-lg text-green-400 mb-2">Wordlist</h3>
-                <div className="bg-zinc-800 p-3 rounded text-xs overflow-auto max-h-64">
-                  {(selectedEntry.wordlist || []).map((word, i) => (
-                    <div key={i}>{word}</div>
-                  ))}
-                </div>
-              </div>
+            <div className="flex bg-zinc-900 rounded border border-zinc-800">
+              <button
+                onClick={() => setView('grid')}
+                className={`p-2 hover:bg-zinc-800 ${view === 'grid' ? 'bg-zinc-800 text-white' : 'text-gray-500'}`}
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setView('list')}
+                className={`p-2 hover:bg-zinc-800 ${view === 'list' ? 'bg-zinc-800 text-white' : 'text-gray-500'}`}
+              >
+                <List className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Content */}
+        {loading ? (
+          <div className="text-center text-gray-500 mt-20 font-mono animate-pulse">Scanning Secure Archives...</div>
+        ) : history.length === 0 ? (
+          <div className="text-center text-gray-500 mt-20 font-mono">No intelligence records found. Start an operation in Mission Control.</div>
+        ) : filteredHistory.length === 0 ? (
+          <div className="text-center text-gray-500 mt-20 font-mono">No matching records found for "{searchTerm}".</div>
+        ) : view === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredHistory.map(item => {
+              const name = item.pii_data?.full_name || item.pii_data?.username || 'Unknown Target';
+              const risk = (item.id * 7) % 100; // Deterministic fake risk
+
+              return (
+                <div key={item.id} className="bg-[#141414] border border-zinc-800 rounded group hover:border-netflix-red transition-colors relative overflow-hidden">
+                  <div className="h-32 bg-gradient-to-br from-zinc-800 to-black p-4 flex flex-col justify-between">
+                    <div className="flex justify-between items-start">
+                      <span className="bg-black/50 px-2 py-0.5 text-[10px] rounded border border-zinc-700 uppercase tracking-wider text-gray-400">PERSON</span>
+                      <button
+                        onClick={() => deleteItem(item.id)}
+                        className="text-gray-600 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <FileText className="w-12 h-12 text-zinc-700 absolute bottom-4 right-4 group-hover:text-zinc-600 transition-colors" />
+                  </div>
+
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1 truncate" title={name}>{name}</h3>
+                    <div className="flex justify-between items-center text-xs text-gray-500 mb-4">
+                      <span>OP-#{item.id}</span>
+                      <span>{new Date(item.timestamp).toLocaleDateString()}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-1 h-1.5 bg-zinc-900 rounded-full overflow-hidden flex border border-white/5">
+                        <div
+                          className={`h-full transition-all duration-1000 ${risk > 80 ? 'bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.5)]' : risk > 50 ? 'bg-yellow-600' : 'bg-green-600'}`}
+                          style={{ width: `${risk}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex flex-col items-end leading-none">
+                        <span className={`text-[10px] font-mono font-bold ${risk > 80 ? 'text-red-500 animate-pulse' : 'text-zinc-400'}`}>{risk}%</span>
+                        <span className="text-[7px] font-mono text-zinc-600 uppercase">Risk_Level</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button onClick={() => downloadPDF(item.id)} className="flex-1 bg-white text-black text-xs font-bold py-2 rounded hover:bg-gray-200 flex items-center justify-center gap-2">
+                        <FileDown className="w-3 h-3" /> PDF REPORT
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="bg-[#141414] border border-zinc-800 rounded overflow-hidden">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[#1f1f1f] text-gray-400 font-mono text-xs uppercase">
+                <tr>
+                  <th className="p-4">Target Identity</th>
+                  <th className="p-4">Risk Level</th>
+                  <th className="p-4">Analysis Date</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {filteredHistory.map(item => {
+                  const name = item.pii_data?.full_name || item.pii_data?.username || 'Unknown Target';
+                  const risk = (item.id * 7) % 100;
+
+                  return (
+                    <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-4 font-bold flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-gray-500">
+                          <ShieldAlert className="w-4 h-4" />
+                        </div>
+                        {name}
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${risk > 80 ? 'bg-red-900/30 text-red-500 border border-red-900' :
+                          risk > 50 ? 'bg-yellow-900/30 text-yellow-500 border border-yellow-900' :
+                            'bg-green-900/30 text-green-500 border border-green-900'
+                          }`}>
+                          {risk}% CRITICAL
+                        </span>
+                      </td>
+                      <td className="p-4 text-gray-400 font-mono">{new Date(item.timestamp).toLocaleString()}</td>
+                      <td className="p-4 text-gray-300">ANALYZED</td>
+                      <td className="p-4 text-right space-x-2">
+                        <button onClick={() => downloadPDF(item.id)} className="text-gray-400 hover:text-netflix-red" title="Download PDF Report">
+                          <FileDown className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => deleteItem(item.id)} className="text-gray-400 hover:text-red-500" title="Delete Record">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

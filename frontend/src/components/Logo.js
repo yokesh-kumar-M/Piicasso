@@ -1,9 +1,13 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-const Logo = () => (
-  <h1 className="text-4xl text-red-600 font-heading tracking-wide uppercase">
-  PIIcasso
-  </h1>
-);
+const Logo = ({ className }) => {
+  return (
+    <Link to="/" className={`font-logo uppercase no-underline select-none ${className}`}>
+      <span className="text-white">PII</span>
+      <span className="text-netflix-red">CASSO</span>
+    </Link>
+  );
+};
 
 export default Logo;

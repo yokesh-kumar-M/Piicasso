@@ -14,87 +14,199 @@ def mask_pii_for_api(pii_data):
     return safe
 
 def build_prompt(pii_data):
-    important_fields = {
-        'full_name': 3,
-        'pet_names': 2,
-        'school_name': 2,
-        'phone_suffix': 2,
-        'childhood_nickname': 2
-    }
-
-    def emphasize(key):
+    """
+    Constructs a detailed prompt for the LLM using all available PII fields.
+    """
+    
+    # Helper to format values
+    def fmt(key):
         val = pii_data.get(key)
         if not val:
-            return ''
+            return "N/A"
         if isinstance(val, list):
-            val = ', '.join(str(item) for item in val if item)
-        return f"{val} " * important_fields.get(key, 1)
+            return ", ".join(str(v) for v in val if v)
+        return str(val)
 
-    # Extract fields
-    full_name = emphasize('full_name')
-    birth_year = pii_data.get('birth_year', '')
-    pet_names = emphasize('pet_names')
-    phone_suffix = emphasize('phone_suffix')
-    childhood_nickname = emphasize('childhood_nickname')
+    # Categories based on NEW schema
+    identity = f"""
+    Full Name: {fmt('full_name')}
+    DOB/Year: {fmt('dob')}
+    Phone Digits: {fmt('phone_digits')}
+    Username: {fmt('username')}
+    Email Handle: {fmt('email')}
+    SSN Last 4: {fmt('ssn_last4')}
+    Blood Type: {fmt('blood_type')}
+    Height: {fmt('height')}
+    """
 
-    sports_team = pii_data.get('sports_team', '')
-    spouse_name = pii_data.get('spouse_name', '')
-    first_car_model = pii_data.get('first_car_model', '')
-    hometown = pii_data.get('hometown', '')
+    family = f"""
+    Spouse: {fmt('spouse_name')}
+    Children: {fmt('child_names')}
+    Pets: {fmt('pet_names')}
+    Mother's Maiden: {fmt('mother_maiden')}
+    Father's Name: {fmt('father_name')}
+    Siblings: {fmt('sibling_names')}
+    Best Friend: {fmt('best_friend')}
+    """
 
-    favourite_movies_list = pii_data.get('favourite_movies', [])
-    if isinstance(favourite_movies_list, list):
-        favourite_movies = ', '.join(str(movie) for movie in favourite_movies_list if movie)
-    else:
-        favourite_movies = str(favourite_movies_list) if favourite_movies_list else ''
+    work = f"""
+    Company: {fmt('company')}
+    Job Title: {fmt('job_title')}
+    Department: {fmt('department')}
+    Employee ID: {fmt('employee_id')}
+    Boss: {fmt('boss_name')}
+    Past Company: {fmt('past_company')}
+    University: {fmt('university')}
+    Degree/Major: {fmt('degree')}
+    """
 
-    favourite_food = pii_data.get('favourite_food', '')
-    employer_name = pii_data.get('employer_name', '')
-    social_media_handle = pii_data.get('social_media_handle', '')
-    plate_number_partial = pii_data.get('plate_number_partial', '')
+    location = f"""
+    Current City: {fmt('current_city')}
+    Hometown: {fmt('hometown')}
+    Street: {fmt('street_name')}
+    Zip Code: {fmt('zip_code')}
+    State: {fmt('state')}
+    Country: {fmt('country')}
+    Vacation Spot: {fmt('vacation_spot')}
+    """
+
+    interests = f"""
+    Sports Team: {fmt('sports_team')}
+    Musician: {fmt('musician')}
+    Movies: {fmt('movies')}
+    Hobbies: {fmt('hobbies')}
+    Books: {fmt('books')}
+    Games: {fmt('games')}
+    Favorite Food: {fmt('food')}
+    """
+
+    assets = f"""
+    Car Model: {fmt('car_model')}
+    License Plate: {fmt('license_plate')}
+    Bank: {fmt('bank_name')}
+    Brand Affinity: {fmt('brand_affinity')}
+    Device: {fmt('device_type')}
+    Crypto Wallet: {fmt('crypto_wallet')}
+    Subscription: {fmt('subscription')}
+    """
 
     prompt = f"""
-Generate up to 200 realistic passwords (one per line) based on the following personal details:
-Full Name: {full_name}
-Birth Year: {birth_year}
-Pets: {pet_names}
-Phone Suffix: {phone_suffix}
-Childhood Nickname: {childhood_nickname}
-Favorite Sports Team: {sports_team}
-Spouse Name: {spouse_name}
-First Car Model: {first_car_model}
-Hometown: {hometown}
-Favourite Movies: {favourite_movies}
-Favourite Food: {favourite_food}
-Employer Name: {employer_name}
-Social Handle: {social_media_handle}
-Partial Plate Number: {plate_number_partial}
+You are a penetration testing AI engine. Your goal is to generate a highly probable password wordlist (up to 300 entries) for a target based on their profile.
+Think like a hacker: users often combine personal details, important dates, and common patterns.
 
-Produce varying capitalization, punctuation and leetspeak, but avoid gibberish. Return only the newline-separated password list.
-"""
-    return prompt.strip()
+TARGET PROFILE:
+[IDENTITY]
+{identity}
+
+[FAMILY & RELATIONS]
+{family}
+
+[WORK & EDUCATION]
+{work}
+
+[LOCATION & ORIGIN]
+{location}
+
+[INTERESTS & LIKES]
+{interests}
+
+[ASSETS]
+{assets}
+
+INSTRUCTIONS:
+1. Analyze the profile for keywords (names, dates, brands, terms).
+2. Generate password candidates using:
+   - Concatenations (e.g., "John1990", "Rover@Tesla")
+   - Leetspeak (e.g., "P@ssw0rd", "K@liL1nux")
+   - Common patterns (e.g., "Summer2024!", "ChangeMe123")
+   - Specific combinations of spouse/pet/child names and dates.
+3. Return ONLY the list of passwords, one per line. No conversational text.
+    """.strip()
+
+    return prompt
+
+def generate_fallback_wordlist(pii_data):
+    """
+    Generates a basic wordlist using algorithmic permutations when the LLM is unavailable.
+    """
+    seeds = []
+    
+    # Extract raw values from ALL inputs
+    for k, val in pii_data.items():
+        if val:
+            if isinstance(val, list):
+                # Split comma-separated strings if they were merged or just lists
+                if isinstance(val, str) and ',' in val:
+                    seeds.extend([v.strip() for v in val.split(',')])
+                else:
+                    seeds.extend([str(v) for v in val if v])
+            else:
+                s_val = str(val)
+                # Split multi-word fields like addresses or full names optionally
+                # But keep the full phrase too
+                seeds.append(s_val)
+                if ' ' in s_val:
+                    seeds.extend(s_val.split())
+    
+    # Split full names
+    if pii_data.get('full_name'):
+        parts = pii_data['full_name'].split()
+        seeds.extend(parts)
+
+    # Clean seeds
+    seeds = [s.strip() for s in seeds if s and len(s) > 1]
+    seeds = list(set(seeds)) # Unique
+    
+    passwords = set()
+    suffixes = ['', '1', '123', '!', '.', '2024', '2025', '2020', '@123']
+    transforms = [lambda s: s, lambda s: s.lower(), lambda s: s.upper(), lambda s: s.capitalize()]
+
+    for s in seeds:
+        for t in transforms:
+            base = t(s)
+            for suff in suffixes:
+                passwords.add(f"{base}{suff}")
+                passwords.add(f"{base}{suff}!")
+    
+    # Combos
+    import itertools
+    if len(seeds) >= 2:
+        for a, b in itertools.permutations(seeds, 2):
+            passwords.add(f"{a}{b}")
+            passwords.add(f"{a}.{b}")
+            passwords.add(f"{a}_{b}")
+            passwords.add(f"{a}{b}123")
+            passwords.add(f"{a.lower()}{b.lower()}")
+            
+    return "\n".join(list(passwords))
 
 def call_gemini_api(prompt, pii_data=None):
     """
     Call Gemini (or fallback) to generate content.
     Returns a newline-separated string on success, or raises an exception / returns an error string.
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not set")
-
-    # Optionally mask pii
-    send_data = mask_pii_for_api(pii_data or {})
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-    headers = {"Content-Type": "application/json"}
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
-    }
-
+    
+    # Try Gemini API First
     try:
-        resp = requests.post(url, headers=headers, json=payload, timeout=120)
-        resp.raise_for_status()
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY not set")
+
+        # Optionally mask pii
+        send_data = mask_pii_for_api(pii_data or {})
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}]
+        }
+    
+        resp = requests.post(url, headers=headers, json=payload, timeout=10) # Reduced timeout
+        
+        if resp.status_code != 200:
+            print(f"Gemini API Error (Falling back to offline mode): {resp.text}")
+            raise RuntimeError(f"API Error {resp.status_code}")
+
         data = resp.json()
 
         candidates = data.get("candidates", [])
@@ -115,5 +227,8 @@ def call_gemini_api(prompt, pii_data=None):
 
         return text
 
-    except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Request failed: {str(e)}")
+    except Exception as e:
+        print(f"LLM Generation Failed: {e}. Engaging Offline Fallback Mode.")
+        if pii_data:
+            return generate_fallback_wordlist(pii_data)
+        return "fallback\npassword\n123456"

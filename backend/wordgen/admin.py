@@ -1,6 +1,6 @@
 # ===== Fixed backend/wordgen/admin.py =====
 from django.contrib import admin
-from .models import GenerationHistory
+from generator.models import GenerationHistory
 from django.http import HttpResponse
 import json
 from django.utils.html import format_html

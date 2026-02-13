@@ -21,7 +21,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .llm_handler import build_prompt, call_gemini_api
-from .models import GenerationHistory
+from generator.models import GenerationHistory
 from .serializers import Piiserializer
 from .decorators import enhanced_rate_limit
 

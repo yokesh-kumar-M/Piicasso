@@ -2,6 +2,7 @@
 import React, { useContext } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import Logo from './Logo';
 
 const Layout = () => {
   const { isAuthenticated, logout } = useContext(AuthContext);
@@ -11,7 +12,7 @@ const Layout = () => {
       {/* 🔻 Navbar */}
       <nav className="bg-zinc-950 text-white px-6 py-4 flex justify-between items-center shadow shadow-red-700">
         <div className="text-2xl font-bold tracking-wider">
-          <Link to="/" className="text-red-600 hover:text-red-400">PII<span className="text-white">casso</span></Link>
+          <Logo />
         </div>
         <div className="space-x-6 text-sm">
           <Link to="/" className="hover:text-red-500">Home</Link>

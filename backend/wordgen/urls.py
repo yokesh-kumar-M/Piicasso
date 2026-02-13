@@ -1,5 +1,6 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from .auth_views import MyTokenObtainPairView, GoogleLoginView
 from .views import (
     RegisterView,
     PiiSubmitView,
@@ -7,6 +8,15 @@ from .views import (
     export_history_csv,
     download_wordlist,
     delete_history_entry,
+    download_dossier_pdf,
+    user_stats,
+    create_squadron,
+    join_squadron,
+    get_squadron_info,
+    leave_squadron,
+    SystemLogView,
+    ThreatMapView,
+    TerminalExecView
 )
 
 urlpatterns = [
@@ -16,7 +26,20 @@ urlpatterns = [
     path('history/<int:id>/', delete_history_entry, name='delete_history_entry'),
     path('export-csv/', export_history_csv, name='export_csv'),
     path('download/<int:id>/', download_wordlist, name='download_wordlist'),
+    path('pdf/<int:id>/', download_dossier_pdf, name='download_dossier_pdf'),
+    path('stats/', user_stats, name='user_stats'),
+    path('squadron/', get_squadron_info, name='squadron_info'),
+    path('squadron/create/', create_squadron, name='create_squadron'),
+    path('squadron/join/', join_squadron, name='join_squadron'),
+    path('squadron/leave/', leave_squadron, name='leave_squadron'),
+    
+    # Real-time / Simulation endpoints
+    path('system-logs/', SystemLogView.as_view(), name='system_logs'),
+    path('map-data/', ThreatMapView.as_view(), name='map_data'),
+    path('terminal/exec/', TerminalExecView.as_view(), name='terminal_exec'),
+
     # JWT endpoints
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
 ]

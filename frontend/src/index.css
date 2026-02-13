@@ -2,78 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+:root {
+  --netflix-red: #E50914;
+  --bg-black: #141414;
+  --bg-dark: #000000;
+}
 
 body {
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;  /*'Fira Code', monospace; */
-  @apply bg-gradient-to-br from-black via-zinc-900 to-black text-white;
+  background-color: var(--bg-black);
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  overflow-x: hidden;
 }
 
-
-code {
-  font-family: 'Fira Code', monospace;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 1px;
 }
 
-/* ⚡ Glitch Effect */
-.glitch {
-  position: relative;
-  color: #f00;
-}
-.glitch::before,
-.glitch::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  width: 100%;
-  overflow: hidden;
-  animation: glitch 2s infinite;
-}
-.glitch::before {
-  text-shadow: 2px 0 blue;
-  animation-delay: 0.2s;
-}
-.glitch::after {
-  text-shadow: -2px 0 lime;
-  animation-delay: 0.4s;
-}
-@keyframes glitch {
-  0% { clip: rect(0, 9999px, 0, 0); }
-  10% { clip: rect(0, 9999px, 20px, 0); }
-  20% { clip: rect(10px, 9999px, 30px, 0); }
-  30% { clip: rect(0, 9999px, 10px, 0); }
-  40% { clip: rect(10px, 9999px, 40px, 0); }
-  50% { clip: rect(5px, 9999px, 35px, 0); }
-  60% { clip: rect(20px, 9999px, 10px, 0); }
-  70% { clip: rect(0, 9999px, 25px, 0); }
-  80% { clip: rect(15px, 9999px, 30px, 0); }
-  90% { clip: rect(0, 9999px, 15px, 0); }
-  100% { clip: rect(0, 9999px, 0, 0); }
-}
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+.font-logo {
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 2px;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out forwards;
+.font-tech {
+  font-family: 'Rajdhani', sans-serif;
 }
 
-/* Smooth transitions for all interactive elements */
-* {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+.font-terminal {
+  font-family: 'Share Tech Mono', monospace;
 }
 
-/* Netflix-style hover effects */
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-
-/* Custom scrollbar for wordlist preview */
+/* Custom Scrollbar (Netflix Style) */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -81,6 +51,50 @@ code {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dc2626;
+  background: #333;
   border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--netflix-red);
+}
+
+/* Utilities */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.netflix-gradient {
+  background: linear-gradient(to top,
+      rgba(20, 20, 20, 1) 0%,
+      rgba(20, 20, 20, 0.8) 40%,
+      rgba(20, 20, 20, 0) 100%);
+}
+
+.netflix-input {
+  @apply bg-black/60 border border-gray-600 text-white px-4 py-3 w-full rounded focus:border-white outline-none transition-colors duration-200;
+}
+
+.netflix-btn-primary {
+  @apply bg-[#E50914] text-white px-6 py-2 rounded font-bold hover:bg-[#b20710] transition-colors duration-200 text-lg flex items-center justify-center gap-2;
+}
+
+.netflix-btn-secondary {
+  @apply bg-gray-500/40 text-white px-6 py-2 rounded font-bold hover:bg-gray-500/60 transition-colors duration-200 text-lg flex items-center justify-center gap-2 backdrop-blur-sm;
+}
+
+/* Tactical Animations */
+@keyframes scan {
+  from { top: -100%; }
+  to { top: 200%; }
+}
+
+.animate-scan-slow {
+  animation: scan 4s linear infinite;
+}
+
+@layer utilities {
+  .text-netflix-red {
+    color: var(--netflix-red);
+  }
 }

@@ -1,0 +1,900 @@
+WARNING 2025-08-31 04:42:20,232 middleware 15452 5916 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36", "duration": 0.003}
+WARNING 2025-08-31 04:42:20,248 middleware 15452 5916 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2025-08-31 04:42:44,299 middleware 15452 16036 Failed auth attempt: {"event": "auth_attempt", "username": "Yokesh", "ip_address": "127.0.0.1", "status_code": 401, "duration": 0.781, "success": false}
+WARNING 2025-08-31 04:42:44,307 middleware 15452 16036 Failed request: {"event": "failed_request", "path": "/api/token/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36", "duration": 0.781}
+WARNING 2025-08-31 04:43:04,362 middleware 15452 16036 Failed request: {"event": "failed_request", "path": "/api/register/", "method": "POST", "status_code": 400, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36", "duration": 0.003}
+WARNING 2025-09-12 12:36:01,119 middleware 21192 16160 Failed request: {"event": "failed_request", "path": "/api/submit-pii/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "duration": 0.955}
+WARNING 2025-09-12 12:36:01,151 middleware 21192 16160 Failed request: {"event": "failed_request", "path": "/api/token/refresh/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "duration": 0.007}
+WARNING 2025-09-12 12:36:35,192 middleware 21192 16160 Failed request: {"event": "failed_request", "path": "/api/register/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2025-09-12 12:37:04,846 middleware 21192 16160 Failed request: {"event": "failed_request", "path": "/api/register/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "duration": 0.006}
+WARNING 2025-10-31 12:53:24,226 middleware 10232 13024 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "duration": 1.084}
+WARNING 2025-10-31 12:53:24,238 middleware 10232 13024 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2025-10-31 12:53:24,252 middleware 10232 3064 Failed request: {"event": "failed_request", "path": "/api/token/refresh/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "duration": 0.01}
+WARNING 2025-10-31 12:55:42,758 middleware 10232 13024 Failed request: {"event": "failed_request", "path": "/api/submit-pii/", "method": "POST", "status_code": 500, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "duration": 11.116}
+WARNING 2025-11-14 11:40:21,055 middleware 24204 4156 Failed request: {"event": "failed_request", "path": "/api/submit-pii/", "method": "POST", "status_code": 500, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "duration": 1.887}
+WARNING 2025-11-14 11:40:31,652 middleware 24204 4156 Failed request: {"event": "failed_request", "path": "/api/submit-pii/", "method": "POST", "status_code": 500, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "duration": 1.677}
+WARNING 2026-02-13 02:33:40,185 middleware 18788 13564 Failed request: {"event": "failed_request", "path": "/api/submit-pii/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 1.21}
+WARNING 2026-02-13 02:33:40,212 middleware 18788 13564 Failed request: {"event": "failed_request", "path": "/api/token/refresh/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.009}
+WARNING 2026-02-13 02:34:10,684 middleware 18788 13564 Failed request: {"event": "failed_request", "path": "/api/submit-pii/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.002}
+WARNING 2026-02-13 03:07:51,311 middleware 29440 22988 Failed request: {"event": "failed_request", "path": "/api/submit-pii/", "method": "POST", "status_code": 500, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 1.933}
+WARNING 2026-02-13 03:15:12,414 middleware 25800 13632 Failed request: {"event": "failed_request", "path": "/api//pdf/6/", "method": "GET", "status_code": 404, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.066}
+WARNING 2026-02-13 03:15:12,710 middleware 25800 13632 Failed request: {"event": "failed_request", "path": "/favicon.ico", "method": "GET", "status_code": 404, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.044}
+WARNING 2026-02-13 03:27:09,218 middleware 32232 10204 Failed request: {"event": "failed_request", "path": "/api/stats/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.102}
+WARNING 2026-02-13 03:27:09,219 middleware 32232 9704 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.1}
+WARNING 2026-02-13 03:27:09,227 middleware 32232 9704 Failed request: {"event": "failed_request", "path": "/api/stats/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 03:27:09,229 middleware 32232 10204 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 03:38:19,205 middleware 30064 29156 Failed request: {"event": "failed_request", "path": "/api/squadron/", "method": "GET", "status_code": 500, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 1.528}
+WARNING 2026-02-13 03:38:19,252 middleware 30064 10976 Failed request: {"event": "failed_request", "path": "/api/squadron/", "method": "GET", "status_code": 500, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.02}
+WARNING 2026-02-13 10:16:09,754 middleware 23688 25024 Failed request: {"event": "failed_request", "path": "/api/squadron/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 1.312}
+WARNING 2026-02-13 10:16:09,767 middleware 23688 25024 Failed request: {"event": "failed_request", "path": "/api/squadron/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 10:16:09,793 middleware 23688 25028 Failed request: {"event": "failed_request", "path": "/api/token/refresh/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.018}
+WARNING 2026-02-13 10:16:27,030 middleware 23688 22648 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 10:16:27,045 middleware 23688 22648 Failed request: {"event": "failed_request", "path": "/api/history/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.006}
+WARNING 2026-02-13 10:37:31,165 middleware 24332 24072 Suspicious request detected: IP=127.0.0.1, User-Agent=python-requests/2.31.0, Path=/api/auth/google/
+WARNING 2026-02-13 10:37:31,167 middleware 24332 24072 Failed request: {"event": "failed_request", "path": "/api/auth/google/", "method": "POST", "status_code": 400, "ip_address": "127.0.0.1", "user_agent": "python-requests/2.31.0", "duration": 0.003}
+WARNING 2026-02-13 10:37:33,200 middleware 24332 3328 Suspicious request detected: IP=127.0.0.1, User-Agent=python-requests/2.31.0, Path=/api/auth/google/
+WARNING 2026-02-13 10:37:34,209 middleware 24332 3328 Failed request: {"event": "failed_request", "path": "/api/auth/google/", "method": "POST", "status_code": 400, "ip_address": "127.0.0.1", "user_agent": "python-requests/2.31.0", "duration": 1.009}
+WARNING 2026-02-13 10:40:45,958 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:45,960 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:40:47,974 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:47,975 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:40:49,898 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:49,899 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:40:51,825 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:51,831 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.007}
+WARNING 2026-02-13 10:40:53,819 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:53,821 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:40:55,830 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:55,831 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:40:57,830 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:57,835 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 10:40:59,824 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:40:59,825 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:01,834 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:01,839 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 10:41:03,946 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:03,947 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:05,956 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:05,957 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:07,968 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:07,969 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:09,960 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:09,961 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:11,963 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:11,966 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:41:13,950 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:13,951 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:15,964 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:15,965 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:17,821 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:17,822 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:19,832 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:19,833 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:21,827 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:21,832 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 10:41:23,825 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:23,826 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:41:25,833 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:25,835 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:27,825 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:27,826 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:41:29,824 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:29,825 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:41:31,950 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:31,953 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:41:33,969 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:33,970 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:35,962 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:35,964 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:41:37,992 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:37,992 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:39,961 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:39,961 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:41,952 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:41,955 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:41:43,955 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:43,956 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:45,950 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:45,952 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:41:48,084 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:48,085 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:49,952 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:49,953 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:51,979 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:51,981 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:53,961 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:53,962 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:55,956 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:55,957 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:41:57,982 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:57,984 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:41:59,967 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:41:59,969 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:42:01,958 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:01,961 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:42:03,975 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:03,975 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:05,960 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:05,962 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:08,211 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:08,212 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:10,955 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:10,956 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:12,989 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:12,990 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:14,954 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:14,955 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:16,950 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:16,951 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:18,958 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:18,959 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:20,952 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:20,953 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:22,968 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:22,968 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:24,956 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:24,957 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:26,537 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:26,557 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.02}
+WARNING 2026-02-13 10:42:28,954 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:28,954 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:30,451 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:30,454 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:42:32,170 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:32,172 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:42:34,177 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:34,178 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:37,138 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:37,142 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 10:42:37,155 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:37,166 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.01}
+WARNING 2026-02-13 10:42:38,689 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:38,690 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:40,699 middleware 24332 6880 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:40,700 middleware 24332 6880 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:43,048 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:43,049 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:44,954 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:44,955 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:46,698 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:46,698 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:48,689 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:48,690 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:50,690 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:50,691 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:42:52,688 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:52,705 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.017}
+WARNING 2026-02-13 10:42:54,695 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:54,696 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:42:56,691 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:56,693 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:42:58,688 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:42:58,691 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:43:00,698 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:00,699 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:43:12,239 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:12,243 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 10:43:12,251 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:12,252 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:43:14,244 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:14,246 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:16,232 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:16,233 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:43:18,233 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:18,235 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:20,230 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:20,231 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:22,238 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:22,242 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 10:43:24,231 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:24,232 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:26,232 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:26,235 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:43:28,241 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:28,242 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:30,239 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:30,241 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:43:32,233 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:32,244 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.011}
+WARNING 2026-02-13 10:43:34,231 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:34,234 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:43:36,239 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:36,240 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:39,010 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:39,012 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:43:40,967 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:40,967 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:42,980 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:42,983 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:43:44,960 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:44,961 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:46,957 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:46,958 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:48,996 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:48,997 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:50,964 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:50,966 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:43:52,949 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:52,950 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:54,953 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:54,954 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:56,955 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:56,956 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:43:58,979 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:43:58,980 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:00,956 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:00,957 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:02,961 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:02,962 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:04,963 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:04,964 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:06,955 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:06,955 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:08,977 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:08,978 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:10,952 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:10,953 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:12,956 middleware 24332 19852 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:12,957 middleware 24332 19852 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:14,953 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:14,954 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:16,954 middleware 24332 25404 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:16,955 middleware 24332 25404 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:18,983 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:18,984 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:20,964 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:20,966 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:44:22,957 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:22,958 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:24,949 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:24,950 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:26,468 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:26,469 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:44:28,232 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:28,234 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:44:30,236 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:30,237 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:32,235 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:32,240 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 10:44:34,239 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:34,245 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 10:44:36,237 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:36,259 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.022}
+WARNING 2026-02-13 10:44:38,232 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:38,234 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:44:40,230 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:40,231 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:42,235 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:42,238 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 10:44:44,957 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:44,959 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:46,959 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:46,960 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:48,980 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:48,980 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:50,953 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:50,954 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:52,954 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:52,956 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 10:44:54,951 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:54,953 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:56,955 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:56,956 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:44:58,978 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:44:58,979 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:00,961 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:00,962 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:02,956 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:02,957 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:04,954 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:04,954 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:06,963 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:06,964 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:08,974 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:08,975 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:10,957 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:10,958 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:12,953 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:12,954 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:12,955 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:45:12,955 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:14,979 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:14,980 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:16,954 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:16,955 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:17,957 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:17,958 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:19,022 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:19,023 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:20,959 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:20,960 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:22,959 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:22,960 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:22,960 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:45:22,960 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:24,968 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:24,969 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:26,959 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:26,960 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:27,949 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:27,949 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:28,952 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:28,952 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:30,957 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:30,958 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:32,970 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:32,971 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:32,972 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:45:32,973 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:45:34,966 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:34,967 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:36,985 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:36,986 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:37,950 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:37,951 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:38,967 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:38,967 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:40,951 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:40,952 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:42,953 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:42,954 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:45:42,957 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:45:42,958 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:46:03,353 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:03,364 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.011}
+WARNING 2026-02-13 10:46:03,448 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:03,454 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 10:46:04,234 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:04,240 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 10:46:06,236 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:06,237 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:07,230 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:07,231 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:08,231 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:08,232 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:10,240 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:10,241 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:12,231 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:12,232 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:12,235 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 10:46:12,237 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 10:46:14,230 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:14,231 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:16,232 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:16,233 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:17,235 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:17,247 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.011}
+WARNING 2026-02-13 10:46:18,233 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:18,234 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:20,230 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:20,231 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:22,309 middleware 24332 10824 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:22,312 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:22,314 middleware 24332 10824 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 10:46:22,316 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 10:46:24,960 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:24,962 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:46:26,952 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:26,952 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:27,956 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:27,957 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:28,991 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:28,992 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:30,954 middleware 24332 3320 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:30,955 middleware 24332 3320 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:32,961 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:32,962 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:32,963 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:46:32,963 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:35,011 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:35,012 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:36,964 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:36,965 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:37,949 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:37,949 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:38,951 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:38,952 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:40,964 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:40,965 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:46:42,949 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:42,950 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:42,950 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:42,951 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:44,950 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:44,951 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:46,958 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:46,959 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:47,960 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:47,961 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:48,950 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:48,951 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:50,956 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:50,957 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 10:46:52,971 middleware 24332 7856 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:52,972 middleware 24332 10596 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 10:46:52,973 middleware 24332 7856 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 10:46:52,973 middleware 24332 10596 Failed request: {"event": "failed_request", "path": "/api/map-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:18:39,881 middleware 13676 20156 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 1.767}
+WARNING 2026-02-13 20:18:39,883 middleware 13676 11348 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.609}
+WARNING 2026-02-13 20:18:39,915 middleware 13676 20156 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.002}
+WARNING 2026-02-13 20:18:39,928 middleware 13676 11348 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 20:18:39,944 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/token/refresh/", "method": "POST", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.007}
+WARNING 2026-02-13 20:18:39,974 middleware 13676 20156 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.005}
+WARNING 2026-02-13 20:18:40,011 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.007}
+WARNING 2026-02-13 20:18:40,207 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 20:18:40,305 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 20:18:40,323 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.002}
+WARNING 2026-02-13 20:18:42,055 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.002}
+WARNING 2026-02-13 20:18:42,318 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 20:18:44,062 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.002}
+WARNING 2026-02-13 20:18:44,307 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 20:18:46,058 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 20:18:46,310 middleware 13676 13136 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 401, "ip_address": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "duration": 0.001}
+WARNING 2026-02-13 20:33:12,164 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:12,171 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.007}
+WARNING 2026-02-13 20:33:14,131 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:14,132 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:16,123 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:16,130 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.008}
+WARNING 2026-02-13 20:33:18,180 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:18,184 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:33:20,121 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:20,138 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.016}
+WARNING 2026-02-13 20:33:22,132 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:22,137 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:33:24,134 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:24,145 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.012}
+WARNING 2026-02-13 20:33:26,120 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:26,123 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:33:29,060 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:29,061 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:30,117 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:30,119 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:33:32,114 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:32,128 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.014}
+WARNING 2026-02-13 20:33:35,002 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:35,003 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:36,905 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:36,906 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:38,113 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:38,119 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 20:33:40,121 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:40,128 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.007}
+WARNING 2026-02-13 20:33:42,998 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:42,999 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:44,953 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:44,955 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:33:46,964 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:46,965 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:48,947 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:48,948 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:51,008 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:51,009 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:33:53,667 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:53,676 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.009}
+WARNING 2026-02-13 20:33:54,112 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:54,116 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:33:56,124 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:56,128 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:33:58,132 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:33:58,135 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:34:00,132 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:00,135 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:34:02,116 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:02,118 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:34:04,148 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:04,152 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:34:06,134 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:06,137 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:34:08,951 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:08,955 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:34:10,950 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:10,951 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:12,969 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:12,970 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:14,958 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:14,959 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:16,961 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:16,964 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:34:27,729 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:27,744 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.016}
+WARNING 2026-02-13 20:34:28,120 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:28,126 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 20:34:30,116 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:30,117 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:32,118 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:32,138 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.02}
+WARNING 2026-02-13 20:34:34,121 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:34,131 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.01}
+WARNING 2026-02-13 20:34:50,668 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:50,670 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:34:50,676 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:50,677 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:52,685 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:52,686 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:55,002 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:55,003 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:56,955 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:56,956 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:34:59,066 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:34:59,068 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:35:00,957 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:00,958 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:02,953 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:02,954 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:13,301 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:13,305 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:35:14,668 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:14,669 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:14,944 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:14,947 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:35:16,670 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:16,671 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:35:18,671 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:18,672 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:19,580 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:19,582 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:35:20,680 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:20,681 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:22,671 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:22,672 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:22,933 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:22,934 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:24,980 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:24,981 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:27,431 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:27,432 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:27,433 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:27,434 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:28,955 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:28,956 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:30,964 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:30,965 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:30,967 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:30,968 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:35:32,953 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:35:32,954 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:16,237 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:16,238 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:16,242 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:36:16,244 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:36:16,669 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:16,675 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:36:19,019 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:19,020 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:19,030 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:19,031 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:20,955 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:20,956 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:22,670 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:22,682 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.012}
+WARNING 2026-02-13 20:36:22,949 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:22,959 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.01}
+WARNING 2026-02-13 20:36:24,684 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:24,687 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:36:26,960 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:26,961 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:26,962 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:36:26,962 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:28,669 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:28,671 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:30,026 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:30,027 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:30,033 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:30,034 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:30,534 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:30,536 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:36:30,543 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:30,544 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:32,151 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:32,173 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.022}
+WARNING 2026-02-13 20:36:34,044 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:34,045 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:34,543 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:34,545 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:36,043 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:36,049 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 20:36:38,032 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:38,033 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:36:38,546 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:38,560 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.014}
+WARNING 2026-02-13 20:36:40,044 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:40,046 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:36:42,038 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:42,047 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.009}
+WARNING 2026-02-13 20:36:42,533 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:42,535 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:36:44,025 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:44,026 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:46,031 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:46,032 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:46,563 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:46,566 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:36:48,955 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:48,956 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:50,949 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:50,950 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:50,951 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:36:50,952 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:52,995 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:52,996 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:54,961 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:54,961 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:54,976 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:54,977 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:36:56,960 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:36:56,961 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:37:17,395 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:17,396 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:17,408 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.013}
+WARNING 2026-02-13 20:37:17,422 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.026}
+WARNING 2026-02-13 20:37:18,031 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:18,035 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:37:18,542 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:18,550 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.008}
+WARNING 2026-02-13 20:37:20,026 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:20,028 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:37:22,052 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:22,053 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:37:22,554 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:22,559 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:37:24,027 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:24,029 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:37:26,026 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:26,039 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.013}
+WARNING 2026-02-13 20:37:26,545 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:26,553 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.007}
+WARNING 2026-02-13 20:37:28,028 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:28,044 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.016}
+WARNING 2026-02-13 20:37:30,032 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:30,035 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:37:30,536 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:30,573 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.037}
+WARNING 2026-02-13 20:37:32,039 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:32,043 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:37:34,034 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:34,037 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:37:34,535 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:34,544 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.009}
+WARNING 2026-02-13 20:37:36,030 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:36,037 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.008}
+WARNING 2026-02-13 20:37:38,049 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:38,061 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.011}
+WARNING 2026-02-13 20:37:38,539 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:38,553 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.014}
+WARNING 2026-02-13 20:37:40,034 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:40,037 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:37:42,030 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:42,032 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:37:42,533 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:42,534 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:37:44,984 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:44,985 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:37:46,031 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:46,034 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:37:46,532 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:46,558 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.026}
+WARNING 2026-02-13 20:37:48,098 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:48,102 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:37:50,964 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:50,965 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:37:50,966 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:50,968 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:37:52,030 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:52,031 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:37:54,045 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:54,057 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.012}
+WARNING 2026-02-13 20:37:54,539 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:54,547 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.008}
+WARNING 2026-02-13 20:37:59,515 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:59,516 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:37:59,697 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:37:59,698 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:00,041 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:00,054 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.013}
+WARNING 2026-02-13 20:38:02,961 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:02,961 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:02,964 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:02,965 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:05,221 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:05,223 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:06,380 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:06,385 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 20:38:06,542 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:06,545 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:38:08,785 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:08,785 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:11,384 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:11,385 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:11,397 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:11,398 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:12,952 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:12,952 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:14,676 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:14,677 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:14,680 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:38:14,681 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:38:16,044 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:16,048 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:38:18,536 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:18,536 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:19,053 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:19,054 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:20,984 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:20,985 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:22,955 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:22,956 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:22,957 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:22,958 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:25,192 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:25,193 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:27,428 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:27,429 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:27,430 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:38:27,430 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:28,029 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:28,035 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:38:31,151 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:31,152 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:31,154 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:31,156 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:32,953 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:32,954 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:35,000 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:35,001 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:35,001 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:38:35,002 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:36,961 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:36,962 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:38,991 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:38,992 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:38,996 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:38,997 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:54,762 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:54,764 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:54,766 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:38:54,768 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:38:56,961 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:56,961 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:59,555 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:59,556 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:38:59,558 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:38:59,559 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:01,011 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:01,012 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:03,390 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:03,394 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:39:03,418 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:03,423 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:39:03,735 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:03,736 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:03,741 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:03,742 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:03,832 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:03,833 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:05,795 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:05,796 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:07,737 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:07,748 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.011}
+WARNING 2026-02-13 20:39:07,804 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:07,823 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.019}
+WARNING 2026-02-13 20:39:09,794 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:09,796 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:39:11,737 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:11,739 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:39:11,790 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:11,794 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:39:13,793 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:13,796 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:39:15,740 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:15,753 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.013}
+WARNING 2026-02-13 20:39:15,791 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:15,813 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.022}
+WARNING 2026-02-13 20:39:17,790 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:17,791 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:19,746 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:19,748 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:19,797 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:19,799 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:39:21,794 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:21,819 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.026}
+WARNING 2026-02-13 20:39:23,738 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:23,742 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:39:23,786 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:23,792 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 20:39:25,786 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:25,798 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.011}
+WARNING 2026-02-13 20:39:27,949 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:27,950 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:27,959 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:27,960 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:29,788 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:29,789 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:31,948 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:31,949 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:31,950 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:39:31,950 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:33,982 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:33,984 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:35,743 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:35,744 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:35,798 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:35,799 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:39:37,793 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:37,797 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:39:39,738 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:39,739 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:39,790 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:39,792 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:41,827 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:41,835 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.008}
+WARNING 2026-02-13 20:39:43,747 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:43,748 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:39:43,794 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:43,797 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.003}
+WARNING 2026-02-13 20:39:45,794 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:45,795 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:39:49,922 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:49,924 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:49,926 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.004}
+WARNING 2026-02-13 20:39:49,929 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:39:49,939 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:49,942 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:39:49,945 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.005}
+WARNING 2026-02-13 20:39:49,951 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.009}
+WARNING 2026-02-13 20:40:06,576 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:06,576 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:06,616 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:06,618 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:07,961 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:07,962 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:09,988 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:09,989 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:09,989 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:40:09,990 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:11,961 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:11,962 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:14,177 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:14,178 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:14,179 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:40:14,179 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:16,034 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:16,034 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:54,378 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:54,387 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:54,391 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.013}
+WARNING 2026-02-13 20:40:54,393 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.006}
+WARNING 2026-02-13 20:40:55,969 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:55,970 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:58,033 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:58,034 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:40:58,071 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:40:58,072 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:00,592 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:00,593 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:10,697 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:10,698 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:16,647 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:16,648 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:23,141 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:23,142 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:23,996 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:23,997 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:24,007 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:24,008 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:26,283 middleware 19756 4884 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:26,284 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:26,285 middleware 19756 4884 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:41:26,286 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:28,183 middleware 19756 18056 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:28,184 middleware 19756 18056 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:30,550 middleware 19756 19128 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:30,551 middleware 19756 19128 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:30,577 middleware 19756 19128 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:30,578 middleware 19756 19128 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:32,159 middleware 19756 19128 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:32,160 middleware 19756 19128 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
+WARNING 2026-02-13 20:41:34,165 middleware 19756 19128 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:34,166 middleware 19756 19128 Failed request: {"event": "failed_request", "path": "/api/system-logs/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.002}
+WARNING 2026-02-13 20:41:34,167 middleware 19756 14424 Rate limit exceeded for IP: 127.0.0.1
+WARNING 2026-02-13 20:41:34,168 middleware 19756 14424 Failed request: {"event": "failed_request", "path": "/api/visualization/globe-data/", "method": "GET", "status_code": 429, "ip_address": "Unknown", "user_agent": "Unknown", "duration": 0.001}
