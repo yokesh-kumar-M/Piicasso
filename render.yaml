@@ -31,7 +31,7 @@ services:
         value: "*" # Or your specific render domain
 
   # 2. DATABASE: PostgreSQL
-  - type: postgres
+  - type: psql
     name: piicasso-db
     plan: free
     region: singapore
