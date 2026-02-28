@@ -6,7 +6,7 @@ services:
     plan: free
     region: singapore # Closest to India
     branch: main
-    dockerFilePath: Dockerfile
+    dockerfilePath: Dockerfile
     healthCheckPath: /
     autoDeploy: true
     envVars:
