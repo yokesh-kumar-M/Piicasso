@@ -29,7 +29,12 @@ const RegisterPage = () => {
       let lat = null, lng = null;
       try {
         const pos = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+          const timer = setTimeout(() => reject(new Error('timeout')), 3000);
+          navigator.geolocation.getCurrentPosition(
+            (pos) => { clearTimeout(timer); resolve(pos); },
+            (err) => { clearTimeout(timer); reject(err); },
+            { timeout: 3000, maximumAge: 10000 }
+          );
         });
         lat = pos.coords.latitude;
         lng = pos.coords.longitude;

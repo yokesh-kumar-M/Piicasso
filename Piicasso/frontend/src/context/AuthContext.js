@@ -31,7 +31,11 @@ export const AuthProvider = ({ children }) => {
 
   const getLocationData = async () => {
     try {
-      const ipRes = await fetch('https://ipapi.co/json/');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const ipRes = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+      clearTimeout(timeoutId);
+
       if (ipRes.ok) {
         const data = await ipRes.json();
         if (data.latitude && data.longitude) {
@@ -44,7 +48,12 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const pos = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+        const timer = setTimeout(() => reject(new Error('Location prompt timeout')), 3000);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => { clearTimeout(timer); resolve(pos); },
+          (err) => { clearTimeout(timer); reject(err); },
+          { timeout: 3000, maximumAge: 10000 }
+        );
       });
       return { lat: pos.coords.latitude, lng: pos.coords.longitude };
     } catch {
