@@ -32,6 +32,13 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: "https://pii-casso.vercel.app,https://piicasso.vercel.app,http://localhost:3000"
 
+  # 3. REDIS: Cache
+  - type: redis
+    name: piicasso-redis
+    plan: free
+    region: singapore
+    ipAllowList: [] # Only internal access
+
 databases:
   # 2. DATABASE: PostgreSQL
   - name: piicasso-db
@@ -39,10 +46,3 @@ databases:
     region: singapore
     databaseName: piicasso_db
     user: piicasso_user
-
-  # 3. REDIS: Cache
-  - type: redis
-    name: piicasso-redis
-    plan: free
-    region: singapore
-    ipAllowList: [] # Only internal access
