@@ -124,7 +124,7 @@ const ProfilePage = () => {
                                         <div key={log.id} className="pb-6 relative last:pb-0">
                                             <div className="absolute -left-[21px] top-1 w-2 h-2 bg-zinc-600 rounded-full border border-black"></div>
                                             <div className="text-gray-300 font-bold">
-                                                Operation #{log.id}: {log.pii_data?.full_name || log.pii_data?.username || 'Unknown Target'}
+                                                Generation #{log.id}: {log.pii_data?.full_name || log.pii_data?.username || 'Unknown Target'}
                                             </div>
                                             <div className="mt-1 flex gap-2 opacity-50">
                                                 <span>{new Date(log.timestamp).toLocaleString()}</span>

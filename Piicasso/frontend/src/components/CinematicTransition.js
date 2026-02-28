@@ -4,17 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const getPageTitle = (pathname) => {
     if (pathname === '/') return 'PIICASSO';
-    if (pathname === '/operation') return 'NEW OPERATION';
-    if (pathname === '/workspace') return 'SAVED WORKSPACE';
+    if (pathname === '/operation') return 'GENERATE';
+    if (pathname === '/workspace') return 'SAVED';
     if (pathname === '/login') return 'LOGIN';
     if (pathname === '/register') return 'REGISTER';
     if (pathname === '/forgot-password') return 'FORGOT PASSWORD';
     if (pathname === '/profile') return 'PROFILE';
-    if (pathname === '/squadron') return 'SQUADRON';
-    if (pathname === '/darkweb') return 'DARK WEB';
+    if (pathname === '/squadron') return 'TEAMS';
+    if (pathname === '/darkweb') return 'SEARCH';
     if (pathname === '/omega-admin') return 'ADMIN PANEL';
-    if (pathname === '/dashboard') return 'DASHBOARD';
-    if (pathname === '/result') return 'SCAN RESULTS';
+    if (pathname === '/dashboard') return 'HISTORY';
+    if (pathname === '/result') return 'RESULTS';
     return 'LOADING';
 };
 

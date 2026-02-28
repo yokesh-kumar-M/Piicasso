@@ -54,7 +54,7 @@ const ResultPage = () => {
       <div className="min-h-screen flex flex-col items-center justify-center text-white bg-[#0b0b0b]">
         <div className="text-red-500 mb-4 text-xl font-mono">ERROR: NO DATA GENERATED</div>
         <button onClick={() => navigate('/operation')} className="bg-zinc-800 border border-zinc-700 hover:border-red-500 px-6 py-2 rounded font-mono text-sm">
-          RESTART OPERATION
+          GENERATE NEW
         </button>
       </div>
     );
@@ -64,7 +64,7 @@ const ResultPage = () => {
     <div className="min-h-screen bg-[#050505] text-white font-body selection:bg-red-900 selection:text-white flex flex-col">
       {/* Top Bar */}
       <div className="h-16 border-b border-zinc-900 flex items-center px-8 justify-between bg-[#0a0a0a]">
-        <div className="font-heading text-xl tracking-widest text-gray-400">OPERATION <span className="text-white">COMPLETE</span></div>
+        <div className="font-heading text-xl tracking-widest text-gray-400">GENERATION <span className="text-white">COMPLETE</span></div>
         <button onClick={() => navigate('/dashboard')} className="text-xs font-mono text-gray-500 hover:text-white">Go to Dashboard</button>
       </div>
 
