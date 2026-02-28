@@ -6,6 +6,7 @@ services:
     plan: free
     region: singapore # Closest to India
     branch: main
+    rootDir: Piicasso
     dockerfilePath: Dockerfile
     healthCheckPath: /
     autoDeploy: true
