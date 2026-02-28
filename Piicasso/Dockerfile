@@ -22,5 +22,5 @@ ENV DJANGO_SETTINGS_MODULE=backend.settings
 # Create static folder and Collect static files for Django Admin
 RUN mkdir -p /app/static && python manage.py collectstatic --noinput
 
-# Run application
-CMD ["sh", "-c", "python manage.py migrate && gunicorn --bind 0.0.0.0:8000 backend.wsgi:application"]
+# Run application with load-balanced parallel worker processes
+CMD ["sh", "-c", "python manage.py migrate && gunicorn --workers 4 --threads 4 --bind 0.0.0.0:8000 backend.wsgi:application"]

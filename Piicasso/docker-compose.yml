@@ -1,9 +1,50 @@
 version: '3.8'
 
 services:
-  web:
+  # Load Balanced Microservice Node 1
+  web_node_1:
     build: .
-    command: gunicorn --bind 0.0.0.0:8000 backend.wsgi:application
+    command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8000 backend.wsgi:application
+    volumes:
+      - media_volume:/app/media
+      - static_volume:/app/staticfiles
+    environment:
+      - POSTGRES_DB=piicasso_db
+      - POSTGRES_USER=piicasso_user
+      - POSTGRES_PASSWORD=piicasso_password
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  # Load Balanced Microservice Node 2
+  web_node_2:
+    build: .
+    command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8000 backend.wsgi:application
+    volumes:
+      - media_volume:/app/media
+      - static_volume:/app/staticfiles
+    environment:
+      - POSTGRES_DB=piicasso_db
+      - POSTGRES_USER=piicasso_user
+      - POSTGRES_PASSWORD=piicasso_password
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  # Load Balanced Microservice Node 3
+  web_node_3:
+    build: .
+    command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8000 backend.wsgi:application
     volumes:
       - media_volume:/app/media
       - static_volume:/app/staticfiles
@@ -39,6 +80,7 @@ services:
     volumes:
       - redis_data:/data
 
+  # API Gateway / Load Balancer
   nginx:
     image: nginx:1.25-alpine
     volumes:
@@ -48,7 +90,9 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - web
+      - web_node_1
+      - web_node_2
+      - web_node_3
 
 volumes:
   postgres_data:
