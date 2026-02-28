@@ -32,9 +32,9 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: "https://pii-casso.vercel.app,https://piicasso.vercel.app,http://localhost:3000"
 
+databases:
   # 2. DATABASE: PostgreSQL
-  - type: psql
-    name: piicasso-db
+  - name: piicasso-db
     plan: free
     region: singapore
     databaseName: piicasso_db
