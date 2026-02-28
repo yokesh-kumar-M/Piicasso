@@ -1,14 +1,14 @@
-# PIIcasso 🎨 - Advanced Wordlist & Threat Intelligence
+# PIIcasso - Advanced Wordlist & Threat Intelligence
 
 PIIcasso is a high-performance, full-stack application designed for the generation of intelligent, profile-based wordlists and threat intelligence visualization. It uses a **Django** headless backend with **AI integration** (Google Gemini) and a **React** frontend featuring a sophisticated, 3D "Mission Control" interface.
 
-## 🚀 Live Demo
+## Live Demo
 - **Frontend (Vercel)**: [https://pii-casso.vercel.app](https://pii-casso.vercel.app)
 - **Backend API (Render)**: `https://piicasso.onrender.com/api/`
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ### Core Intelligence
 - **AI-Powered Generation**: Generates targeted wordlists using Google's Gemini LLM based on user profiles.
@@ -28,7 +28,7 @@ PIIcasso is a high-performance, full-stack application designed for the generati
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Frontend (User Interface)
 - **Framework**: React 18
@@ -47,7 +47,7 @@ PIIcasso is a high-performance, full-stack application designed for the generati
 
 ---
 
-## 💻 Local Development Setup
+## Local Development Setup
 
 If you want to run the project locally, follow these steps:
 
@@ -105,7 +105,7 @@ cd Piicasso/frontend
 
 ---
 
-## 🛡️ Security Note
+## Security Note
 
 This tool is strictly intended for **authorized security testing, penetration testing, and educational purposes only**. Using this tool to generate wordlists for targets without their explicit consent is illegal. The developers assume no liability and are not responsible for any misuse, damage, or breaches caused by this program.
 
