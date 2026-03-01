@@ -1,6 +1,7 @@
 import os
 import csv
 import json
+import threading
 from io import StringIO, BytesIO
 
 from django.contrib.auth.models import User
@@ -13,6 +14,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.conf import settings
 
 from .llm_handler import build_prompt, call_gemini_api
 from generator.models import GenerationHistory
@@ -24,19 +26,22 @@ from .decorators import enhanced_rate_limit as rate_limit
 from analytics.models import UserActivity
 from django.db.models import Sum
 
-# Optimization: Cache RockYou wordlist in memory for fast access
+# Thread-safe RockYou wordlist cache with double-checked locking
 _ROCKYOU_CACHE = []
+_ROCKYOU_LOCK = threading.Lock()
 
 def get_rockyou_wordlist():
     global _ROCKYOU_CACHE
     if not _ROCKYOU_CACHE:
-        try:
-            rockyou_path = os.path.join(os.path.dirname(__file__), 'rockyou.txt')
-            if os.path.exists(rockyou_path):
-                with open(rockyou_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    _ROCKYOU_CACHE = [line.strip() for line in f if line.strip()]
-        except Exception as e:
-            print(f"Error loading wordlist cache: {e}")
+        with _ROCKYOU_LOCK:
+            if not _ROCKYOU_CACHE:  # Double-checked locking
+                try:
+                    rockyou_path = os.path.join(os.path.dirname(__file__), 'rockyou.txt')
+                    if os.path.exists(rockyou_path):
+                        with open(rockyou_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            _ROCKYOU_CACHE = [line.strip() for line in f if line.strip()]
+                except Exception as e:
+                    print(f"Error loading wordlist cache: {e}")
     return _ROCKYOU_CACHE
 
 @api_view(['GET'])
@@ -153,9 +158,10 @@ class PiiSubmitView(APIView):
             if not wordlist:
                 return Response({"error": "No passwords generated."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # Limit to 5000 entries
-            if len(wordlist) > 5000:
-                wordlist = wordlist[:5000]
+            # Limit to configured MAX_WORDLIST_SIZE (centralized in settings)
+            max_size = settings.PIICASSO_SETTINGS.get('MAX_WORDLIST_SIZE', 1000)
+            if len(wordlist) > max_size:
+                wordlist = wordlist[:max_size]
 
             record = GenerationHistory.objects.create(
                 user=request.user if getattr(request.user, 'is_authenticated', False) else None,
