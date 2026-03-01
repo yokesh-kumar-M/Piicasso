@@ -3,9 +3,9 @@ import axiosInstance from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import {
-  User, Calendar, Heart, Home, Film, Phone, Shield, Zap, Lock, 
-  Wifi, Database, Code, Activity, Map, Users, Globe, Crosshair, 
-  MapPin, Search, Clock, Truck, Building, ChevronRight, 
+  User, Calendar, Heart, Home, Film, Phone, Shield, Zap, Lock,
+  Wifi, Database, Code, Activity, Map, Users, Globe, Crosshair,
+  MapPin, Search, Clock, Truck, Building, ChevronRight,
   ChevronLeft, AlertCircle, CheckCircle, Info, Eye, EyeOff
 } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const fields = [
   { key: 'gov_id', label: 'Gov Identity', icon: <Shield className="w-4 h-4" />, placeholder: 'National ID...', category: 'identity', risk: 'HIGH', priority: 1, description: 'Government identification' },
   { key: 'mother_maiden', label: 'Mother Maiden', icon: <User className="w-4 h-4" />, placeholder: "Mother's maiden name...", category: 'identity', risk: 'HIGH', priority: 1, description: 'Security question answer' },
   { key: 'passport_id', label: 'Passport ID', icon: <Code className="w-4 h-4" />, placeholder: 'Passport number...', category: 'identity', risk: 'HIGH', priority: 1, description: 'Travel document ID' },
-  
+
   // PERSONAL_CONNECTIONS - High priority
   { key: 'pet_names', label: 'Pet Names', icon: <Heart className="w-4 h-4" />, placeholder: 'Buddy, Luna', category: 'personal', risk: 'HIGH', priority: 2, description: 'Very common password base (comma-separated)' },
   { key: 'spouse_name', label: 'Spouse/Partner', icon: <Heart className="w-4 h-4" />, placeholder: 'Sarah', category: 'personal', risk: 'HIGH', priority: 2, description: 'Loved ones often used in passwords' },
@@ -103,7 +103,7 @@ const EnhancedPIIForm = () => {
         return 'Please enter a valid birth year';
       }
     }
-    
+
     if (key === 'phone_suffix' && value) {
       if (!/^\d{3,4}$/.test(value)) {
         return 'Please enter 3-4 digits';
@@ -117,13 +117,13 @@ const EnhancedPIIForm = () => {
     const currentCategory = categories[currentStep];
     const categoryFields = fields.filter(f => f.category === currentCategory.id);
     const errors = {};
-    
+
     categoryFields.forEach(field => {
       const value = formData[field.key];
       const error = validateField(field.key, value);
       if (error) errors[field.key] = error;
     });
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -142,7 +142,7 @@ const EnhancedPIIForm = () => {
   const handleSubmit = async () => {
     setError('');
     setSuccess('');
-    
+
     if (!isAuthenticated) {
       setError('You must be logged in to submit PII.');
       navigate('/login');
@@ -150,7 +150,7 @@ const EnhancedPIIForm = () => {
     }
 
     const payload = buildPayload();
-    const nonEmptyFields = Object.values(payload).filter(v => 
+    const nonEmptyFields = Object.values(payload).filter(v =>
       Array.isArray(v) ? v.length > 0 : !!v
     );
 
@@ -196,13 +196,13 @@ const EnhancedPIIForm = () => {
   };
 
   const getFilledFieldsCount = () => {
-    return Object.values(formData).filter(v => 
+    return Object.values(formData).filter(v =>
       Array.isArray(v) ? v.length > 0 : !!v
     ).length;
   };
 
   const getRiskColor = (risk) => {
-    switch(risk) {
+    switch (risk) {
       case 'HIGH': return 'text-red-400 bg-red-500/20';
       case 'MED': return 'text-yellow-400 bg-yellow-500/20';
       case 'LOW': return 'text-green-400 bg-green-500/20';
@@ -222,9 +222,9 @@ const EnhancedPIIForm = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
       {/* Header */}
       <div className="pt-8 pb-6 text-center">
-        <h1 className="text-5xl font-bold text-red-500 mb-4 tracking-wide">PIIcasso</h1>
+        <h1 className="text-5xl font-bold text-red-500 mb-4 tracking-wide">AEGIS</h1>
         <p className="text-gray-400 text-lg">Password Intelligence Engine</p>
-        
+
         {/* Progress indicator */}
         <div className="mt-6 flex justify-center items-center space-x-4">
           <div className="flex items-center space-x-2">
@@ -244,17 +244,15 @@ const EnhancedPIIForm = () => {
         <div className="bg-gray-800 rounded-lg p-1 flex">
           <button
             onClick={() => setFormMode('guided')}
-            className={`px-4 py-2 rounded text-sm transition-all ${
-              formMode === 'guided' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-4 py-2 rounded text-sm transition-all ${formMode === 'guided' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             Guided Mode
           </button>
           <button
             onClick={() => setFormMode('advanced')}
-            className={`px-4 py-2 rounded text-sm transition-all ${
-              formMode === 'advanced' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-4 py-2 rounded text-sm transition-all ${formMode === 'advanced' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             Advanced Mode
           </button>
@@ -309,19 +307,18 @@ const EnhancedPIIForm = () => {
                         </span>
                       </div>
                     </div>
-                    
+
                     <p className="text-gray-400 text-sm mb-4">{field.description}</p>
-                    
+
                     <input
                       type="text"
                       placeholder={field.placeholder}
                       value={formData[field.key] || ''}
                       onChange={(e) => handleChange(field.key, e.target.value)}
-                      className={`w-full bg-black/50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-500 text-white transition-all ${
-                        validationErrors[field.key] ? 'border-red-500' : 'border-gray-600'
-                      }`}
+                      className={`w-full bg-black/50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-500 text-white transition-all ${validationErrors[field.key] ? 'border-red-500' : 'border-gray-600'
+                        }`}
                     />
-                    
+
                     {validationErrors[field.key] && (
                       <p className="text-red-400 text-sm mt-2">{validationErrors[field.key]}</p>
                     )}
@@ -367,7 +364,7 @@ const EnhancedPIIForm = () => {
                 <h2 className="text-2xl font-semibold text-white border-l-4 border-red-500 pl-4">
                   {category.name}
                 </h2>
-                
+
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {fields
                     .filter(f => f.category === category.id)
@@ -383,7 +380,7 @@ const EnhancedPIIForm = () => {
                             {field.risk}
                           </span>
                         </div>
-                        
+
                         <input
                           type="text"
                           placeholder={field.placeholder}

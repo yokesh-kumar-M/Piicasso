@@ -8,7 +8,7 @@ const Footer = () => {
                     Wordlist Generation System • V2.5.1
                 </div>
                 <p className="text-[10px] font-mono text-zinc-600 tracking-wider mt-1">
-                    &copy; {new Date().getFullYear()} PIIcasso
+                    &copy; {new Date().getFullYear()} AEGIS
                 </p>
             </div>
         </footer>

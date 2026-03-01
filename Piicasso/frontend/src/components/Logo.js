@@ -8,13 +8,13 @@ const Logo = ({ className }) => {
         className="text-white font-black tracking-tighter"
         style={{ fontSize: '1.2em' }}
       >
-        PII
+        AEGIS
       </span>
       <span
         className="text-netflix-red font-medium tracking-[0.1em] ml-0.5 opacity-90"
         style={{ fontSize: '0.9em' }}
       >
-        CASSO
+        CORE
       </span>
     </Link>
   );

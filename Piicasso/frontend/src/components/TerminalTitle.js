@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 const TerminalTitle = () => {
   const [text, setText] = useState('');
-  const fullText = 'Welcome to PIIcasso — Intelligence Engine Online...';
+  const fullText = 'Welcome to AEGIS — Intelligence Engine Online...';
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {

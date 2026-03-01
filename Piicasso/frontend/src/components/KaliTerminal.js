@@ -63,7 +63,7 @@ const KaliTerminal = () => {
     const processCommand = async (cmd) => {
         if (!cmd.trim()) return;
 
-        const prompt = isGod ? 'GOD@KALI:~#' : 'root@kali:~/piicasso#';
+        const prompt = isGod ? 'GOD@KALI:~#' : 'root@kali:~/aegis#';
 
         // Add command to history
         setHistory(prev => [...prev, { text: `${prompt} ${cmd}`, type: 'prompt' }]);
@@ -112,7 +112,7 @@ const KaliTerminal = () => {
                 </div>
                 <div className={`flex items-center gap-2 font-bold ${isGod ? 'text-red-500' : 'text-gray-400'}`}>
                     {isGod ? <Skull className="w-4 h-4" /> : <Terminal className="w-4 h-4" />}
-                    <span>{isGod ? 'GOD_MODE :: UNRESTRICTED' : 'root@kali: ~/piicasso'}</span>
+                    <span>{isGod ? 'GOD_MODE :: UNRESTRICTED' : 'root@kali: ~/aegis'}</span>
                 </div>
                 <div className="text-[10px] text-gray-600">v2024.1</div>
             </div>
@@ -143,7 +143,7 @@ const KaliTerminal = () => {
                 {!isRunning && (
                     <div className="flex items-center">
                         <span className={`mr-2 font-bold ${isGod ? 'text-red-600' : 'text-blue-500'}`}>
-                            {isGod ? 'GOD@KALI:~#' : 'root@kali:~/piicasso#'}
+                            {isGod ? 'GOD@KALI:~#' : 'root@kali:~/aegis#'}
                         </span>
                         <input
                             ref={inputRef}

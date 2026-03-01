@@ -131,7 +131,7 @@ const Navbar = () => {
                                     <Link to="/profile" className="block px-4 py-2 text-sm hover:underline">Account</Link>
                                     <Link to="/help" className="block px-4 py-2 text-sm hover:underline">Help Center</Link>
                                     <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm hover:underline text-netflix-red">
-                                        Sign out of PIIcasso
+                                        Sign out of AEGIS
                                     </button>
                                 </div>
                             </div>

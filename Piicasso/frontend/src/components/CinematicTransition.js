@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const getPageTitle = (pathname) => {
-    if (pathname === '/') return 'PIICASSO';
+    if (pathname === '/') return 'AEGIS';
     if (pathname === '/operation') return 'GENERATE';
     if (pathname === '/workspace') return 'SAVED';
     if (pathname === '/login') return 'LOGIN';

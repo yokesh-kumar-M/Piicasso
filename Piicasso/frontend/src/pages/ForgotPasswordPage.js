@@ -251,7 +251,7 @@ const ForgotPasswordPage = () => {
                 </div>
 
                 <div className="mt-8 text-center text-[10px] text-zinc-600 tracking-widest">
-                    PIIcasso v2.5.1
+                    AEGIS v2.5.1
                 </div>
             </motion.div>
         </div>
