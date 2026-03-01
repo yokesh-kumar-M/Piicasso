@@ -10,6 +10,19 @@ from django.core.cache import cache
 
 logger = logging.getLogger('wordgen.security')
 
+class PolicyViolationMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        if hasattr(request, 'user') and request.user.is_authenticated and not request.user.is_active:
+            # Allow auth endpoints (token generation, refresh)
+            if request.path.startswith('/api/token/') or request.path.startswith('/api/auth/'):
+                return None
+            
+            # Allow message endpoints (so they can use INBOX)
+            if request.path.startswith('/api/messages/'):
+                return None
+                
+            return JsonResponse({'detail': 'You have violeted the policy of website', 'code': 'user_inactive'}, status=403)
+
 class SecurityLoggingMiddleware(MiddlewareMixin):
     """Enhanced security and audit logging middleware."""
     

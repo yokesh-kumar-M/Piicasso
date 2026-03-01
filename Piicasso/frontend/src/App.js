@@ -19,6 +19,7 @@ const SavedPage = React.lazy(() => import('./pages/SavedPage'));
 const SquadronPage = React.lazy(() => import('./pages/SquadronPage'));
 const DarkWebPage = React.lazy(() => import('./pages/DarkWebPage'));
 const SuperAdminPage = React.lazy(() => import('./pages/SuperAdminPage'));
+const InboxPage = React.lazy(() => import('./pages/InboxPage'));
 
 function App() {
   useEffect(() => {
@@ -87,6 +88,12 @@ function App() {
                   <Route path="/omega-admin" element={
                     <PrivateRoute>
                       <SuperAdminPage />
+                    </PrivateRoute>
+                  } />
+
+                  <Route path="/inbox" element={
+                    <PrivateRoute>
+                      <InboxPage />
                     </PrivateRoute>
                   } />
 

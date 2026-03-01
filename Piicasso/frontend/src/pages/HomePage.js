@@ -57,9 +57,9 @@ const HomePage = () => {
       </div>
 
       {/* 2. MAIN GRID LAYOUT - RIGID DASHBOARD FRAME */}
-      <div className="flex-1 relative bg-black p-2 min-h-[700px]">
+      <div className="flex-1 relative bg-black p-2 flex flex-col lg:block min-h-[1200px] lg:min-h-[700px]">
         {/* We use absolute geometry to clamp the internal scrolling strictly to the boundaries */}
-        <div className="absolute inset-2 grid grid-cols-1 lg:grid-cols-12 gap-2">
+        <div className="relative lg:absolute lg:inset-2 grid grid-cols-1 lg:grid-cols-12 gap-2 flex-1 lg:flex-none">
 
           {/* LEFT COLUMN: VISUAL INTELLIGENCE (Charts & Maps) */}
           <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col p-4 relative group h-full overflow-y-auto custom-scrollbar">
@@ -166,10 +166,10 @@ const HomePage = () => {
           </div>
 
           {/* RIGHT COLUMN: LIVE TRACKING (Logs & Feed) */}
-          <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col h-full overflow-hidden">
+          <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col lg:h-full overflow-hidden">
 
             {/* Panel 1: Network Activity / Output Preview (Moved to Top) */}
-            <div className="h-1/2 flex flex-col bg-zinc-900/10 relative border-b border-zinc-900">
+            <div className="min-h-[300px] lg:min-h-0 lg:h-1/2 flex flex-col bg-zinc-900/10 relative border-b border-zinc-900">
               <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2 z-10 bg-[#141414]">
                 <Wifi className="w-3 h-3" /> GLOBAL ACTIVITY MAP
               </div>
@@ -181,7 +181,7 @@ const HomePage = () => {
             </div>
 
             {/* Panel 2: Live Feed (Moved to Bottom) */}
-            <div className="h-1/2 flex flex-col">
+            <div className="min-h-[300px] lg:min-h-0 lg:h-1/2 flex flex-col">
               <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2">
                 <Terminal className="w-3 h-3" /> RECENT ACTIVITY
               </div>

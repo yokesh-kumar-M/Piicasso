@@ -57,7 +57,7 @@ const DashboardPage = () => {
 
       <div className="pt-24 px-6 md:px-12 pb-20">
         {/* ... Header ... */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-zinc-800 pb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-zinc-800 pb-4">
           <div>
             <h1 className="text-3xl font-heading tracking-wide mb-1">GENERATION <span className="text-gray-500">HISTORY</span></h1>
             <p className="text-xs text-gray-500 font-mono">View your previously generated wordlists</p>
@@ -151,8 +151,8 @@ const DashboardPage = () => {
             })}
           </div>
         ) : (
-          <div className="bg-[#141414] border border-zinc-800 rounded overflow-hidden">
-            <table className="w-full text-left text-sm">
+          <div className="bg-[#141414] border border-zinc-800 rounded overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap lg:whitespace-normal">
               <thead className="bg-[#1f1f1f] text-gray-400 font-mono text-xs uppercase">
                 <tr>
                   <th className="p-4">Name</th>

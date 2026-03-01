@@ -178,10 +178,10 @@ const TargetForm = ({ onFormUpdate }) => {
 
 
             {/* Main Content Area */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
 
                 {/* 1. Category Sidebar (The "Modules") */}
-                <div className="w-1/3 md:w-1/4 bg-[#0f0f0f] overflow-y-auto border-r border-zinc-900 custom-scrollbar">
+                <div className="w-full md:w-1/4 flex md:flex-col bg-[#0f0f0f] overflow-x-auto md:overflow-x-hidden md:overflow-y-auto border-b md:border-b-0 md:border-r border-zinc-900 custom-scrollbar shrink-0">
                     {CATEGORIES.map((cat) => {
                         const completion = getFieldCompletion(cat.id);
                         const isSelected = selectedCategory === cat.id;
@@ -190,14 +190,14 @@ const TargetForm = ({ onFormUpdate }) => {
                             <button
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.id)}
-                                className={`w-full text-left p-4 border-b border-zinc-900 relative group transition-all duration-300 ${isSelected ? 'bg-zinc-900' : 'hover:bg-zinc-900/50'
+                                className={`min-w-[130px] md:w-full text-left p-3 md:p-4 border-r md:border-r-0 md:border-b border-zinc-900 relative group transition-all duration-300 flex-shrink-0 ${isSelected ? 'bg-zinc-900' : 'hover:bg-zinc-900/50'
                                     }`}
                             >
                                 {/* Active Indicator Bar */}
                                 {isSelected && (
                                     <motion.div
                                         layoutId="activeBar"
-                                        className="absolute left-0 top-0 bottom-0 w-1 bg-netflix-red shadow-[0_0_10px_rgba(229,9,20,0.8)]"
+                                        className="absolute left-0 bottom-0 top-auto md:top-0 md:bottom-auto w-full md:w-1 h-1 md:h-full bg-netflix-red shadow-[0_0_10px_rgba(229,9,20,0.8)]"
                                     />
                                 )}
 
@@ -297,19 +297,19 @@ const TargetForm = ({ onFormUpdate }) => {
             </div>
 
             {/* Footer / Submit Area */}
-            <div className="p-4 border-t border-zinc-900 bg-[#0f0f0f] flex justify-between items-center z-20">
+            <div className="p-4 border-t border-zinc-900 bg-[#0f0f0f] flex flex-col sm:flex-row justify-between items-center z-20 gap-4 sm:gap-0 mt-auto">
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                     <Shield className="w-4 h-4 text-gray-500" />
                     <span>Status Check: <span className="text-green-500">READY</span></span>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                     {error && <span className="text-xs text-red-500 font-mono animate-pulse">{error}</span>}
 
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="bg-netflix-red hover:bg-red-700 text-white px-6 py-2 rounded-sm font-bold font-mono text-sm tracking-widest shadow-[0_0_15px_rgba(229,9,20,0.4)] hover:shadow-[0_0_25px_rgba(229,9,20,0.6)] transition-all flex items-center gap-2"
+                        className="w-full sm:w-auto bg-netflix-red hover:bg-red-700 text-white px-6 py-3 sm:py-2 rounded-sm font-bold font-mono text-sm tracking-widest shadow-[0_0_15px_rgba(229,9,20,0.4)] hover:shadow-[0_0_25px_rgba(229,9,20,0.6)] transition-all flex items-center justify-center gap-2"
                     >
                         {loading ? <Zap className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                         {loading ? 'Submitting...' : 'Generate Wordlist'}

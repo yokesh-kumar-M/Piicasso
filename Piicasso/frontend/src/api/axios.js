@@ -45,10 +45,8 @@ axiosInstance.interceptors.response.use(
       errorMsg === 'User is inactive'
     ) {
       alert("You have violeted the policy of website");
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (window.location.pathname !== '/inbox') {
+        window.location.href = '/inbox';
       }
       return Promise.reject(err);
     }

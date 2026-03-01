@@ -68,8 +68,8 @@ const ResultPage = () => {
         <button onClick={() => navigate('/dashboard')} className="text-xs font-mono text-gray-500 hover:text-white">Go to Dashboard</button>
       </div>
 
-      <div className="flex-1 p-8 overflow-y-auto">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto w-full">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
 
           {/* LEFT: Success Card & Actions */}
           <div className="lg:col-span-1 space-y-6">
@@ -97,16 +97,16 @@ const ResultPage = () => {
             <div className="space-y-3">
               <button
                 onClick={handleInjectToTerminal}
-                className="w-full bg-white text-black hover:bg-gray-200 h-14 rounded flex items-center justify-between px-6 font-bold tracking-wide transition-all group"
+                className="w-full bg-white text-black hover:bg-gray-200 h-14 rounded flex items-center justify-between px-4 sm:px-6 font-bold tracking-wide transition-all group"
               >
-                <span className="flex items-center gap-3">
+                <span className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base">
                   <Terminal className="w-5 h-5 text-red-600" />
                   Open Terminal
                 </span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={handleDownloadTxt}
                   className="bg-[#141414] border border-zinc-800 hover:border-zinc-600 text-gray-300 h-12 rounded flex items-center justify-center gap-2 text-sm font-medium transition-colors"
@@ -134,7 +134,7 @@ const ResultPage = () => {
           </div>
 
           {/* RIGHT: Data Preview */}
-          <div className="lg:col-span-2 flex flex-col h-[600px] bg-[#101010] border border-zinc-800 rounded overflow-hidden">
+          <div className="lg:col-span-2 flex flex-col min-h-[400px] lg:h-[600px] mt-2 lg:mt-0 bg-[#101010] border border-zinc-800 rounded overflow-hidden">
             <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-[#0d0d0d]">
               <div className="flex items-center gap-2 text-gray-400 font-mono text-xs">
                 <Database className="w-4 h-4" />

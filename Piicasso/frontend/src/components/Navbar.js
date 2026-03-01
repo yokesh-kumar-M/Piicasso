@@ -39,6 +39,7 @@ const Navbar = () => {
         { name: 'Teams', path: '/squadron' },
         { name: 'History', path: '/dashboard' },
         { name: 'Saved', path: '/workspace' },
+        { name: 'Inbox', path: '/inbox' },
     ];
 
     if (user?.username === 'Yokesh-superuser') {
@@ -152,17 +153,37 @@ const Navbar = () => {
 
             {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
-                <div className="md:hidden bg-black/95 absolute top-16 left-0 w-full p-4 border-t border-gray-800">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.name}
-                            to={link.path}
-                            className="block py-3 text-center text-gray-300 hover:text-white border-b border-gray-800"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            {link.name}
-                        </Link>
-                    ))}
+                <div className="md:hidden bg-[#0a0a0a]/95 backdrop-blur-md absolute top-[68px] left-0 w-full px-6 pt-6 pb-12 border-t border-zinc-900 shadow-2xl h-[calc(100vh-68px)] overflow-y-auto">
+                    <div className="flex flex-col space-y-1">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.name}
+                                to={link.path}
+                                className="block py-4 text-center font-bold tracking-widest uppercase text-gray-400 hover:text-white border-b border-zinc-800/50 hover:bg-zinc-900/30 rounded transition-colors"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                {link.name}
+                            </Link>
+                        ))}
+
+                        {/* Mobile Additional Options */}
+                        <div className="pt-8 flex flex-col gap-4">
+                            {isAuthenticated ? (
+                                <>
+                                    <Link to="/profile" className="flex items-center justify-center gap-2 py-4 text-xs font-bold tracking-widest uppercase text-gray-300 hover:text-white bg-zinc-900/50 rounded border border-zinc-800" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <User className="w-4 h-4" /> My Profile
+                                    </Link>
+                                    <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="w-full py-4 text-xs font-bold tracking-widest uppercase text-netflix-red bg-red-900/10 border border-red-900/30 rounded hover:bg-red-900/30 transition-colors flex items-center justify-center">
+                                        Sign Out
+                                    </button>
+                                </>
+                            ) : (
+                                <Link to="/login" className="w-full py-4 text-center text-xs font-bold tracking-widest uppercase text-white bg-netflix-red rounded shadow-lg hover:bg-red-700 transition" onClick={() => setIsMobileMenuOpen(false)}>
+                                    Sign In
+                                </Link>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </nav>

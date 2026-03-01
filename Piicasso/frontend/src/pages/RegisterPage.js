@@ -74,7 +74,7 @@ const RegisterPage = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-lg relative z-10"
+        className="w-full max-w-lg relative z-10 px-4 md:px-0"
       >
         {/* Registration Terminal */}
         <div className="bg-[#0f0f0f] border-2 border-zinc-800 rounded-sm shadow-2xl relative">
