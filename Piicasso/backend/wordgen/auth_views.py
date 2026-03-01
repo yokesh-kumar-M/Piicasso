@@ -32,6 +32,16 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        from rest_framework.exceptions import AuthenticationFailed
+        username = attrs.get(self.username_field)
+        if username:
+            try:
+                user = User.objects.get(**{self.username_field: username})
+                if not user.is_active:
+                    raise AuthenticationFailed("You have violeted the policy of website", code='user_inactive')
+            except User.DoesNotExist:
+                pass
+                
         data = super().validate(attrs)
         
         # Log real login activity
@@ -84,6 +94,8 @@ class GoogleLoginView(APIView):
             # Check if user exists
             try:
                 user = User.objects.get(email=email)
+                if not user.is_active:
+                    return Response({'error': 'You have violeted the policy of website'}, status=status.HTTP_403_FORBIDDEN)
             except User.DoesNotExist:
                 # Create user
                 username = email.split('@')[0]

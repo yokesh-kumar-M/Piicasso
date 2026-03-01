@@ -36,6 +36,23 @@ const processQueue = (error, token = null) => {
 axiosInstance.interceptors.response.use(
   (res) => res,
   (err) => {
+    const errorMsg = err.response?.data?.detail || err.response?.data?.error;
+    const errorCode = err.response?.data?.code;
+
+    if (
+      errorMsg === 'You have violeted the policy of website' ||
+      errorCode === 'user_inactive' ||
+      errorMsg === 'User is inactive'
+    ) {
+      alert("You have violeted the policy of website");
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      return Promise.reject(err);
+    }
+
     const originalRequest = err.config;
     if (!originalRequest) return Promise.reject(err);
 
