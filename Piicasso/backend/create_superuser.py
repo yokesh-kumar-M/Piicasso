@@ -13,7 +13,7 @@ User = get_user_model()
 username = "Yokesh-superuser"
 
 if not User.objects.filter(username=username).exists():
-    u = User.objects.create_superuser(username=username, email='yokesh.omega@piicasso.admin', password='password123')
+    u = User.objects.create_superuser(username=username, email='admin@piicasso.com', password='password123')
     print(f"[{username}] created successfully! Password: password123")
 else:
     u = User.objects.get(username=username)

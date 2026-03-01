@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class VisualizationConfig(AppConfig):
+class TeamsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'visualization'
+    name = 'teams'

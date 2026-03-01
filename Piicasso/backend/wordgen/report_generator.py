@@ -8,9 +8,9 @@ from io import BytesIO
 import json
 import random
 
-def generate_dossier_pdf(history_entry, file_buffer):
+def generate_report_pdf(history_entry, file_buffer):
     """
-    Generates a 'Classified' style dossier PDF for a GenerationHistory entry.
+    Generates a professional intelligence report PDF for a GenerationHistory entry.
     """
     doc = SimpleDocTemplate(file_buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -23,14 +23,14 @@ def generate_dossier_pdf(history_entry, file_buffer):
 
     elements = []
 
-    # --- Header with "TOP SECRET" Stamp ---
-    elements.append(Paragraph("TOP SECRET // NOFORN", styles['ClassifiedTitle']))
-    elements.append(Paragraph("Target Dossier Generation Report", styles['SectionHeader']))
+    # --- Header ---
+    elements.append(Paragraph("PIIcasso Intelligence Report", styles['ClassifiedTitle']))
+    elements.append(Paragraph("Intelligence Generation Summary", styles['SectionHeader']))
     elements.append(Spacer(1, 0.2*inch))
     
     # --- Metadata Table ---
     meta_data = [
-        ['OPERATION ID:', f"OP-{history_entry.id:04d}"],
+        ['REPORT ID:', f"REP-{history_entry.id:04d}"],
         ['TIMESTAMP:', str(history_entry.timestamp)],
         ['IP ORIGIN:', history_entry.ip_address or "UNK/PROXY"],
         ['AGENT:', history_entry.user.username if history_entry.user else "GHOST USER"],
@@ -47,7 +47,7 @@ def generate_dossier_pdf(history_entry, file_buffer):
     elements.append(Spacer(1, 0.3*inch))
 
     # --- PII Data Section ---
-    elements.append(Paragraph("I. COLLECTED INTELLIGENCE (PII)", styles['SectionHeader']))
+    elements.append(Paragraph("I. COLLECTED DATA", styles['SectionHeader']))
     
     pii_content = []
     # Depending on how pii_data is stored (JSONField which returns dict)
@@ -91,7 +91,7 @@ def generate_dossier_pdf(history_entry, file_buffer):
     elements.append(Spacer(1, 0.3*inch))
 
     # --- Wordlist Analysis ---
-    elements.append(Paragraph("II. GENERATED VECTORS (WORDLIST)", styles['SectionHeader']))
+    elements.append(Paragraph("II. GENERATED LISTS", styles['SectionHeader']))
     wordlist = history_entry.wordlist or []
     count = len(wordlist)
     elements.append(Paragraph(f"Total Variants Generated: {count}", styles['DataText']))
@@ -123,6 +123,6 @@ def generate_dossier_pdf(history_entry, file_buffer):
         elements.append(Paragraph(f"... [ {count - preview_limit} ADDITIONAL ENTRIES OMITTED FOR SECURITY ] ...", styles['WarningText']))
 
     elements.append(Spacer(1, 0.5*inch))
-    elements.append(Paragraph("** CONFIDENTIAL DOCUMENT - DESTROY AFTER USE **", styles['WarningText']))
+    elements.append(Paragraph("** CONFIDENTIAL REPORT - AUTHORIZED USE ONLY **", styles['WarningText']))
 
     doc.build(elements)

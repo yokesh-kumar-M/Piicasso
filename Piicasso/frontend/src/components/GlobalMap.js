@@ -40,7 +40,7 @@ const GlobalMap = () => {
 
         const fetchPoints = async () => {
             try {
-                const res = await axiosInstance.get('visualization/globe-data/');
+                const res = await axiosInstance.get('analytics/globe-data/');
                 if (Array.isArray(res.data)) {
                     setPoints(res.data);
                 }

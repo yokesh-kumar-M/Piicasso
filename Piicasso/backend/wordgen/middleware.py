@@ -18,7 +18,7 @@ class PolicyViolationMiddleware(MiddlewareMixin):
                 return None
             
             # Allow message endpoints (so they can use INBOX)
-            if request.path.startswith('/api/messages/'):
+            if request.path.startswith('/api/operations/messages/'):
                 return None
                 
             return JsonResponse({'detail': 'You have violeted the policy of website', 'code': 'user_inactive'}, status=403)

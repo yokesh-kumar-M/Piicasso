@@ -15,19 +15,28 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Message.objects.filter(Q(sender=user) | Q(recipient=user))
+        if user.is_superuser:
+            return Message.objects.all()
+        # Regular users only see messages where they are sender or recipient AND the other party is an admin
+        return Message.objects.filter(
+            Q(sender=user, recipient__is_superuser=True) | 
+            Q(recipient=user, sender__is_superuser=True)
+        )
 
     def perform_create(self, serializer):
         recipient = serializer.validated_data.get('recipient')
         
-        # If user is inactive blocked, force recipient to be an admin (e.g. Yokesh-superuser or any superuser)
-        if not self.request.user.is_active:
-            # They must only send to superusers
+        # Enforce: Regular users can ONLY send to superusers
+        if not self.request.user.is_superuser:
             if not recipient.is_superuser:
+                # Silently or explicitly redirect to a superuser if they try to message a normal user
                 admin_user = User.objects.filter(is_superuser=True).first()
                 if admin_user:
                     serializer.save(sender=self.request.user, recipient=admin_user)
-                    return
+                else:
+                    from rest_framework.exceptions import ValidationError
+                    raise ValidationError("You can only message the system administrator.")
+                return
         
         serializer.save(sender=self.request.user)
 

@@ -3,7 +3,12 @@ version: '3.8'
 services:
   web:
     build: .
-    command: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:8000 backend.wsgi:application
+    command: gunicorn --workers 4 --threads 4 --worker-class gthread --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --timeout 600 backend.wsgi:application
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     ports:
       - "8000:8000"
     volumes:

@@ -36,14 +36,14 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Home', path: '/' },
         { name: 'Generate', path: '/operation' },
-        { name: 'Teams', path: '/squadron' },
+        { name: 'Teams', path: '/teams' },
         { name: 'History', path: '/dashboard' },
         { name: 'Saved', path: '/workspace' },
-        { name: 'Inbox', path: '/inbox' },
     ];
 
-    if (user?.username === 'Yokesh-superuser') {
-        navLinks.push({ name: 'Admin Panel', path: '/omega-admin' });
+    if (user?.is_superuser) {
+        navLinks.push({ name: 'Inbox', path: '/inbox' });
+        navLinks.push({ name: 'Admin Panel', path: '/system-admin' });
     }
 
     return (
@@ -131,7 +131,7 @@ const Navbar = () => {
                                     <Link to="/profile" className="block px-4 py-2 text-sm hover:underline">Account</Link>
                                     <Link to="/help" className="block px-4 py-2 text-sm hover:underline">Help Center</Link>
                                     <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm hover:underline text-netflix-red">
-                                        Sign out of AEGIS
+                                        Sign out of PIIcasso
                                     </button>
                                 </div>
                             </div>

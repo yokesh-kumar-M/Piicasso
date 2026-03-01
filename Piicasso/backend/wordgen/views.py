@@ -16,12 +16,34 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .llm_handler import build_prompt, call_gemini_api
 from generator.models import GenerationHistory
-from squadrons.models import Squadron, SquadronMembership
+from teams.models import Team, TeamMembership
 from operations.models import SystemLog
 from .serializers import Piiserializer
-from .pdf_generator import generate_dossier_pdf
+from .report_generator import generate_report_pdf
 from .decorators import enhanced_rate_limit as rate_limit       
-from visualization.models import UserActivity
+from analytics.models import UserActivity
+from django.db.models import Sum
+
+# Optimization: Cache RockYou wordlist in memory for fast access
+_ROCKYOU_CACHE = []
+
+def get_rockyou_wordlist():
+    global _ROCKYOU_CACHE
+    if not _ROCKYOU_CACHE:
+        try:
+            rockyou_path = os.path.join(os.path.dirname(__file__), 'rockyou.txt')
+            if os.path.exists(rockyou_path):
+                with open(rockyou_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    _ROCKYOU_CACHE = [line.strip() for line in f if line.strip()]
+        except Exception as e:
+            print(f"Error loading wordlist cache: {e}")
+    return _ROCKYOU_CACHE
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Production health check for monitoring and scaling."""
+    return Response({"status": "healthy", "timestamp": timezone.now()}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -34,9 +56,7 @@ def beacon_view(request):
     if lat is not None and lng is not None:
         try:
             from datetime import timedelta
-            from django.utils import timezone
-            from visualization.models import UserActivity
-            
+
             last_activity = UserActivity.objects.filter(
                 activity_type='LOGIN', description__contains=user
             ).order_by('-timestamp').first()
@@ -125,15 +145,8 @@ class PiiSubmitView(APIView):
             prompt = build_prompt(pii_data)
             wordlist_raw = call_gemini_api(prompt, pii_data=pii_data)
 
-            # Load RockYou.txt
-            rockyou_passwords = []
-            try:
-                rockyou_path = os.path.join(os.path.dirname(__file__), 'rockyou.txt')
-                if os.path.exists(rockyou_path):
-                    with open(rockyou_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        rockyou_passwords = [line.strip() for line in f if line.strip()]
-            except Exception:
-                pass # Silent fail to prevent blocking server threads
+            # Load RockYou.txt (Optimized with memory cache)
+            rockyou_passwords = get_rockyou_wordlist()
             # Normalize to list and combine
             ai_wordlist = [line.strip() for line in wordlist_raw.splitlines() if line.strip()]
             
@@ -262,7 +275,7 @@ def export_history_csv(request):
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def download_dossier_pdf(request, id):
+def download_report_pdf(request, id):
     try:
         r = GenerationHistory.objects.get(id=id)
         # Verify access (unless superuser)
@@ -270,10 +283,10 @@ def download_dossier_pdf(request, id):
              return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
              
         buffer = BytesIO()
-        generate_dossier_pdf(r, buffer)
+        generate_report_pdf(r, buffer)
         buffer.seek(0)
         
-        return FileResponse(buffer, as_attachment=True, filename=f'TOP_SECRET_DOSSIER_{id}.pdf', content_type='application/pdf')
+        return FileResponse(buffer, as_attachment=True, filename=f'PIICASSO_REPORT_{id}.pdf', content_type='application/pdf')
     except GenerationHistory.DoesNotExist:
         return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
@@ -284,15 +297,11 @@ def download_dossier_pdf(request, id):
 @permission_classes([IsAuthenticated])
 def user_stats(request):
     try:
-        history = GenerationHistory.objects.filter(user=request.user)
-        total_ops = history.count()
-        # Calculate total passwords across all history
-        # Note: This loads all wordlists into memory which is heavy for production, 
-        # but acceptable for this scale. Ideally we'd store a 'count' field.
-        total_passwords = 0
-        for h in history:
-            if h.wordlist:
-                total_passwords += len(h.wordlist)
+        total_ops = GenerationHistory.objects.filter(user=request.user).count()
+        # Optimized: Use Sum aggregation on the new wordlist_count field
+        total_passwords = GenerationHistory.objects.filter(user=request.user).aggregate(
+            total=Sum('wordlist_count')
+        )['total'] or 0
         
         return Response({
             "operations": total_ops,
@@ -306,29 +315,29 @@ def user_stats(request):
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def create_squadron(request):
+def create_team(request):
     try:
         user = request.user
-        if SquadronMembership.objects.filter(user=user).exists():
-            return Response({"error": "You are already in a squadron."}, status=status.HTTP_400_BAD_REQUEST)
+        if TeamMembership.objects.filter(user=user).exists():
+            return Response({"error": "You are already in a team."}, status=status.HTTP_400_BAD_REQUEST)
 
         name = request.data.get('name')
         if not name:
-            return Response({"error": "Squadron name is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Team name is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        squadron = Squadron.objects.create(name=name, owner=user)
-        SquadronMembership.objects.create(user=user, squadron=squadron, role='LEADER')
+        team = Team.objects.create(name=name, owner=user)
+        TeamMembership.objects.create(user=user, team=team, role='LEADER')
 
         UserActivity.objects.create(
-            activity_type='SQUAD_JOIN',
-            description=f"Squadron {name} established by {user.username}",
+            activity_type='TEAM_JOIN',
+            description=f"Team {name} established by {user.username}",
             city="Command Center"
         )
 
         return Response({
-            "message": "Squadron established.",
-            "code": squadron.invite_code,
-            "id": squadron.id
+            "message": "Team established.",
+            "code": team.invite_code,
+            "id": team.id
         }, status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -336,43 +345,46 @@ def create_squadron(request):
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def join_squadron(request):
+def join_team(request):
     try:
         user = request.user
-        if SquadronMembership.objects.filter(user=user).exists():
-            return Response({"error": "You are already in a squadron."}, status=status.HTTP_400_BAD_REQUEST)
+        if TeamMembership.objects.filter(user=user).exists():
+            return Response({"error": "You are already in a team."}, status=status.HTTP_400_BAD_REQUEST)
 
-        code = request.data.get('code')
+        # Accept both 'invite_code' and 'code' for compatibility
+        code = request.data.get('invite_code') or request.data.get('code')
+        if not code:
+            return Response({"error": "Invite code is required."}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            squadron = Squadron.objects.get(invite_code=code)
-        except Squadron.DoesNotExist:
-            return Response({"error": "Invalid invite code."}, status=status.HTTP_404_NOT_FOUND)
+            team = Team.objects.get(invite_code=code)
+        except Team.DoesNotExist:
+            return Response({"error": "Invalid invite code. Please check and try again."}, status=status.HTTP_404_NOT_FOUND)
 
-        SquadronMembership.objects.create(user=user, squadron=squadron, role='MEMBER')
+        TeamMembership.objects.create(user=user, team=team, role='MEMBER')
         
         UserActivity.objects.create(
-            activity_type='SQUAD_JOIN',
-            description=f"{user.username} joined squadron {squadron.name}",
+            activity_type='TEAM_JOIN',
+            description=f"{user.username} joined team {team.name}",
             city="Field Node"
         )
         
-        return Response({"message": f"Joined {squadron.name}"}, status=status.HTTP_200_OK)
+        return Response({"message": f"Joined {team.name}"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def get_squadron_info(request):
+def get_team_info(request):
     try:
         user = request.user
         try:
-            membership = SquadronMembership.objects.get(user=user)
-            squadron = membership.squadron
-        except SquadronMembership.DoesNotExist:
+            membership = TeamMembership.objects.get(user=user)
+            team = membership.team
+        except TeamMembership.DoesNotExist:
             return Response({"active": False})
 
-        members = SquadronMembership.objects.filter(squadron=squadron).select_related('user')
+        members = TeamMembership.objects.filter(team=team).select_related('user')
         member_list = [{
             "username": m.user.username,
             "role": m.role,
@@ -393,8 +405,8 @@ def get_squadron_info(request):
 
         return Response({
             "active": True,
-            "name": squadron.name,
-            "invite_code": squadron.invite_code,
+            "name": team.name,
+            "invite_code": team.invite_code,
             "my_role": membership.role,
             "members": member_list,
             "feed": feed
@@ -405,20 +417,32 @@ def get_squadron_info(request):
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def leave_squadron(request):
+def leave_team(request):
     try:
         user = request.user
-        membership = SquadronMembership.objects.get(user=user)
-        squadron = membership.squadron
+        try:
+            membership = TeamMembership.objects.get(user=user)
+        except TeamMembership.DoesNotExist:
+            return Response({"error": "You are not in a team."}, status=status.HTTP_400_BAD_REQUEST)
+
+        team = membership.team
 
         if membership.role == 'LEADER':
-            count = SquadronMembership.objects.filter(squadron=squadron).count()
+            count = TeamMembership.objects.filter(team=team).count()
             if count == 1:
-                squadron.delete()
-                return Response({"message": "Squadron disbanded."})
-            return Response({"error": "Leader cannot leave and must disband or transfer if other members exist."}, status=status.HTTP_400_BAD_REQUEST)
+                # Last member - disband team
+                team.delete()
+                return Response({"message": "Team disbanded as you were the last member."})
+            # Transfer leadership to oldest member
+            next_member = TeamMembership.objects.filter(team=team).exclude(user=user).order_by('joined_at').first()
+            if next_member:
+                next_member.role = 'LEADER'
+                next_member.save()
+            membership.delete()
+            return Response({"message": "Leadership transferred and you have left the team."})
 
-        return Response({"message": "Left squadron."})
+        membership.delete()
+        return Response({"message": f"You have left {team.name}."})
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -503,8 +527,8 @@ class SuperAdminView(APIView):
 
     def check_permissions(self, request):
         super().check_permissions(request)
-        if request.user.username != "Yokesh-superuser":
-            self.permission_denied(request, message="Restricted entry. Ultimate Admin ONLY.")
+        if not request.user.is_superuser:
+            self.permission_denied(request, message="Restricted entry. System Administrator ONLY.")
 
     def get(self, request):
         action = request.query_params.get('action')
@@ -570,7 +594,7 @@ class SuperAdminView(APIView):
         try:
             target_user = User.objects.get(id=target_id)
             if target_user.username == "Yokesh-superuser" and action in ["block", "delete", "change_password"]:
-                return Response({"error": "God mode active: Cannot modify ultimate admin."}, status=400)
+                return Response({"error": "Admin Protection: Cannot modify the primary administrator."}, status=400)
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=404)
             
@@ -598,9 +622,146 @@ class SuperAdminView(APIView):
             try:
                 u = User.objects.get(id=target_id)
                 if u.username == "Yokesh-superuser":
-                    return Response({"error": "Immortality mode active: Cannot delete ultimate admin."}, status=400)
+                    return Response({"error": "System Protection: Cannot delete the primary administrator."}, status=400)
                 u.delete()
                 return Response({"message": f"User {u.username} and all their data eliminated."})
             except User.DoesNotExist:
                 return Response({"error": "User not found."}, status=404)
         return Response({"error": "Provide user_id parameter."}, status=400)
+
+# Wire class-based view to the function-based URL name expected by urls.py
+super_admin_view = SuperAdminView.as_view()
+
+
+# ─── TEAM CHAT ─── members of the same team only ─────────────────────────────
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def team_chat_messages(request):
+    """GET — last 100 team chat messages. POST — send a message to team chat."""
+    from teams.models import TeamMessage
+    try:
+        membership = TeamMembership.objects.get(user=request.user)
+        team = membership.team
+    except TeamMembership.DoesNotExist:
+        return Response({"error": "You must be in a team to use team chat."}, status=400)
+
+    if request.method == 'GET':
+        after_id = int(request.query_params.get('after', 0))
+        msgs = TeamMessage.objects.filter(team=team, id__gt=after_id).order_by('timestamp')[:100]
+        return Response([{
+            "id": m.id,
+            "sender": m.sender.username if m.sender else "Deleted User",
+            "content": m.content,
+            "timestamp": m.timestamp.isoformat(),
+            "is_me": m.sender_id == request.user.id
+        } for m in msgs])
+
+    content = request.data.get('content', '').strip()
+    if not content:
+        return Response({"error": "Message cannot be empty."}, status=400)
+    if len(content) > 2000:
+        return Response({"error": "Message too long (max 2000 chars)."}, status=400)
+    from teams.models import TeamMessage
+    msg = TeamMessage.objects.create(team=team, sender=request.user, content=content)
+    return Response({
+        "id": msg.id,
+        "sender": request.user.username,
+        "content": msg.content,
+        "timestamp": msg.timestamp.isoformat(),
+        "is_me": True
+    }, status=201)
+
+
+# ─── ADMIN MESSAGING ─── superuser ↔ any user ────────────────────────────────
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_message_view(request):
+    """
+    Superuser: GET ?user_id= gets thread; GET no params gets user list with unread;
+               POST {recipient_id, content} sends a message.
+    Regular user: GET sees admin conversation; POST {content} replies to admin.
+    """
+    from operations.models import Message
+    from django.db.models import Q
+
+    if request.user.is_superuser:
+        if request.method == 'GET':
+            user_id = request.query_params.get('user_id')
+            if not user_id:
+                # Return list of users who sent messages to admin
+                sent_ids = Message.objects.filter(recipient=request.user).values_list('sender_id', flat=True).distinct()
+                recv_ids = Message.objects.filter(sender=request.user).values_list('recipient_id', flat=True).distinct()
+                user_ids = set(list(sent_ids) + list(recv_ids)) - {request.user.id}
+                users = User.objects.filter(id__in=user_ids)
+                return Response([{
+                    "id": u.id,
+                    "username": u.username,
+                    "unread": Message.objects.filter(sender=u, recipient=request.user, is_read=False).count()
+                } for u in users])
+
+            msgs = Message.objects.filter(
+                Q(sender=request.user, recipient_id=user_id) |
+                Q(sender_id=user_id, recipient=request.user)
+            ).order_by('timestamp')
+            msgs.filter(sender_id=user_id, is_read=False).update(is_read=True)
+            return Response([{
+                "id": m.id,
+                "sender": m.sender.username,
+                "content": m.content,
+                "timestamp": m.timestamp.isoformat(),
+                "is_me": m.sender_id == request.user.id,
+                "is_read": m.is_read,
+            } for m in msgs])
+
+        # POST — admin sends to a user
+        recipient_id = request.data.get('recipient_id')
+        content = request.data.get('content', '').strip()
+        if not recipient_id or not content:
+            return Response({"error": "recipient_id and content are required."}, status=400)
+        try:
+            recipient = User.objects.get(id=recipient_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=404)
+        msg = Message.objects.create(sender=request.user, recipient=recipient, content=content)
+        return Response({"id": msg.id, "sender": request.user.username, "content": msg.content,
+                         "timestamp": msg.timestamp.isoformat(), "is_me": True}, status=201)
+
+    else:
+        # Regular user — only talks to admin
+        admin = User.objects.filter(is_superuser=True).first()
+        if not admin:
+            return Response({"error": "No admin available."}, status=503)
+
+        if request.method == 'GET':
+            msgs = Message.objects.filter(
+                Q(sender=request.user, recipient=admin) |
+                Q(sender=admin, recipient=request.user)
+            ).order_by('timestamp')
+            msgs.filter(sender=admin, is_read=False).update(is_read=True)
+            return Response([{
+                "id": m.id,
+                "sender": m.sender.username,
+                "content": m.content,
+                "timestamp": m.timestamp.isoformat(),
+                "is_me": m.sender_id == request.user.id,
+            } for m in msgs])
+
+        content = request.data.get('content', '').strip()
+        if not content:
+            return Response({"error": "Message cannot be empty."}, status=400)
+        msg = Message.objects.create(sender=request.user, recipient=admin, content=content)
+        return Response({"id": msg.id, "sender": request.user.username, "content": msg.content,
+                         "timestamp": msg.timestamp.isoformat(), "is_me": True}, status=201)
+
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_users_list(request):
+    """Superuser-only: list all users for admin to select and message."""
+    if not request.user.is_superuser:
+        return Response({"error": "Access denied."}, status=403)
+    users = User.objects.filter(is_superuser=False).order_by('username').values('id', 'username', 'email', 'is_active')
+    return Response(list(users))

@@ -99,7 +99,7 @@ const RegisterPage = () => {
             <div className="mb-8 text-center">
               <UserPlus className="w-12 h-12 text-netflix-red mx-auto mb-4" />
               <h2 className="text-2xl font-heading tracking-widest">REGISTER</h2>
-              <p className="text-xs text-gray-500 mt-2">Create a new account for AEGIS.</p>
+              <p className="text-xs text-gray-500 mt-2">Create a new account for PIIcasso.</p>
             </div>
 
             {error && (

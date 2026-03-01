@@ -1,11 +1,12 @@
-import React, { useEffect, Suspense } from 'react';
+import React, { useContext, useEffect, Suspense } from 'react';
 import axios from './api/axios';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Footer from './components/Footer';
 import CinematicTransition from './components/CinematicTransition';
+import { AuthContext } from './context/AuthContext';
 
 const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
 const LoginPage = React.lazy(() => import('./pages/LoginPage'));
@@ -16,12 +17,20 @@ const ResultPage = React.lazy(() => import('./pages/ResultPage'));
 const HomePage = React.lazy(() => import('./pages/HomePage'));
 const NewOperationPage = React.lazy(() => import('./pages/NewOperationPage'));
 const SavedPage = React.lazy(() => import('./pages/SavedPage'));
-const SquadronPage = React.lazy(() => import('./pages/SquadronPage'));
+const TeamsPage = React.lazy(() => import('./pages/TeamsPage'));
 const DarkWebPage = React.lazy(() => import('./pages/DarkWebPage'));
 const SuperAdminPage = React.lazy(() => import('./pages/SuperAdminPage'));
 const InboxPage = React.lazy(() => import('./pages/InboxPage'));
 
 function App() {
+  // Guard: only superusers can access a route
+  const SuperuserRoute = ({ children }) => {
+    const { user, loading } = useContext(AuthContext);
+    if (loading) return null;
+    if (!user?.is_superuser) return <Navigate to="/" replace />;
+    return children;
+  };
+
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -45,9 +54,9 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  <Route path="/squadron" element={
+                  <Route path="/teams" element={
                     <PrivateRoute>
-                      <SquadronPage />
+                      <TeamsPage />
                     </PrivateRoute>
                   } />
 
@@ -57,16 +66,16 @@ function App() {
                     </PrivateRoute>
                   } />
 
-                  <Route path="/omega-admin" element={
+                  <Route path="/system-admin" element={
                     <PrivateRoute>
                       <SuperAdminPage />
                     </PrivateRoute>
                   } />
 
                   <Route path="/inbox" element={
-                    <PrivateRoute>
+                    <SuperuserRoute>
                       <InboxPage />
-                    </PrivateRoute>
+                    </SuperuserRoute>
                   } />
 
                   {/* Dashboard (Standalone Layout) */}

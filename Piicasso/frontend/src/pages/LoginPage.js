@@ -190,7 +190,7 @@ const LoginPage = () => {
         </div>
 
         <div className="mt-8 text-center text-[10px] text-zinc-600 tracking-widest">
-          AEGIS v2.5.1
+          PIIcasso v2.5.1
         </div>
       </motion.div>
     </div>

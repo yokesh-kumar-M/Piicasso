@@ -19,6 +19,11 @@ class SystemLog(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['level']),
+            models.Index(fields=['source']),
+        ]
 
     def __str__(self):
         return f"[{self.timestamp}] {self.level}: {self.message}"
@@ -32,6 +37,11 @@ class Message(models.Model):
     
     class Meta:
         ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['recipient', 'is_read']),
+            models.Index(fields=['sender']),
+        ]
 
     def __str__(self):
         return f"Message from {self.sender} to {self.recipient} at {self.timestamp}"

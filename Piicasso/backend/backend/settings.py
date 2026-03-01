@@ -58,8 +58,8 @@ INSTALLED_APPS = [
     'users',
     'generator',
     'operations',
-    'squadrons',
-    'visualization',
+    'teams',
+    'analytics',
 ]
 
 MIDDLEWARE = [
@@ -72,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'wordgen.middleware.PolicyViolationMiddleware',
     'wordgen.middleware.SecurityLoggingMiddleware',  # Custom middleware
 ]
 
@@ -127,6 +128,11 @@ CACHES = {
         'TIMEOUT': 3600,
     }
 }
+
+# Scalability: Use Redis for sessions in production
+if ENV == 'production':
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

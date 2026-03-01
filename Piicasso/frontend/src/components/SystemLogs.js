@@ -7,11 +7,7 @@ const SystemLogs = () => {
     useEffect(() => {
         const fetchLogs = async () => {
             try {
-                const res = await axiosInstance.get('system-logs/');
-                // Ensure unique key by using timestamp + source? Or just index if list is small.
-                // Reversing to show latest at top or bottom? Default was map logic.
-                // Backend returns latest first (ordering -timestamp).
-                // Frontend seems to map them simply.
+                const res = await axiosInstance.get('logs/');
                 setLogs(res.data);
             } catch (err) {
                 console.error("Failed to fetch system logs", err);

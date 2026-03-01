@@ -161,7 +161,7 @@ const EnhancedPIIForm = () => {
 
     setLoading(true);
     try {
-      const res = await axiosInstance.post('submit-pii/', payload);
+      const res = await axiosInstance.post('submit/', payload);
       if (res.status === 201) {
         sessionStorage.setItem('generatedWordlist', JSON.stringify(res.data.wordlist));
         setSuccess('PII processed successfully! Redirecting to results...');
@@ -222,7 +222,7 @@ const EnhancedPIIForm = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
       {/* Header */}
       <div className="pt-8 pb-6 text-center">
-        <h1 className="text-5xl font-bold text-red-500 mb-4 tracking-wide">AEGIS</h1>
+        <h1 className="text-5xl font-bold text-red-500 mb-4 tracking-wide">PIIcasso</h1>
         <p className="text-gray-400 text-lg">Password Intelligence Engine</p>
 
         {/* Progress indicator */}

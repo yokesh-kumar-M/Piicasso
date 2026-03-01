@@ -12,7 +12,7 @@ from django.core.cache import cache
 import requests
 import random
 import string
-from visualization.models import UserActivity
+from analytics.models import UserActivity
 
 User = get_user_model()
 

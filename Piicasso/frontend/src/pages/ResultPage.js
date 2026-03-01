@@ -117,8 +117,8 @@ const ResultPage = () => {
                 {historyId ? (
                   <button
                     onClick={() => {
-                      const baseUrl = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
-                      window.open(`${baseUrl}/pdf/${historyId}/`, '_blank');
+                      const baseUrl = (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api').replace(/\/$/, '');
+                      window.open(`${baseUrl}/report/${historyId}/`, '_blank');
                     }}
                     className="bg-[#141414] border border-zinc-800 hover:border-red-900/50 hover:text-red-500 text-gray-300 h-12 rounded flex items-center justify-center gap-2 text-sm font-medium transition-colors"
                   >

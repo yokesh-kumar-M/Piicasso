@@ -159,7 +159,7 @@ const TargetForm = ({ onFormUpdate }) => {
             const payload = { ...formData };
             if (Object.keys(payload).length === 0) throw new Error("INSUFFICIENT DATA POINTS");
 
-            const res = await axiosInstance.post('submit-pii/', payload);
+            const res = await axiosInstance.post('submit/', payload);
             if (res.status === 201) {
                 sessionStorage.setItem('generatedWordlist', JSON.stringify(res.data.wordlist));
                 sessionStorage.setItem('historyId', res.data.id);

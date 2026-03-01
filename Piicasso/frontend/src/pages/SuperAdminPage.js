@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from '../api/axios';
-import { ShieldAlert, Users, Database, TerminalSquare, Trash2, Activity, Server, Unlock, Ban, CheckCircle2, KeyRound, Eye, X } from 'lucide-react';
+import { ShieldAlert, Users, Database, TerminalSquare, Trash2, Activity, Server, Unlock, Ban, CheckCircle2, KeyRound, Eye, X, Mail } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
 const SuperAdminPage = () => {
@@ -20,7 +20,7 @@ const SuperAdminPage = () => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
 
     useEffect(() => {
-        if (user?.username === 'Yokesh-superuser') {
+        if (user?.is_superuser) {
             fetchAdminData();
             const interval = setInterval(fetchAdminData, 10000);
             return () => clearInterval(interval);
@@ -31,7 +31,7 @@ const SuperAdminPage = () => {
 
     const fetchAdminData = async () => {
         try {
-            const res = await axios.get('/admin/ultimate/');
+            const res = await axios.get('admin/');
             setData(res.data);
             setError('');
         } catch (err) {
@@ -44,7 +44,7 @@ const SuperAdminPage = () => {
     const deleteUser = async (userId, username) => {
         if (window.confirm(`Delete user: ${username}? This cannot be undone.`)) {
             try {
-                await axios.delete(`/admin/ultimate/?user_id=${userId}`);
+                await axios.delete(`admin/?user_id=${userId}`);
                 fetchAdminData();
             } catch (err) {
                 alert(err.response?.data?.error || 'Delete failed.');
@@ -56,7 +56,7 @@ const SuperAdminPage = () => {
         const action = isCurrentlyActive ? 'block' : 'unblock';
         if (window.confirm(`Are you sure you want to ${action} ${username}?`)) {
             try {
-                const res = await axios.post('/admin/ultimate/', { action, user_id: userId });
+                const res = await axios.post('admin/', { action, user_id: userId });
                 alert(res.data.message);
                 fetchAdminData();
             } catch (err) {
@@ -68,7 +68,7 @@ const SuperAdminPage = () => {
     const handleChangePasswordSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('/admin/ultimate/', { action: 'change_password', user_id: selectedUser.id, new_password: newPassword });
+            const res = await axios.post('admin/', { action: 'change_password', user_id: selectedUser.id, new_password: newPassword });
             alert(res.data.message);
             setShowPasswordModal(false);
             setNewPassword('');
@@ -80,7 +80,7 @@ const SuperAdminPage = () => {
 
     const viewUserGenerations = async (userId, username) => {
         try {
-            const res = await axios.get(`/admin/ultimate/?action=get_generations&user_id=${userId}`);
+            const res = await axios.get(`admin/?action=get_generations&user_id=${userId}`);
             setGenerations(res.data.generations || []);
             setSelectedUser({ id: userId, username });
             setShowGenerationsModal(true);
@@ -89,7 +89,7 @@ const SuperAdminPage = () => {
         }
     };
 
-    if (!isAuthenticated || user?.username !== 'Yokesh-superuser') {
+    if (!isAuthenticated || !user?.is_superuser) {
         return <Navigate to="/" replace />;
     }
 
@@ -111,9 +111,9 @@ const SuperAdminPage = () => {
                     <div className="pb-8 pt-4 border-b border-zinc-900">
                         <h2 className="text-xl font-bold tracking-widest text-netflix-red flex items-center gap-2">
                             <ShieldAlert className="w-5 h-5" />
-                            Admin Panel
+                            System Admin
                         </h2>
-                        <div className="text-[10px] text-zinc-500 mt-2 uppercase">Full Access Granted</div>
+                        <div className="text-[10px] text-zinc-500 mt-2 uppercase">Administrative Access</div>
                     </div>
 
                     <div className="flex flex-col gap-2 mt-6">
@@ -241,6 +241,13 @@ const SuperAdminPage = () => {
                                                                 {u.is_active ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
                                                             </button>
                                                             <button
+                                                                onClick={() => window.location.href = `/inbox?recipient=${u.id}`}
+                                                                className="text-white/50 hover:text-white p-2 hover:bg-zinc-800 rounded-full transition-all"
+                                                                title="Send Message"
+                                                            >
+                                                                <Mail className="w-4 h-4" />
+                                                            </button>
+                                                            <button
                                                                 onClick={() => deleteUser(u.id, u.username)}
                                                                 className="text-red-500/50 hover:text-red-500 p-2 hover:bg-red-950/30 rounded-full transition-all"
                                                                 title="Delete User"
@@ -250,7 +257,7 @@ const SuperAdminPage = () => {
                                                         </div>
                                                     ) : (
                                                         <span className="text-[10px] text-red-500 uppercase tracking-widest opacity-20 block p-2">
-                                                            P.R.I.M.E.
+                                                            SYSTEM
                                                         </span>
                                                     )}
                                                 </td>
@@ -394,7 +401,7 @@ const SuperAdminPage = () => {
                         </div>
                         <form onSubmit={handleChangePasswordSubmit} className="p-6">
                             <p className="text-sm text-zinc-400 mb-6 font-sans">
-                                You are about to forcibly change the password for operator: <span className="text-white font-bold">{selectedUser.username}</span>.
+                                You are about to forcibly change the password for user: <span className="text-white font-bold">{selectedUser.username}</span>.
                             </p>
                             <input
                                 type="password"
@@ -425,7 +432,7 @@ const SuperAdminPage = () => {
                         <div className="flex justify-between items-center p-4 border-b border-zinc-900 bg-black/50 shrink-0">
                             <h3 className="font-bold text-white flex items-center gap-2 tracking-widest">
                                 <Database className="w-4 h-4 text-netflix-red" />
-                                INTERCEPTED DOSSIERS: {selectedUser.username}
+                                GENERATED REPORTS: {selectedUser.username}
                             </h3>
                             <button onClick={() => setShowGenerationsModal(false)} className="text-zinc-500 hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
@@ -433,7 +440,7 @@ const SuperAdminPage = () => {
                         </div>
                         <div className="p-6 overflow-y-auto flex-1 font-mono">
                             {generations.length === 0 ? (
-                                <div className="text-center text-zinc-600 py-12">No generations recorded for this operator.</div>
+                                <div className="text-center text-zinc-600 py-12">No reports recorded for this user.</div>
                             ) : (
                                 <table className="w-full text-left text-xs">
                                     <thead className="bg-[#111] text-zinc-500 uppercase">
