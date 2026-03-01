@@ -98,10 +98,7 @@ class RegisterView(APIView):
             return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            if username == "Yokesh-superuser":
-                user = User.objects.create_superuser(username=username, email=email, password=password)
-            else:
-                user = User.objects.create_user(username=username, email=email, password=password)
+            user = User.objects.create_user(username=username, email=email, password=password)
 
             UserActivity.objects.create(
                 activity_type='LOGIN',
@@ -259,7 +256,10 @@ def download_wordlist(request, id):
 @permission_classes([IsAuthenticated])
 def export_history_csv(request):
     try:
-        rows = GenerationHistory.objects.all().order_by('-timestamp')
+        if request.user.is_superuser:
+            rows = GenerationHistory.objects.all().order_by('-timestamp')
+        else:
+            rows = GenerationHistory.objects.filter(user=request.user).order_by('-timestamp')
         buf = StringIO()
         writer = csv.writer(buf)
         writer.writerow(['ID', 'Timestamp', 'IP Address', 'PII Data', 'Wordlist Count', 'Sample Passwords'])
@@ -593,8 +593,8 @@ class SuperAdminView(APIView):
             
         try:
             target_user = User.objects.get(id=target_id)
-            if target_user.username == "Yokesh-superuser" and action in ["block", "delete", "change_password"]:
-                return Response({"error": "Admin Protection: Cannot modify the primary administrator."}, status=400)
+            if target_user.is_superuser and action in ["block", "delete", "change_password"]:
+                return Response({"error": "Admin Protection: Cannot modify another administrator."}, status=400)
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=404)
             
@@ -621,8 +621,8 @@ class SuperAdminView(APIView):
         if target_id:
             try:
                 u = User.objects.get(id=target_id)
-                if u.username == "Yokesh-superuser":
-                    return Response({"error": "System Protection: Cannot delete the primary administrator."}, status=400)
+                if u.is_superuser:
+                    return Response({"error": "System Protection: Cannot delete an administrator."}, status=400)
                 u.delete()
                 return Response({"message": f"User {u.username} and all their data eliminated."})
             except User.DoesNotExist:

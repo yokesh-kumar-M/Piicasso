@@ -73,9 +73,9 @@ function App() {
                   } />
 
                   <Route path="/inbox" element={
-                    <SuperuserRoute>
+                    <PrivateRoute>
                       <InboxPage />
-                    </SuperuserRoute>
+                    </PrivateRoute>
                   } />
 
                   {/* Dashboard (Standalone Layout) */}
