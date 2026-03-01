@@ -5,10 +5,10 @@ import requests
 def mask_pii_for_api(pii_data):
     """
     Optional masker: remove or mask extremely sensitive fields before sending to external LLM.
-    You can tune which keys to mask. For now we mask gov_id and passport_id.
+    You can tune which keys to mask. For now we mask ssn_last4 and crypto_wallet.
     """
     safe = dict(pii_data)
-    for k in ['gov_id', 'passport_id', 'bank_suffix', 'crypto_wallet']:
+    for k in ['ssn_last4', 'bank_name', 'crypto_wallet']:
         if k in safe and safe[k]:
             safe[k] = '[MASKED]'
     return safe

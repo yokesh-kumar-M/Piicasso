@@ -77,7 +77,7 @@ const KaliTerminal = () => {
         setIsRunning(true);
 
         try {
-            const res = await axiosInstance.post('terminal/exec/', { command: cmd });
+            const res = await axiosInstance.post('terminal/', { command: cmd });
             const lines = res.data.output || [];
 
             lines.forEach(line => {

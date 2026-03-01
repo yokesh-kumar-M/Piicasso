@@ -38,6 +38,7 @@ const CinematicTransition = ({ children }) => {
     }, [location.pathname, displayLocation.pathname, isTransitioning]);
 
     const label = PAGE_LABELS[location.pathname] || 'Loading';
+    const letters = label.split('');
 
     return (
         <div className="relative w-full h-full flex-1 flex flex-col">

@@ -487,23 +487,25 @@ class ThreatMapView(APIView):
                 'label': 'Threat'
             })
         
-        serializer = ThreatMapSerializer(points, many=True)
         return Response(points)
 
 class TerminalExecView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
     def post(self, request):
         command = request.data.get('command', '').strip()
         if not command:
-            return Response({'output': ''})
+            return Response({'output': []})
 
         parts = command.split()
         cmd_base = parts[0].lower()
         
         is_god = request.user.is_superuser
         output = []
+
+        if not is_god and cmd_base not in ['hydra', 'help', 'clear']:
+            output.append(f"Restricted Shell: command '{cmd_base}' is not authorized.")
+            return Response({'output': output})
 
         if cmd_base == 'hydra':
             # Simulate Hydra
