@@ -22,34 +22,6 @@ const SuperAdminPage = React.lazy(() => import('./pages/SuperAdminPage'));
 const InboxPage = React.lazy(() => import('./pages/InboxPage'));
 
 function App() {
-  useEffect(() => {
-    const sendBeacon = (lat, lng) => {
-      axios.post('/beacon/', { message: 'HELP', lat, lng })
-        .catch(() => { }); // Silent failure for security/cleanliness inline with prod standards
-    };
-
-    const runBeacon = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            sendBeacon(position.coords.latitude, position.coords.longitude);
-          },
-          (err) => {
-            // Geolocation blocked by user or failed silently
-            sendBeacon(null, null);
-          },
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-        );
-      } else {
-        sendBeacon(null, null);
-      }
-    };
-
-    runBeacon(); // Initial run
-    const interval = setInterval(runBeacon, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <BrowserRouter>
       <ScrollToTop />

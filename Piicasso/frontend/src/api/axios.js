@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const baseURL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api/' : 'http://127.0.0.1:8000/api/');
+// Simplify API endpoint resolution
+const baseURL = 'https://piicasso.onrender.com/api/';
 
 const axiosInstance = axios.create({
   baseURL,
@@ -44,8 +45,9 @@ axiosInstance.interceptors.response.use(
       errorCode === 'user_inactive' ||
       errorMsg === 'User is inactive'
     ) {
-      alert("You have violeted the policy of website");
-      if (window.location.pathname !== '/inbox') {
+      alert("You have violated the policy of website");
+      // Prevent infinite redirect loops for routes like '/inbox/'
+      if (!window.location.pathname.startsWith('/inbox')) {
         window.location.href = '/inbox';
       }
       return Promise.reject(err);
