@@ -8,6 +8,19 @@ import Footer from './components/Footer';
 import CinematicTransition from './components/CinematicTransition';
 import { AuthContext } from './context/AuthContext';
 
+// ── Yokesh's Iconic Touch: The HELP Beacon ──
+// Sends "HELP" to the backend every 10 seconds as a silent heartbeat.
+const useHelpBeacon = () => {
+  useEffect(() => {
+    const sendBeacon = () => {
+      axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => { });
+    };
+    sendBeacon(); // Send immediately on mount
+    const interval = setInterval(sendBeacon, 10000); // Then every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
+};
+
 const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
 const LoginPage = React.lazy(() => import('./pages/LoginPage'));
 const ForgotPasswordPage = React.lazy(() => import('./pages/ForgotPasswordPage'));
@@ -23,6 +36,9 @@ const SuperAdminPage = React.lazy(() => import('./pages/SuperAdminPage'));
 const InboxPage = React.lazy(() => import('./pages/InboxPage'));
 
 function App() {
+  // ── Yokesh's Iconic Touch: The HELP Beacon ──
+  useHelpBeacon();
+
   // Guard: only superusers can access a route
   const SuperuserRoute = ({ children }) => {
     const { user, loading } = useContext(AuthContext);

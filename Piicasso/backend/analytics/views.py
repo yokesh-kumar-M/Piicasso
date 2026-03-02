@@ -1,11 +1,29 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework import status
 from .models import UserActivity
 from .serializers import UserActivitySerializer
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from datetime import timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class HelpBeaconView(APIView):
+    """
+    The iconic HELP beacon — the frontend sends 'HELP' every 10 seconds.
+    This is Yokesh's signature touch. The backend acknowledges silently.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        message = request.data.get('message', '')
+        if message == 'HELP':
+            logger.debug(f"[BEACON] HELP signal received from {request.META.get('REMOTE_ADDR', 'unknown')}")
+        return Response({'status': 'received', 'echo': message}, status=status.HTTP_200_OK)
 
 
 class GlobeDataView(APIView):
