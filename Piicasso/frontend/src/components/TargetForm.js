@@ -173,7 +173,7 @@ const TargetForm = ({ onFormUpdate }) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0a]">
+        <div className="flex flex-col min-h-[500px] h-full bg-[#0a0a0a]">
             {/* Header / Stats Bar - Removed redundant block */}
 
 

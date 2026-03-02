@@ -13,10 +13,9 @@ const HomePage = () => {
   });
 
   const handleFormUpdate = useCallback((data) => {
-    // Simple heuristic to map fields to categories and calculate "score" (0-10)
     const countFilled = (keys) => {
       const count = keys.filter(k => data[k] && data[k].length > 1).length;
-      return Math.min(count * 3, 10); // 3 points per field, max 10
+      return Math.min(count * 3, 10);
     };
 
     setMetrics({
@@ -29,17 +28,19 @@ const HomePage = () => {
     });
   }, []);
 
-  // [SCALABILITY OPTIMIZATION] Memoize heavy metric computations to avoid O(N) calculations per render
   const filledCategoriesCount = useMemo(() => Object.values(metrics).filter(v => v > 0).length, [metrics]);
   const totalCompletenessScore = useMemo(() => Math.round((Object.values(metrics).reduce((a, b) => a + b, 0) / 60) * 100) || 0, [metrics]);
 
 
   return (
-    <div className="bg-[#0a0a0a] flex-1 text-white font-body flex flex-col pt-16 h-full">
+    <div className="bg-[#0a0a0a] text-white font-body min-h-screen flex flex-col">
       <Navbar />
 
+      {/* Spacer for fixed navbar */}
+      <div className="pt-16 shrink-0" />
+
       {/* 1. TOP BAR: Status Monitor */}
-      <div className="pt-2 px-4 md:px-6 pb-2 border-b border-zinc-900 bg-[#141414] flex flex-wrap gap-3 md:gap-6 items-center justify-between text-xs font-mono text-gray-500 uppercase tracking-widest shrink-0 overflow-x-auto">
+      <div className="px-4 md:px-6 py-2 border-b border-zinc-900 bg-[#141414] flex flex-wrap gap-3 md:gap-6 items-center justify-between text-xs font-mono text-gray-500 uppercase tracking-widest shrink-0">
         <div className="flex items-center gap-3 md:gap-4 text-[10px] font-mono tracking-widest text-gray-500 min-w-0">
           <div className="flex items-center gap-2 text-green-500 shrink-0">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
@@ -48,21 +49,92 @@ const HomePage = () => {
           </div>
           <span className="text-zinc-700 hidden sm:block">|</span>
           <div className="hidden sm:block">CONNECTION: <span className="text-gray-300">SECURE</span></div>
-          <span className="text-zinc-700 hidden md:block">|</span>
-          <div className="hidden md:block">SESSION: <span className="text-blue-500 animate-pulse">ACTIVE</span></div>
         </div>
         <div className="flex gap-2 shrink-0">
           <span className="text-netflix-red font-bold hidden sm:block">STATUS: READY</span>
-          <span className="border border-zinc-800 px-2 hidden md:block">V2.5.1 BUILD</span>
         </div>
       </div>
 
-      {/* 2. MAIN GRID LAYOUT */}
+      {/* 2. MAIN CONTENT — on mobile: stacked vertically, on desktop: 3-column grid */}
       <div className="flex-1 bg-black p-2">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:h-[calc(100vh-140px)]">
 
-          {/* LEFT COLUMN: VISUAL INTELLIGENCE (Charts & Maps) */}
-          <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col p-4 relative group h-full overflow-y-auto custom-scrollbar">
+        {/* MOBILE LAYOUT: Sequential stacked sections (visible < lg) */}
+        <div className="lg:hidden flex flex-col gap-2">
+
+          {/* DATA INPUT — FIRST on mobile so user sees the form immediately */}
+          <div className="bg-[#141414] border border-zinc-900 rounded-sm min-h-[600px]">
+            <div className="bg-zinc-900/30 p-2 border-b border-zinc-800 flex justify-between items-center">
+              <h2 className="text-lg font-heading tracking-wide text-white"><span className="text-netflix-red">DATA INPUT</span> CONSOLE</h2>
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500"></div>
+              </div>
+            </div>
+            <TargetForm onFormUpdate={handleFormUpdate} />
+          </div>
+
+          {/* DASHBOARD METRICS — Collapsible on mobile */}
+          <div className="bg-[#141414] border border-zinc-900 rounded-sm p-4">
+            <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
+              <div className="flex flex-col">
+                <h3 className="text-[10px] font-mono text-zinc-500 tracking-[0.2em] uppercase">Dashboard Metrics</h3>
+                <h2 className="text-sm font-bold text-white tracking-widest uppercase">Completion Profile</h2>
+              </div>
+              <div className="text-[10px] font-mono bg-red-950/30 text-red-500 px-2 py-0.5 border border-red-500/20 rounded-sm">
+                LVL_0{Math.floor(Object.values(metrics).reduce((a, b) => a + b, 0) / 10) + 1}
+              </div>
+            </div>
+
+            {/* Radar — Fixed height on mobile */}
+            <div className="h-[280px] relative flex items-center justify-center bg-zinc-950/20 rounded-lg border border-white/5">
+              <RiskRadar inputData={metrics} />
+            </div>
+
+            {/* Stats below radar */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="bg-zinc-900/40 p-3 rounded-sm border border-zinc-800/50">
+                <div className="text-[9px] font-mono text-zinc-500 uppercase">Input Completeness</div>
+                <div className={`text-xl font-mono font-bold ${totalCompletenessScore > 10 ? 'text-red-500' : 'text-zinc-300'}`}>
+                  {totalCompletenessScore}%
+                </div>
+              </div>
+              <div className="bg-zinc-900/40 p-3 rounded-sm border border-zinc-800/50">
+                <div className="text-[9px] font-mono text-zinc-500 uppercase">Data Confidence</div>
+                <div className="text-xl font-mono font-bold text-zinc-300">
+                  {filledCategoriesCount}/6
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* GLOBE */}
+          <div className="bg-[#141414] border border-zinc-900 rounded-sm overflow-hidden">
+            <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 flex items-center gap-2 bg-[#141414]">
+              <Wifi className="w-3 h-3" /> GLOBAL ACTIVITY MAP
+            </div>
+            <div className="h-[280px] bg-black overflow-hidden relative">
+              <Suspense fallback={<div className="text-xs text-gray-600 animate-pulse p-4">LOADING MAP...</div>}>
+                <GlobalMap />
+              </Suspense>
+            </div>
+          </div>
+
+          {/* ACTIVITY FEED */}
+          <div className="bg-[#141414] border border-zinc-900 rounded-sm overflow-hidden">
+            <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 flex items-center gap-2">
+              <Terminal className="w-3 h-3" /> RECENT ACTIVITY
+            </div>
+            <div className="h-[250px] p-2 bg-black/40 overflow-hidden">
+              <SystemLogs />
+            </div>
+          </div>
+        </div>
+
+        {/* DESKTOP LAYOUT: 3-column grid (visible >= lg) */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-2 h-[calc(100vh-120px)]">
+
+          {/* LEFT COLUMN: Dashboard Metrics */}
+          <div className="col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col p-4 relative group overflow-y-auto custom-scrollbar">
             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 transition-opacity">
               <Activity className="w-5 h-5 text-red-500 animate-pulse" />
             </div>
@@ -77,17 +149,15 @@ const HomePage = () => {
               </div>
             </div>
 
-            {/* Radar Chart Container */}
-            <div className="flex-1 min-h-[250px] relative flex items-center justify-center bg-zinc-950/20 rounded-lg border border-white/5 shadow-inner">
+            {/* Radar Chart — fixed max height */}
+            <div className="h-[280px] shrink-0 relative flex items-center justify-center bg-zinc-950/20 rounded-lg border border-white/5 shadow-inner">
               <RiskRadar inputData={metrics} />
-
-              {/* Visual Scan Overlays */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
                 <div className="w-full h-1/2 bg-gradient-to-b from-red-500/10 to-transparent top-0 absolute animate-scan-slow" />
               </div>
             </div>
 
-            {/* Detailed Security Posture */}
+            {/* Stats */}
             <div className="mt-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-zinc-900/40 p-3 rounded-sm border border-zinc-800/50 hover:border-zinc-700 transition-colors">
@@ -125,7 +195,7 @@ const HomePage = () => {
                 </div>
               </div>
 
-              {/* NEW: Critical Weakness Breakdown */}
+              {/* Category Breakdown */}
               <div className="pt-4 border-t border-zinc-900 mt-4">
                 <div className="text-[8px] font-mono text-zinc-500 mb-2 uppercase flex items-center gap-2">
                   <div className="w-1 h-1 bg-red-500 rounded-full" /> CATEGORY_BREAKDOWN
@@ -147,30 +217,24 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* CENTER COLUMN: CONTROL DECK (Main Input) */}
-          <div className="col-span-12 lg:col-span-6 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col relative h-full">
-            <div className="bg-zinc-900/30 p-2 border-b border-zinc-800 flex justify-between items-center">
+          {/* CENTER COLUMN: Data Input */}
+          <div className="col-span-6 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col overflow-hidden">
+            <div className="bg-zinc-900/30 p-2 border-b border-zinc-800 flex justify-between items-center shrink-0">
               <h2 className="text-lg font-heading tracking-wide text-white"><span className="text-netflix-red">DATA INPUT</span> CONSOLE</h2>
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500"></div>
               </div>
             </div>
-
-            {/* The Form is the "Complex" Input Menu */}
-            <div className="flex-1 overflow-hidden p-1 relative">
-              <div className="absolute inset-0">
-                <TargetForm onFormUpdate={handleFormUpdate} />
-              </div>
+            <div className="flex-1 overflow-hidden">
+              <TargetForm onFormUpdate={handleFormUpdate} />
             </div>
           </div>
 
-          {/* RIGHT COLUMN: LIVE TRACKING (Logs & Feed) */}
-          <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col overflow-hidden">
-
-            {/* Panel 1: Globe Map */}
-            <div className="h-[300px] lg:h-1/2 flex flex-col bg-zinc-900/10 relative border-b border-zinc-900">
-              <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2 z-10 bg-[#141414]">
+          {/* RIGHT COLUMN: Globe + Activity */}
+          <div className="col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col overflow-hidden">
+            <div className="h-1/2 flex flex-col bg-zinc-900/10 border-b border-zinc-900">
+              <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2 bg-[#141414]">
                 <Wifi className="w-3 h-3" /> GLOBAL ACTIVITY MAP
               </div>
               <div className="flex-1 bg-black overflow-hidden relative">
@@ -179,9 +243,7 @@ const HomePage = () => {
                 </Suspense>
               </div>
             </div>
-
-            {/* Panel 2: Live Feed */}
-            <div className="h-[300px] lg:h-1/2 flex flex-col">
+            <div className="h-1/2 flex flex-col">
               <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2">
                 <Terminal className="w-3 h-3" /> RECENT ACTIVITY
               </div>
@@ -189,7 +251,6 @@ const HomePage = () => {
                 <SystemLogs />
               </div>
             </div>
-
           </div>
 
         </div>

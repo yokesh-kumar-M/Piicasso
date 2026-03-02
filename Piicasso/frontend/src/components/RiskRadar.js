@@ -104,7 +104,7 @@ const RiskRadar = ({ inputData }) => {
     };
 
     return (
-        <div className="w-full h-full min-h-[250px] relative mt-2">
+        <div className="w-full h-full max-h-[300px] relative mt-2">
             {/* Tactical HUD Elements */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                 {/* Rotating Scanner Ring */}
