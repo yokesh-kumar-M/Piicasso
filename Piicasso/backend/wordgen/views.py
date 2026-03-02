@@ -207,7 +207,7 @@ class HistoryView(APIView):
             start = (page - 1) * page_size
             end = start + page_size
             
-            qs = GenerationHistory.objects.filter(user=request.user).order_by('-timestamp')
+            qs = GenerationHistory.objects.filter(user=request.user).defer('wordlist').order_by('-timestamp')
             total = qs.count()
             
             entries = qs[start:end]
@@ -216,7 +216,7 @@ class HistoryView(APIView):
                     "id": h.id,
                     "timestamp": h.timestamp,
                     "pii_data": h.pii_data,
-                    "wordlist": h.wordlist,
+                    "wordlist_count": h.wordlist_count or 0,
                     "ip_address": h.ip_address
                 } for h in entries],
                 'total': total,
