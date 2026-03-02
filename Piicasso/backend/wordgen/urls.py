@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from .auth_views import MyTokenObtainPairView, GoogleLoginView, RequestPasswordResetView, VerifyResetOTPView
 from .views import (
@@ -12,11 +12,8 @@ from .views import (
     user_stats,
     user_profile,
     download_file_with_token,
-    create_team,
-    join_team,
-    get_team_info,
-    leave_team,
-    team_chat_messages,
+    TerminalExecView,
+    # Teams moved to teams.views
     SystemLogView,
     beacon_view,
     super_admin_view,
@@ -48,18 +45,15 @@ urlpatterns = [
     path('profile/', user_profile, name='profile'),
     path('file/<str:file_type>/<int:id>/', download_file_with_token, name='download_file'),
 
-    # Teams
-    path('teams/', get_team_info, name='team_info'),
-    path('teams/create/', create_team, name='create_team'),
-    path('teams/join/', join_team, name='join_team'),
-    path('teams/leave/', leave_team, name='leave_team'),
-    path('teams/chat/', team_chat_messages, name='team_chat'),
+    # Teams (Delegated to teams/urls.py)
+    path('teams/', include('teams.urls')),
 
     # Admin messaging (superuser only)
     path('admin/messages/', admin_message_view, name='admin_messages'),
     path('admin/users/', admin_users_list, name='admin_users'),
 
     # System
+    path('terminal/', TerminalExecView.as_view(), name='terminal'),
     path('logs/', SystemLogView.as_view(), name='logs'),
     path('beacon/', beacon_view, name='beacon'),
     path('admin/', super_admin_view, name='admin'),

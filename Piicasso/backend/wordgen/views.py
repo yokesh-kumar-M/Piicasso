@@ -26,22 +26,19 @@ from .decorators import enhanced_rate_limit as rate_limit
 from analytics.models import UserActivity
 from django.db.models import Sum
 
-# Thread-safe RockYou wordlist cache with double-checked locking
-_ROCKYOU_CACHE = []
-_ROCKYOU_LOCK = threading.Lock()
+def _load_rockyou():
+    try:
+        path = os.path.join(os.path.dirname(__file__), 'rockyou.txt')
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                return [line.strip() for line in f if line.strip()]
+    except Exception as e:
+        print(f"Error loading wordlist: {e}")
+    return []
+
+_ROCKYOU_CACHE = _load_rockyou()
 
 def get_rockyou_wordlist():
-    global _ROCKYOU_CACHE
-    if not _ROCKYOU_CACHE:
-        with _ROCKYOU_LOCK:
-            if not _ROCKYOU_CACHE:  # Double-checked locking
-                try:
-                    rockyou_path = os.path.join(os.path.dirname(__file__), 'rockyou.txt')
-                    if os.path.exists(rockyou_path):
-                        with open(rockyou_path, 'r', encoding='utf-8', errors='ignore') as f:
-                            _ROCKYOU_CACHE = [line.strip() for line in f if line.strip()]
-                except Exception as e:
-                    print(f"Error loading wordlist cache: {e}")
     return _ROCKYOU_CACHE
 
 @api_view(['GET'])
@@ -420,141 +417,7 @@ def download_file_with_token(request, file_type, id):
     except Exception as e:
         return HttpResponse(str(e), status=500)
 
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def create_team(request):
-    try:
-        user = request.user
-        if TeamMembership.objects.filter(user=user).exists():
-            return Response({"error": "You are already in a team."}, status=status.HTTP_400_BAD_REQUEST)
-
-        name = request.data.get('name')
-        if not name:
-            return Response({"error": "Team name is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        team = Team.objects.create(name=name, owner=user)
-        TeamMembership.objects.create(user=user, team=team, role='LEADER')
-
-        UserActivity.objects.create(
-            activity_type='TEAM_JOIN',
-            description=f"Team {name} established by {user.username}",
-            city="Command Center",
-            latitude=0.0,
-            longitude=0.0
-        )
-
-        return Response({
-            "message": "Team established.",
-            "code": team.invite_code,
-            "id": team.id
-        }, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def join_team(request):
-    try:
-        user = request.user
-        if TeamMembership.objects.filter(user=user).exists():
-            return Response({"error": "You are already in a team."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Accept both 'invite_code' and 'code' for compatibility
-        code = request.data.get('invite_code') or request.data.get('code')
-        if not code:
-            return Response({"error": "Invite code is required."}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            team = Team.objects.get(invite_code=code)
-        except Team.DoesNotExist:
-            return Response({"error": "Invalid invite code. Please check and try again."}, status=status.HTTP_404_NOT_FOUND)
-
-        TeamMembership.objects.create(user=user, team=team, role='MEMBER')
-        
-        UserActivity.objects.create(
-            activity_type='TEAM_JOIN',
-            description=f"{user.username} joined team {team.name}",
-            city="Field Node"
-        )
-        
-        return Response({"message": f"Joined {team.name}"}, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def get_team_info(request):
-    try:
-        user = request.user
-        try:
-            membership = TeamMembership.objects.get(user=user)
-            team = membership.team
-        except TeamMembership.DoesNotExist:
-            return Response({"active": False})
-
-        members = TeamMembership.objects.filter(team=team).select_related('user')
-        member_list = [{
-            "username": m.user.username,
-            "role": m.role,
-            "joined_at": m.joined_at,
-            "active_status": "ONLINE"
-        } for m in members]
-
-        member_ids = [m.user.id for m in members]
-        recent_ops = GenerationHistory.objects.filter(user__id__in=member_ids).order_by('-timestamp')[:10]
-        
-        feed = [{
-            "id": op.id,
-            "operator": op.user.username if op.user else "Unknown",
-            "target": op.pii_data.get('full_name') or op.pii_data.get('username') or 'Unknown',
-            "timestamp": op.timestamp,
-            "wordlist_count": len(op.wordlist or [])
-        } for op in recent_ops]
-
-        return Response({
-            "active": True,
-            "name": team.name,
-            "invite_code": team.invite_code,
-            "my_role": membership.role,
-            "members": member_list,
-            "feed": feed
-        })
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def leave_team(request):
-    try:
-        user = request.user
-        try:
-            membership = TeamMembership.objects.get(user=user)
-        except TeamMembership.DoesNotExist:
-            return Response({"error": "You are not in a team."}, status=status.HTTP_400_BAD_REQUEST)
-
-        team = membership.team
-
-        if membership.role == 'LEADER':
-            count = TeamMembership.objects.filter(team=team).count()
-            if count == 1:
-                # Last member - disband team
-                team.delete()
-                return Response({"message": "Team disbanded as you were the last member."})
-            # Transfer leadership to oldest member
-            next_member = TeamMembership.objects.filter(team=team).exclude(user=user).order_by('joined_at').first()
-            if next_member:
-                next_member.role = 'LEADER'
-                next_member.save()
-            membership.delete()
-            return Response({"message": "Leadership transferred and you have left the team."})
-
-        membership.delete()
-        return Response({"message": f"You have left {team.name}."})
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+# ─── TEAM OPERATIONS: Relocated to teams app ─────────────────────────────────
 
 from .serializers import SystemLogSerializer, ThreatMapSerializer
 # SystemLog imported at top
@@ -656,41 +519,32 @@ class SuperAdminView(APIView):
                 del g['wordlist'] # Omit full wordlists for payload size
             return Response({"generations": gens})
     
-        # [SCALABILITY OPTIMIZATION]: Replacing N+1 DB loop query with native DB engine annotation.
-        from django.db.models import Count
+        from django.db.models import Count, OuterRef, Subquery
+        
+        # Subquery to fetch the latest activity per user for location display
+        latest_activity_sq = UserActivity.objects.filter(
+            description__contains=OuterRef('username'),
+            latitude__isnull=False
+        ).order_by('-timestamp').values('city')[:1]
+
         users_qs = User.objects.annotate(
-            generated=Count('generationhistory')
+            generated=Count('generationhistory'),
+            latest_city=Subquery(latest_activity_sq)
         ).order_by('-date_joined')
         
         users = []
         for u in users_qs:
-            user_data = {
+            users.append({
                 'id': u.id,
                 'username': u.username,
                 'email': u.email,
                 'is_superuser': u.is_superuser,
                 'is_active': u.is_active,
                 'date_joined': u.date_joined,
-                'generated': u.generated,
-            }
-            
-            # Determine auth type safely without exposing the hash
-            user_data['pass_display'] = "External Auth (Google)" if not u.has_usable_password() else "Password Set"
-        
-            # Prevent N+1 on locations by keeping it strictly optional
-            last_activity = UserActivity.objects.filter(
-                description__contains=u.username,
-                latitude__isnull=False
-            ).order_by('-timestamp').first()
-            
-            if last_activity and last_activity.city:
-                user_data['location'] = f"{last_activity.city}"
-            else:
-                user_data['location'] = "Unknown"
-
-            # Pull from annotated DB field (O(1) complexity instead of O(N))
-            user_data['generation_count'] = user_data.get('generated', 0)
-            users.append(user_data)
+                'location': u.latest_city or "Unknown",
+                'pass_display': "External Auth (Google)" if not u.has_usable_password() else "Password Set",
+                'generation_count': u.generated
+            })
 
         logs = list(SystemLog.objects.all().order_by('-timestamp')[:50].values())
         activities = list(UserActivity.objects.all().order_by('-timestamp')[:50].values())
@@ -753,43 +607,7 @@ super_admin_view = SuperAdminView.as_view()
 
 
 # ─── TEAM CHAT ─── members of the same team only ─────────────────────────────
-@api_view(['GET', 'POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def team_chat_messages(request):
-    """GET — last 100 team chat messages. POST — send a message to team chat."""
-    from teams.models import TeamMessage
-    try:
-        membership = TeamMembership.objects.get(user=request.user)
-        team = membership.team
-    except TeamMembership.DoesNotExist:
-        return Response({"error": "You must be in a team to use team chat."}, status=400)
-
-    if request.method == 'GET':
-        after_id = int(request.query_params.get('after', 0))
-        msgs = TeamMessage.objects.filter(team=team, id__gt=after_id).order_by('timestamp')[:100]
-        return Response([{
-            "id": m.id,
-            "sender": m.sender.username if m.sender else "Deleted User",
-            "content": m.content,
-            "timestamp": m.timestamp.isoformat(),
-            "is_me": m.sender_id == request.user.id
-        } for m in msgs])
-
-    content = request.data.get('content', '').strip()
-    if not content:
-        return Response({"error": "Message cannot be empty."}, status=400)
-    if len(content) > 2000:
-        return Response({"error": "Message too long (max 2000 chars)."}, status=400)
-    from teams.models import TeamMessage
-    msg = TeamMessage.objects.create(team=team, sender=request.user, content=content)
-    return Response({
-        "id": msg.id,
-        "sender": request.user.username,
-        "content": msg.content,
-        "timestamp": msg.timestamp.isoformat(),
-        "is_me": True
-    }, status=201)
+# ─── TEAM CHAT: Relocated to teams app ───────────────────────────────────────
 
 
 # ─── ADMIN MESSAGING ─── superuser ↔ any user ────────────────────────────────

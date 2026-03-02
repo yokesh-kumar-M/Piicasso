@@ -54,13 +54,7 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
                 f"User-Agent={user_agent}, Path={request.path}"
             )
         
-        # Rate limiting check (simplified)
-        if self.check_rate_limit(request, ip_address):
-            logger.warning(f"Rate limit exceeded for IP: {ip_address}")
-            return JsonResponse(
-                {"error": "Rate limit exceeded"}, 
-                status=429
-            )
+        # DRF Throttling handles rate limits in production; middleware focusing on audit logging.
         
         # Store request info for response processing
         request.security_context = {
@@ -122,26 +116,6 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
         
         return False
     
-    def check_rate_limit(self, request, ip_address):
-        """Enhanced rate limiting with IP-based tracking."""
-        cache_key = f"rate_limit:{ip_address}:{request.path}"
-        requests_count = cache.get(cache_key, 0)
-        
-        # Different limits for different endpoints
-        limits = {
-            '/api/submit-pii/': 50,  # 50 per hour
-            '/api/token/': 20,       # 20 per hour
-            '/api/register/': 10,    # 10 per hour
-        }
-        
-        limit = limits.get(request.path, 100)  # Default 100 per hour
-        
-        if requests_count >= limit:
-            return True
-        
-        # Increment counter
-        cache.set(cache_key, requests_count + 1, 3600)  # 1 hour timeout
-        return False
     
     def log_pii_submission(self, request, response, duration):
         """Log PII submission attempts with sanitized data."""

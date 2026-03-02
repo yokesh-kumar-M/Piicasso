@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import axios from '../api/axios';
+import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -34,24 +35,31 @@ const InboxPage = () => {
 
     const messagesEndRef = useRef(null);
     const pollRef = useRef(null);
+    const location = useLocation();
 
     // Initial Data Fetch
     useEffect(() => {
         const init = async () => {
             if (isSuperuser) {
+                const users = await fetchAllUsers();
                 await fetchConversations();
-                await fetchAllUsers();
+
+                // Handle deep-linking from Admin dashboard
+                const params = new URLSearchParams(location.search);
+                const recipientId = params.get('recipient');
+                if (recipientId && users) {
+                    const target = users.find(u => String(u.id) === String(recipientId));
+                    if (target) selectUser(target);
+                }
             } else {
-                // Regular users fetch their own thread immediately
                 await fetchThread(null);
-                // Continuous polling for new system messages
                 pollRef.current = setInterval(() => fetchThread(null), 5000);
             }
             setLoading(false);
         };
         init();
         return () => clearInterval(pollRef.current);
-    }, [isSuperuser]);
+    }, [isSuperuser, location.search]);
 
     // Admin Thread Polling
     useEffect(() => {
@@ -80,8 +88,12 @@ const InboxPage = () => {
     const fetchAllUsers = async () => {
         try {
             const { data } = await axios.get('admin/users/');
-            setAllUsers(Array.isArray(data) ? data : []);
-        } catch (e) { }
+            const users = Array.isArray(data) ? data : [];
+            setAllUsers(users);
+            return users;
+        } catch (e) {
+            return [];
+        }
     };
 
     const fetchThread = async (userId) => {

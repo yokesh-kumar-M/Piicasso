@@ -21,17 +21,9 @@ class GenerationHistory(models.Model):
             models.Index(fields=['wordlist_count']),
         ]
 
-    def clean(self):
-        if not self.wordlist or len(self.wordlist) == 0:
-            raise ValidationError("Wordlist cannot be empty")
-        
-        if len(self.wordlist) > 1000:
-            raise ValidationError("Wordlist too large")
-
     def save(self, *args, **kwargs):
         if self.wordlist:
             self.wordlist_count = len(self.wordlist)
-        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

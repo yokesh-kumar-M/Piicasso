@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # Local
-    'wordgen', # Deprecating monolith
+    'wordgen', # Primary Gateway App
     'users',
     'generator',
     'operations',
@@ -159,7 +159,8 @@ USE_TZ = True
 # Static files with compression
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]   
+_static_dir = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [_static_dir] if os.path.exists(_static_dir) else []
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

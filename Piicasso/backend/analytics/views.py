@@ -53,14 +53,10 @@ class GlobeDataView(APIView):
             cutoff = timezone.now() - timedelta(hours=72)
             qs = qs.filter(timestamp__gte=cutoff)
 
-            # Deduplicate: keep only the most recent activity per description (proxy for user)
-            seen = set()
-            deduplicated = []
-            for activity in qs.order_by('-timestamp'):
-                key = activity.description  # e.g. "Operator alice authenticated."
-                if key not in seen:
-                    seen.add(key)
-                    deduplicated.append(activity)
+            # Deduplicate efficiently at database level
+            from django.db.models import Max
+            latest_ids = qs.values('description').annotate(latest_id=Max('id')).values_list('latest_id', flat=True)
+            deduplicated = UserActivity.objects.filter(id__in=latest_ids).order_by('-timestamp')
 
             serializer = UserActivitySerializer(deduplicated, many=True)
             return Response({
