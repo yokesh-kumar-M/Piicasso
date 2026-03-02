@@ -439,7 +439,9 @@ def create_team(request):
         UserActivity.objects.create(
             activity_type='TEAM_JOIN',
             description=f"Team {name} established by {user.username}",
-            city="Command Center"
+            city="Command Center",
+            latitude=0.0,
+            longitude=0.0
         )
 
         return Response({

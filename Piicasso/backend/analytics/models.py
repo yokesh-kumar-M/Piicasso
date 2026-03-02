@@ -17,8 +17,8 @@ class UserActivity(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     
     # Geo Data for the Globe
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     country_code = models.CharField(max_length=3, default='UNK')
     city = models.CharField(max_length=100, default='Unknown')
     
