@@ -10,6 +10,6 @@ class IsActiveUserOrMessagesOnly(BasePermission):
         if not user.is_active:
             if request.path.startswith('/api/operations/messages/'):
                 return True
-            raise PermissionDenied(detail='You have violeted the policy of website', code='user_inactive')
+            raise PermissionDenied(detail='Your account has been suspended due to a policy violation', code='user_inactive')
             
         return True

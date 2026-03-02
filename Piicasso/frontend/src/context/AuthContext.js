@@ -39,7 +39,12 @@ export const AuthProvider = ({ children }) => {
       if (ipRes.ok) {
         const data = await ipRes.json();
         if (data.latitude && data.longitude) {
-          return { lat: data.latitude, lng: data.longitude };
+          return {
+            lat: data.latitude,
+            lng: data.longitude,
+            city: data.city || 'Unknown',
+            country_code: data.country_code || 'UNK',
+          };
         }
       }
     } catch (e) {
@@ -55,16 +60,16 @@ export const AuthProvider = ({ children }) => {
           { timeout: 3000, maximumAge: 10000 }
         );
       });
-      return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      return { lat: pos.coords.latitude, lng: pos.coords.longitude, city: 'Unknown', country_code: 'UNK' };
     } catch {
-      return { lat: null, lng: null };
+      return { lat: null, lng: null, city: 'Unknown', country_code: 'UNK' };
     }
   };
 
   const googleLogin = async (googleToken) => {
     try {
-      const { lat, lng } = await getLocationData();
-      const res = await axiosInstance.post('auth/google/', { token: googleToken, lat, lng });
+      const { lat, lng, city, country_code } = await getLocationData();
+      const res = await axiosInstance.post('auth/google/', { token: googleToken, lat, lng, city, country_code });
       const access = res.data.access;
       const refresh = res.data.refresh;
 
@@ -90,8 +95,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const { lat, lng } = await getLocationData();
-      const res = await axiosInstance.post('token/', { username, password, lat, lng });
+      const { lat, lng, city, country_code } = await getLocationData();
+      const res = await axiosInstance.post('token/', { username, password, lat, lng, city, country_code });
       const access = res.data.access;
       const refresh = res.data.refresh;
 

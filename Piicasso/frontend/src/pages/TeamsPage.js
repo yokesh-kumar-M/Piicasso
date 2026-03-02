@@ -229,7 +229,7 @@ const TeamsPage = () => {
                             key="team-active"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="grid grid-cols-12 gap-6"
+                            className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6"
                         >
                             {/* ── Left: Team Info ── */}
                             <div className="col-span-12 lg:col-span-4 space-y-5">
@@ -392,8 +392,8 @@ const TeamsPage = () => {
                                                                         <p className="text-[10px] text-zinc-500 mb-0.5 ml-1">{msg.sender}</p>
                                                                     )}
                                                                     <div className={`px-3.5 py-2 rounded-2xl text-sm leading-relaxed break-words ${msg.is_me
-                                                                            ? 'bg-red-700 text-white rounded-br-sm'
-                                                                            : 'bg-zinc-800 text-zinc-200 rounded-bl-sm'
+                                                                        ? 'bg-red-700 text-white rounded-br-sm'
+                                                                        : 'bg-zinc-800 text-zinc-200 rounded-bl-sm'
                                                                         }`}>
                                                                         {msg.content}
                                                                         <div className="text-[9px] opacity-40 mt-0.5 text-right">

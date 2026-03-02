@@ -21,7 +21,7 @@ class PolicyViolationMiddleware(MiddlewareMixin):
             if request.path.startswith('/api/operations/messages/'):
                 return None
                 
-            return JsonResponse({'detail': 'You have violeted the policy of website', 'code': 'user_inactive'}, status=403)
+            return JsonResponse({'detail': 'Your account has been suspended due to a policy violation', 'code': 'user_inactive'}, status=403)
 
 class SecurityLoggingMiddleware(MiddlewareMixin):
     """Enhanced security and audit logging middleware."""

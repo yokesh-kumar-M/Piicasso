@@ -22,7 +22,7 @@ if not SECRET_KEY:
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 ENV = os.getenv('ENV', 'development')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',') if not DEBUG else ['*']
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -117,17 +117,26 @@ DATABASES = {
 }
 
 # Caching
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache' if ENV == 'production' else 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'KEY_PREFIX': 'piicasso',
-        'TIMEOUT': 3600,
+if ENV == 'production':
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'piicasso',
+            'TIMEOUT': 3600,
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'KEY_PREFIX': 'piicasso',
+            'TIMEOUT': 3600,
+        }
+    }
 
 # Scalability: Use Redis for sessions in production
 if ENV == 'production':
@@ -144,7 +153,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]   
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Media files with secure handling
 MEDIA_URL = '/media/'
@@ -169,8 +182,8 @@ CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv(
     'CORS_ALLOWED_ORIGINS', 
     'https://pii-casso.vercel.app,https://piicasso.vercel.app,http://localhost:3000,http://127.0.0.1:3000,https://piicasso-yokeshkumar.vercel.app,https://piicasso-frontend-yokeshkumar.vercel.app'
 ).split(',') if origin.strip()]
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development; production uses the whitelist above
+CORS_ALLOW_CREDENTIALS = True
 
 # Enhanced REST Framework settings
 REST_FRAMEWORK = {
@@ -193,6 +206,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '1000/minute',
         'user': '5000/minute',
+        'login': '10/minute',
         'pii_submit': '10/hour',  # Custom rate for PII submissions
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

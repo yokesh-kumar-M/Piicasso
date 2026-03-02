@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Globe from 'react-globe.gl';
 import axiosInstance from '../api/axios';
 
@@ -8,13 +8,19 @@ const GlobalMap = () => {
     const [points, setPoints] = useState([]);
     const [countries, setCountries] = useState({ features: [] });
     const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
+    const [isLive, setIsLive] = useState(false);
+
+    // Tracks the server timestamp of the last response — used for incremental fetches
+    const lastServerTimeRef = useRef(null);
+    // Tracks the per-user beacon map so we never show duplicates
+    const beaconMapRef = useRef(new Map()); // key: description → value: point object
 
     useEffect(() => {
         const updateSize = () => {
             if (containerRef.current) {
                 setDimensions({
                     width: containerRef.current.offsetWidth,
-                    height: containerRef.current.offsetHeight
+                    height: containerRef.current.offsetHeight,
                 });
             }
         };
@@ -22,10 +28,10 @@ const GlobalMap = () => {
         window.addEventListener('resize', updateSize);
         setTimeout(updateSize, 100);
 
-        // Load Country Data for 3D Hex mesh
         fetch('https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
             .then(res => res.json())
-            .then(setCountries);
+            .then(setCountries)
+            .catch(err => console.warn('Could not load country borders:', err));
 
         return () => window.removeEventListener('resize', updateSize);
     }, []);
@@ -37,34 +43,78 @@ const GlobalMap = () => {
             globeEl.current.pointOfView({ altitude: 2.0 });
             globeEl.current.controls().enableZoom = false;
         }
+    }, []);
 
-        const fetchPoints = async () => {
+    const mergePoints = useCallback((newPoints) => {
+        newPoints.forEach(p => {
+            // One beacon per user: description is the unique key ("Operator X authenticated.")
+            beaconMapRef.current.set(p.description, p);
+        });
+        setPoints([...beaconMapRef.current.values()]);
+    }, []);
+
+    useEffect(() => {
+        let intervalId;
+        let destroyed = false;
+
+        const fetchInitial = async () => {
             try {
                 const res = await axiosInstance.get('analytics/globe-data/');
-                if (Array.isArray(res.data)) {
-                    setPoints(res.data);
+                if (destroyed) return;
+
+                if (res.data?.points) {
+                    mergePoints(res.data.points);
+                    lastServerTimeRef.current = res.data.server_time;
+                    setIsLive(true);
                 }
             } catch (e) {
-                console.error("Map fetch error", e);
+                console.error('Globe init error', e);
             }
         };
 
-        fetchPoints();
-        const interval = setInterval(fetchPoints, 4000);
-        return () => clearInterval(interval);
-    }, []);
+        const fetchIncremental = async () => {
+            if (!lastServerTimeRef.current) return;
+            try {
+                const res = await axiosInstance.get(
+                    `analytics/globe-data/?since=${encodeURIComponent(lastServerTimeRef.current)}`
+                );
+                if (destroyed) return;
+
+                if (res.data?.points?.length > 0) {
+                    mergePoints(res.data.points);
+                }
+                // Always advance the cursor even if no new points
+                if (res.data?.server_time) {
+                    lastServerTimeRef.current = res.data.server_time;
+                }
+            } catch (e) {
+                // Silent — incremental polls failing should not break the UI
+            }
+        };
+
+        fetchInitial().then(() => {
+            if (!destroyed) {
+                intervalId = setInterval(fetchIncremental, 1500);
+            }
+        });
+
+        return () => {
+            destroyed = true;
+            clearInterval(intervalId);
+        };
+    }, [mergePoints]);
 
     return (
         <div ref={containerRef} className="w-full h-full relative group flex items-center justify-center bg-transparent overflow-hidden">
-            {/* Overlay stats - Minimalist Terminal Style */}
+            {/* Overlay stats */}
             <div className="absolute top-4 right-4 z-10 flex flex-col items-end pointer-events-none">
                 <div className="bg-zinc-950/80 backdrop-blur-sm border border-zinc-800 p-3 rounded shadow-2xl">
                     <div className="flex flex-col gap-1 text-right font-mono">
                         <span className="text-[9px] text-zinc-600 uppercase tracking-[0.2em]">Live Connections</span>
                         <span className="text-xl text-zinc-200 font-light tracking-tighter">{points.length}</span>
                         <div className="h-[1px] w-full bg-zinc-800 my-1" />
-                        <span className="text-[8px] text-zinc-500 flex items-center gap-1 justify-end italic">
-                            CONNECTING...
+                        <span className="text-[8px] flex items-center gap-1 justify-end italic" style={{ color: isLive ? '#22c55e' : '#71717a' }}>
+                            {isLive ? '● LIVE' : 'CONNECTING...'}
                         </span>
                     </div>
                 </div>
@@ -76,31 +126,26 @@ const GlobalMap = () => {
                 height={dimensions.height}
                 backgroundColor="rgba(0,0,0,0)"
 
-                // Monochromatic Base
                 showGlobe={true}
                 globeColor="#050505"
                 showAtmosphere={true}
                 atmosphereColor="#333333"
                 atmosphereAltitude={0.1}
 
-                // depth: 3D HEXAGONAL CONTINENTS (Extruded)
                 hexPolygonsData={countries.features}
                 hexPolygonResolution={3}
                 hexPolygonMargin={0.3}
-                hexPolygonUseColor={() => false}
                 hexPolygonColor={() => 'rgba(200, 200, 200, 0.7)'}
                 hexPolygonAltitude={0.01}
 
-                // Indicators: SONAR RINGS (Pulsing Beacons)
                 ringsData={points}
                 ringLat="latitude"
                 ringLng="longitude"
-                ringColor={(d) => d.color || "#ffffff"}
+                ringColor={(d) => d.color || '#22c55e'}
                 ringMaxRadius={6}
                 ringPropagationSpeed={2.5}
                 ringRepeatPeriod={1200}
 
-                // Beacon Points
                 pointsData={points}
                 pointLat="latitude"
                 pointLng="longitude"
@@ -108,14 +153,13 @@ const GlobalMap = () => {
                 pointAltitude={0.02}
                 pointRadius={0.6}
 
-                // Labels
                 labelsData={points}
                 labelLat="latitude"
                 labelLng="longitude"
                 labelText="city"
                 labelSize={0.6}
                 labelDotRadius={0.3}
-                labelColor={() => "#888888"}
+                labelColor={() => '#888888'}
                 labelResolution={2}
                 labelIncludeDot={true}
             />

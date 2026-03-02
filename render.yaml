@@ -8,7 +8,7 @@ services:
     branch: main
     rootDir: Piicasso
     dockerfilePath: Dockerfile
-    healthCheckPath: /
+    healthCheckPath: /api/health/
     autoDeploy: true
     envVars:
       - key: DEBUG
@@ -29,7 +29,7 @@ services:
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: "*" # Or your specific render domain
+        value: "piicasso.onrender.com,.onrender.com"
       - key: CORS_ALLOWED_ORIGINS
         value: "https://pii-casso.vercel.app,https://piicasso.vercel.app,http://localhost:3000"
 

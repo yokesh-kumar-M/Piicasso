@@ -24,8 +24,4 @@ class Migration(migrations.Migration):
                 'ordering': ['timestamp'],
             },
         ),
-        migrations.AddIndex(
-            model_name='teammessage',
-            index=models.Index(fields=['team', 'timestamp'], name='teams_teamm_team_id_idx'),
-        ),
     ]

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import axiosInstance from '../api/axios';
+import { getSavedIds, toggleSaved } from './SavedPage';
 import {
   Grid, List, Search, Download, Trash2,
-  FileText, FileDown, ClockIcon, AlertCircle
+  FileText, FileDown, ClockIcon, AlertCircle,
+  Bookmark, BookmarkCheck
 } from 'lucide-react';
 
 const DashboardPage = () => {
@@ -12,6 +14,12 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [savedIds, setSavedIds] = useState(getSavedIds());
+
+  const handleToggleSave = (id) => {
+    const next = toggleSaved(id);
+    setSavedIds(next);
+  };
 
   useEffect(() => {
     fetchHistory();
@@ -21,8 +29,6 @@ const DashboardPage = () => {
     setLoading(true);
     try {
       const res = await axiosInstance.get('history/');
-      // Backend returns { results: [...], total, page, ... }
-      // Handle both paginated and flat array responses gracefully
       const data = res.data;
       if (Array.isArray(data)) {
         setHistory(data);
@@ -40,11 +46,19 @@ const DashboardPage = () => {
     }
   };
 
+  const getApiBase = () => {
+    return (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/').replace(/\/$/, '');
+  };
+
   const downloadPDF = (id) => {
     const token = localStorage.getItem('access_token');
-    const baseUrl = (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/').replace(/\/$/, '');
-    const url = `${baseUrl}/report/${id}/`;
-    // Open in new tab — the backend will return the PDF with the auth header
+    const url = `${getApiBase()}/file/report/${id}/?token=${encodeURIComponent(token)}`;
+    window.open(url, '_blank');
+  };
+
+  const downloadWordlist = (id) => {
+    const token = localStorage.getItem('access_token');
+    const url = `${getApiBase()}/file/wordlist/${id}/?token=${encodeURIComponent(token)}`;
     window.open(url, '_blank');
   };
 
@@ -66,14 +80,7 @@ const DashboardPage = () => {
     return name.includes(term) || id.includes(term);
   });
 
-  // Simple score based on id - just visual, not real "risk"
-  const getScore = (id) => (id * 17 + 13) % 100;
-  const getScoreColor = (score) =>
-    score > 75 ? 'bg-red-600' : score > 45 ? 'bg-yellow-500' : 'bg-emerald-500';
-  const getScoreBadge = (score) =>
-    score > 75 ? 'bg-red-900/30 text-red-400 border-red-900/50' :
-      score > 45 ? 'bg-yellow-900/30 text-yellow-400 border-yellow-900/50' :
-        'bg-emerald-900/30 text-emerald-400 border-emerald-900/50';
+  const getWordCount = (item) => item.wordlist_count || (item.wordlist ? item.wordlist.length : 0);
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-white font-mono selection:bg-red-600 selection:text-white">
@@ -87,7 +94,7 @@ const DashboardPage = () => {
               <ClockIcon className="w-6 h-6 text-red-600" />
               Generation <span className="text-zinc-500 font-normal">History</span>
             </h1>
-            <p className="text-xs text-zinc-500">All previously generated wordlists</p>
+            <p className="text-xs text-zinc-500">All previously generated wordlists — download as PDF report or raw wordlist</p>
           </div>
 
           <div className="flex gap-3 flex-wrap">
@@ -149,7 +156,7 @@ const DashboardPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredHistory.map(item => {
               const name = item.pii_data?.full_name || item.pii_data?.username || 'Unnamed Target';
-              const score = getScore(item.id);
+              const wordCount = getWordCount(item);
               return (
                 <div
                   key={item.id}
@@ -157,6 +164,16 @@ const DashboardPage = () => {
                 >
                   <div className="h-28 bg-gradient-to-br from-zinc-900 to-black p-4 relative flex items-end">
                     <FileText className="absolute top-4 right-4 w-10 h-10 text-zinc-800 group-hover:text-zinc-700 transition-colors" />
+                    <button
+                      onClick={() => handleToggleSave(item.id)}
+                      className="absolute top-3 left-3 transition-colors z-10"
+                      title={savedIds.includes(item.id) ? 'Remove from saved' : 'Save for later'}
+                    >
+                      {savedIds.includes(item.id)
+                        ? <BookmarkCheck className="w-5 h-5 text-yellow-500" />
+                        : <Bookmark className="w-5 h-5 text-zinc-600 hover:text-yellow-500" />
+                      }
+                    </button>
                     <div>
                       <span className="text-[9px] text-zinc-600 font-mono uppercase tracking-widest">Record #{item.id}</span>
                     </div>
@@ -166,24 +183,28 @@ const DashboardPage = () => {
                     <h3 className="font-bold text-base mb-1 truncate text-white" title={name}>{name}</h3>
                     <p className="text-[11px] text-zinc-500 mb-3">{new Date(item.timestamp).toLocaleString()}</p>
 
-                    {/* Score bar */}
+                    {/* Word count badge */}
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="flex-1 h-1 bg-zinc-900 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all ${getScoreColor(score)}`}
-                          style={{ width: `${score}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">{score}%</span>
+                      <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">
+                        {wordCount} passwords
+                      </span>
                     </div>
 
                     {/* Actions */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => downloadPDF(item.id)}
+                        onClick={() => downloadWordlist(item.id)}
                         className="flex-1 flex items-center justify-center gap-1.5 bg-white text-black text-xs font-bold py-2 rounded hover:bg-zinc-200 transition-colors"
+                        title="Download raw wordlist (.txt)"
                       >
-                        <FileDown className="w-3 h-3" /> Download
+                        <Download className="w-3 h-3" /> Wordlist
+                      </button>
+                      <button
+                        onClick={() => downloadPDF(item.id)}
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-zinc-800 text-white text-xs font-bold py-2 rounded hover:bg-zinc-700 transition-colors"
+                        title="Download PDF report"
+                      >
+                        <FileDown className="w-3 h-3" /> Report
                       </button>
                       <button
                         onClick={() => deleteItem(item.id)}
@@ -205,7 +226,7 @@ const DashboardPage = () => {
               <thead className="bg-black/40 text-zinc-500 text-xs uppercase tracking-wider border-b border-zinc-800">
                 <tr>
                   <th className="px-6 py-4">Name</th>
-                  <th className="px-6 py-4">Score</th>
+                  <th className="px-6 py-4">Passwords</th>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -213,18 +234,27 @@ const DashboardPage = () => {
               <tbody className="divide-y divide-zinc-900">
                 {filteredHistory.map(item => {
                   const name = item.pii_data?.full_name || item.pii_data?.username || 'Unnamed Target';
-                  const score = getScore(item.id);
+                  const wordCount = getWordCount(item);
                   return (
                     <tr key={item.id} className="hover:bg-white/[0.03] transition-colors">
                       <td className="px-6 py-4 font-medium text-white">{name}</td>
                       <td className="px-6 py-4">
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${getScoreBadge(score)}`}>
-                          {score}%
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded border bg-zinc-900 border-zinc-800 text-zinc-300">
+                          {wordCount}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-zinc-400 text-xs">{new Date(item.timestamp).toLocaleString()}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
+                          <button onClick={() => handleToggleSave(item.id)} className="transition-colors" title={savedIds.includes(item.id) ? 'Saved' : 'Save'}>
+                            {savedIds.includes(item.id)
+                              ? <BookmarkCheck className="w-4 h-4 text-yellow-500" />
+                              : <Bookmark className="w-4 h-4 text-zinc-600 hover:text-yellow-500" />
+                            }
+                          </button>
+                          <button onClick={() => downloadWordlist(item.id)} className="text-zinc-400 hover:text-white transition-colors" title="Download Wordlist">
+                            <Download className="w-4 h-4" />
+                          </button>
                           <button onClick={() => downloadPDF(item.id)} className="text-zinc-400 hover:text-white transition-colors" title="Download PDF">
                             <FileDown className="w-4 h-4" />
                           </button>

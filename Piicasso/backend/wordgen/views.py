@@ -235,6 +235,9 @@ class HistoryView(APIView):
 def delete_history_entry(request, id):
     try:
         r = GenerationHistory.objects.get(id=id)
+        # Verify ownership
+        if r.user != request.user and not request.user.is_superuser:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
         r.delete()
         return Response({"message": "Deleted"}, status=status.HTTP_204_NO_CONTENT)
     except GenerationHistory.DoesNotExist:
@@ -247,6 +250,9 @@ def delete_history_entry(request, id):
 def download_wordlist(request, id):
     try:
         r = GenerationHistory.objects.get(id=id)
+        # Verify ownership
+        if r.user != request.user and not request.user.is_superuser:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
         txt = "\n".join(r.wordlist or [])
         resp = HttpResponse(txt, content_type='text/plain')
         resp['Content-Disposition'] = f'attachment; filename=wordlist_{id}.txt'
@@ -317,6 +323,102 @@ def user_stats(request):
         })
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    """Returns detailed profile information for the authenticated user."""
+    try:
+        u = request.user
+        
+        # Team info
+        team_info = None
+        try:
+            membership = TeamMembership.objects.select_related('team').get(user=u)
+            team_info = {
+                "name": membership.team.name,
+                "role": membership.role,
+                "joined_at": membership.joined_at,
+            }
+        except TeamMembership.DoesNotExist:
+            pass
+        
+        # Stats
+        total_generations = GenerationHistory.objects.filter(user=u).count()
+        total_words = GenerationHistory.objects.filter(user=u).aggregate(
+            total=Sum('wordlist_count')
+        )['total'] or 0
+        
+        # Last activity
+        last_gen = GenerationHistory.objects.filter(user=u).order_by('-timestamp').first()
+        
+        return Response({
+            "username": u.username,
+            "email": u.email,
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+            "date_joined": u.date_joined,
+            "is_superuser": u.is_superuser,
+            "is_active": u.is_active,
+            "has_usable_password": u.has_usable_password(),
+            "auth_type": "Password" if u.has_usable_password() else "Google OAuth",
+            "team": team_info,
+            "stats": {
+                "total_generations": total_generations,
+                "total_words_generated": total_words,
+                "last_generation": last_gen.timestamp if last_gen else None,
+            }
+        })
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def download_file_with_token(request, file_type, id):
+    """
+    Download endpoint that accepts JWT token as query parameter.
+    This allows browser window.open() downloads without setting headers.
+    file_type: 'wordlist' or 'report'
+    """
+    from rest_framework_simplejwt.tokens import AccessToken
+    from rest_framework_simplejwt.exceptions import TokenError
+    
+    token = request.query_params.get('token')
+    if not token:
+        return HttpResponse("Authentication required", status=401)
+    
+    try:
+        access_token = AccessToken(token)
+        user_id = access_token['user_id']
+        user = User.objects.get(id=user_id)
+    except (TokenError, User.DoesNotExist):
+        return HttpResponse("Invalid or expired token", status=401)
+    
+    try:
+        r = GenerationHistory.objects.get(id=id)
+        if r.user != user and not user.is_superuser:
+            return HttpResponse("Unauthorized", status=403)
+        
+        if file_type == 'wordlist':
+            txt = "\n".join(r.wordlist or [])
+            resp = HttpResponse(txt, content_type='text/plain')
+            resp['Content-Disposition'] = f'attachment; filename=wordlist_{id}.txt'
+            return resp
+        elif file_type == 'report':
+            buffer = BytesIO()
+            generate_report_pdf(r, buffer)
+            buffer.seek(0)
+            return FileResponse(buffer, as_attachment=True, filename=f'PIICASSO_REPORT_{id}.pdf', content_type='application/pdf')
+        else:
+            return HttpResponse("Invalid file type", status=400)
+            
+    except GenerationHistory.DoesNotExist:
+        return HttpResponse("Not found", status=404)
+    except Exception as e:
+        return HttpResponse(str(e), status=500)
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
@@ -554,32 +656,39 @@ class SuperAdminView(APIView):
     
         # [SCALABILITY OPTIMIZATION]: Replacing N+1 DB loop query with native DB engine annotation.
         from django.db.models import Count
-        users = list(User.objects.annotate(
+        users_qs = User.objects.annotate(
             generated=Count('generationhistory')
-        ).order_by('-date_joined').values('id', 'username', 'email', 'is_superuser', 'is_active', 'date_joined', 'password', 'generated'))
+        ).order_by('-date_joined')
         
-        for u in users:
-            # Prevent N+1 on locations by keeping it strictly optional, ideally batched, but acceptable if low frequency.
-            # In a massive scale environment, UserActivity should push up 'last_location' to the User table async.
+        users = []
+        for u in users_qs:
+            user_data = {
+                'id': u.id,
+                'username': u.username,
+                'email': u.email,
+                'is_superuser': u.is_superuser,
+                'is_active': u.is_active,
+                'date_joined': u.date_joined,
+                'generated': u.generated,
+            }
+            
+            # Determine auth type safely without exposing the hash
+            user_data['pass_display'] = "External Auth (Google)" if not u.has_usable_password() else "Password Set"
+        
+            # Prevent N+1 on locations by keeping it strictly optional
             last_activity = UserActivity.objects.filter(
-                description__contains=u['username'],
+                description__contains=u.username,
                 latitude__isnull=False
             ).order_by('-timestamp').first()
             
             if last_activity and last_activity.city:
-                u['location'] = f"{last_activity.city}"
+                user_data['location'] = f"{last_activity.city}"
             else:
-                u['location'] = "Unknown"
-                
-            # Process password purely in memory
-            pwd = u.get('password', '')
-            if not pwd or pwd.startswith('!'):
-                u['pass_display'] = "External Auth (Google)"
-            else:
-                u['pass_display'] = pwd 
+                user_data['location'] = "Unknown"
 
-            # Pull from annotated DB field (0(1) complexity instead of O(N))
-            u['generation_count'] = u.get('generated', 0)
+            # Pull from annotated DB field (O(1) complexity instead of O(N))
+            user_data['generation_count'] = user_data.get('generated', 0)
+            users.append(user_data)
 
         logs = list(SystemLog.objects.all().order_by('-timestamp')[:50].values())
         activities = list(UserActivity.objects.all().order_by('-timestamp')[:50].values())

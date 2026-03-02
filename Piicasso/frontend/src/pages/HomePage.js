@@ -39,27 +39,27 @@ const HomePage = () => {
       <Navbar />
 
       {/* 1. TOP BAR: Status Monitor */}
-      <div className="pt-2 px-4 md:px-6 pb-2 border-b border-zinc-900 bg-[#141414] flex flex-wrap gap-6 items-center justify-between text-xs font-mono text-gray-500 uppercase tracking-widest shrink-0">
-        <div className="flex items-center gap-4 text-[10px] font-mono tracking-widest text-gray-500">
-          <div className="flex items-center gap-2 text-green-500">
+      <div className="pt-2 px-4 md:px-6 pb-2 border-b border-zinc-900 bg-[#141414] flex flex-wrap gap-3 md:gap-6 items-center justify-between text-xs font-mono text-gray-500 uppercase tracking-widest shrink-0 overflow-x-auto">
+        <div className="flex items-center gap-3 md:gap-4 text-[10px] font-mono tracking-widest text-gray-500 min-w-0">
+          <div className="flex items-center gap-2 text-green-500 shrink-0">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-            <span>USER DASHBOARD V4</span>
+            <span className="hidden sm:inline">USER DASHBOARD V4</span>
+            <span className="sm:hidden">DASH V4</span>
           </div>
-          <span className="text-zinc-700">|</span>
-          <div>CONNECTION: <span className="text-gray-300">SECURE</span></div>
-          <span className="text-zinc-700">|</span>
-          <div>SESSION: <span className="text-blue-500 animate-pulse">ACTIVE</span></div>
+          <span className="text-zinc-700 hidden sm:block">|</span>
+          <div className="hidden sm:block">CONNECTION: <span className="text-gray-300">SECURE</span></div>
+          <span className="text-zinc-700 hidden md:block">|</span>
+          <div className="hidden md:block">SESSION: <span className="text-blue-500 animate-pulse">ACTIVE</span></div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <span className="text-netflix-red font-bold hidden sm:block">STATUS: READY</span>
-          <span className="border border-zinc-800 px-2 hidden sm:block">V2.5.1 BUILD</span>
+          <span className="border border-zinc-800 px-2 hidden md:block">V2.5.1 BUILD</span>
         </div>
       </div>
 
-      {/* 2. MAIN GRID LAYOUT - RIGID DASHBOARD FRAME */}
-      <div className="flex-1 relative bg-black p-2 flex flex-col lg:block min-h-[1200px] lg:min-h-[700px]">
-        {/* We use absolute geometry to clamp the internal scrolling strictly to the boundaries */}
-        <div className="relative lg:absolute lg:inset-2 grid grid-cols-1 lg:grid-cols-12 gap-2 flex-1 lg:flex-none">
+      {/* 2. MAIN GRID LAYOUT */}
+      <div className="flex-1 bg-black p-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:h-[calc(100vh-140px)]">
 
           {/* LEFT COLUMN: VISUAL INTELLIGENCE (Charts & Maps) */}
           <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col p-4 relative group h-full overflow-y-auto custom-scrollbar">
@@ -166,22 +166,22 @@ const HomePage = () => {
           </div>
 
           {/* RIGHT COLUMN: LIVE TRACKING (Logs & Feed) */}
-          <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col lg:h-full overflow-hidden">
+          <div className="col-span-12 lg:col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col overflow-hidden">
 
-            {/* Panel 1: Network Activity / Output Preview (Moved to Top) */}
-            <div className="min-h-[300px] lg:min-h-0 lg:h-1/2 flex flex-col bg-zinc-900/10 relative border-b border-zinc-900">
+            {/* Panel 1: Globe Map */}
+            <div className="h-[300px] lg:h-1/2 flex flex-col bg-zinc-900/10 relative border-b border-zinc-900">
               <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2 z-10 bg-[#141414]">
                 <Wifi className="w-3 h-3" /> GLOBAL ACTIVITY MAP
               </div>
               <div className="flex-1 bg-black overflow-hidden relative">
-                <Suspense fallback={<div className="text-xs text-gray-600 animate-pulse">LOADING MAP...</div>}>
+                <Suspense fallback={<div className="text-xs text-gray-600 animate-pulse p-4">LOADING MAP...</div>}>
                   <GlobalMap />
                 </Suspense>
               </div>
             </div>
 
-            {/* Panel 2: Live Feed (Moved to Bottom) */}
-            <div className="min-h-[300px] lg:min-h-0 lg:h-1/2 flex flex-col">
+            {/* Panel 2: Live Feed */}
+            <div className="h-[300px] lg:h-1/2 flex flex-col">
               <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2">
                 <Terminal className="w-3 h-3" /> RECENT ACTIVITY
               </div>

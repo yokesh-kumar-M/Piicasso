@@ -10,6 +10,8 @@ from .views import (
     delete_history_entry,
     download_report_pdf,
     user_stats,
+    user_profile,
+    download_file_with_token,
     create_team,
     join_team,
     get_team_info,
@@ -43,6 +45,8 @@ urlpatterns = [
     path('download/<int:id>/', download_wordlist, name='download_wordlist'),
     path('report/<int:id>/', download_report_pdf, name='download_report'),
     path('stats/', user_stats, name='stats'),
+    path('profile/', user_profile, name='profile'),
+    path('file/<str:file_type>/<int:id>/', download_file_with_token, name='download_file'),
 
     # Teams
     path('teams/', get_team_info, name='team_info'),

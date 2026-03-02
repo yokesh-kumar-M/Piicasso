@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Simplify API endpoint resolution
-const baseURL = 'https://piicasso.onrender.com/api/';
+// Use environment variable for API base URL with production fallback
+const baseURL = process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/';
 
 const axiosInstance = axios.create({
   baseURL,
@@ -41,11 +41,11 @@ axiosInstance.interceptors.response.use(
     const errorCode = err.response?.data?.code;
 
     if (
-      errorMsg === 'You have violeted the policy of website' ||
+      errorMsg === 'Your account has been suspended due to a policy violation' ||
       errorCode === 'user_inactive' ||
       errorMsg === 'User is inactive'
     ) {
-      alert("You have violated the policy of website");
+      alert("Your account has been suspended due to a policy violation. You are being redirected to your inbox.");
       // Prevent infinite redirect loops for routes like '/inbox/'
       if (!window.location.pathname.startsWith('/inbox')) {
         window.location.href = '/inbox';

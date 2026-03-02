@@ -35,12 +35,15 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         lat = self.initial_data.get('lat') if hasattr(self, 'initial_data') else None
         lng = self.initial_data.get('lng') if hasattr(self, 'initial_data') else None
+        city = self.initial_data.get('city', 'Unknown') if hasattr(self, 'initial_data') else 'Unknown'
+        country_code = self.initial_data.get('country_code', 'UNK') if hasattr(self, 'initial_data') else 'UNK'
 
         # Log real login activity
         UserActivity.objects.create(
             activity_type='LOGIN',
             description=f"Operator {self.user.username} authenticated.",
-            city="Secure Node",
+            city=city or 'Unknown',
+            country_code=(country_code or 'UNK')[:3],
             latitude=float(lat) if lat is not None else 999.0,
             longitude=float(lng) if lng is not None else 999.0
         )
@@ -57,6 +60,8 @@ class GoogleLoginView(APIView):
         token = request.data.get('token')
         lat = request.data.get('lat')
         lng = request.data.get('lng')
+        city = request.data.get('city', 'Unknown')
+        country_code = request.data.get('country_code', 'UNK')
         
         if not token:
             return Response({'error': 'No token provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -110,7 +115,8 @@ class GoogleLoginView(APIView):
             UserActivity.objects.create(
                 activity_type='LOGIN',
                 description=f"Operator {user.username} authenticated via Google.",
-                city="Global Hub",
+                city=city or 'Unknown',
+                country_code=(country_code or 'UNK')[:3],
                 latitude=float(lat) if lat is not None else 999.0,
                 longitude=float(lng) if lng is not None else 999.0
             )
