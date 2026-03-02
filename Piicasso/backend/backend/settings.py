@@ -22,7 +22,14 @@ if not SECRET_KEY:
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 ENV = os.getenv('ENV', 'development')
 
+# Make logs directory early to avoid FileHandler errors if used
+BASE_DIR = Path(__file__).resolve().parent.parent
+os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+# Hosts and security
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',') if not DEBUG else ['*']
+if os.getenv('RENDER_EXTERNAL_HOSTNAME'):
+    ALLOWED_HOSTS.append(os.getenv('RENDER_EXTERNAL_HOSTNAME'))
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -228,18 +235,6 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'piicasso.log',
-            'formatter': 'verbose',
-        },
-        'security': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'security.log',
-            'formatter': 'verbose',
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -247,25 +242,22 @@ LOGGING = {
         },
     },
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['console'],
         'level': 'INFO',
     },
     'loggers': {
         'wordgen.security': {
-            'handlers': ['security'],
+            'handlers': ['console'],
             'level': 'WARNING',
             'propagate': True,
         },
         'django.security': {
-            'handlers': ['security'],
+            'handlers': ['console'],
             'level': 'WARNING',
             'propagate': True,
         },
     },
 }
-
-# Make logs directory
-os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
 # Custom settings for PIIcasso
 PIICASSO_SETTINGS = {
