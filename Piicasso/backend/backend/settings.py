@@ -18,7 +18,7 @@ os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
 # ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 ENV = os.getenv('ENV', 'development')
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 if not SECRET_KEY:
@@ -27,7 +27,7 @@ if not SECRET_KEY:
     SECRET_KEY = "dev-insecure-secret-please-change"
 
 # ─── HOSTS & SECURITY HEADERS ───────────────────────────────────────────────
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',') if not DEBUG else ['*']
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
 if os.getenv('RENDER_EXTERNAL_HOSTNAME'):
     ALLOWED_HOSTS.append(os.getenv('RENDER_EXTERNAL_HOSTNAME'))
 
@@ -36,6 +36,15 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JS frameworks can read the CSRF token
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 3600  # 1 hour session expiry
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Development: explicitly disable SSL redirect (overrides any browser HSTS cache)
+SECURE_SSL_REDIRECT = False
 
 # Production-only hardened security
 if not DEBUG:
@@ -46,9 +55,22 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    CSRF_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    # Permissions-Policy header to restrict browser features
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+
+
+# Content-Security-Policy middleware header (applied via custom middleware)
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; "
+    "script-src 'self'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: https:; "
+    "font-src 'self' data:; "
+    "connect-src 'self' https://generativelanguage.googleapis.com https://haveibeenpwned.com https://api.pwnedpasswords.com https://ipapi.co; "
+    "frame-ancestors 'none'; "
+    "base-uri 'self'; "
+    "form-action 'self';"
+)
 
 # ─── INSTALLED APPS ─────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -68,7 +90,6 @@ INSTALLED_APPS = [
 
     # Local apps
     'wordgen',
-    'users',
     'generator',
     'operations',
     'teams',
@@ -89,6 +110,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'wordgen.middleware.PolicyViolationMiddleware',
     'wordgen.middleware.MaintenanceModeMiddleware',     # 5.4: Respect maintenance_mode system setting
+    'wordgen.middleware.ContentSecurityPolicyMiddleware',  # CSP headers
+    'wordgen.middleware.AccountLockoutMiddleware',           # Brute force protection
     'wordgen.middleware.SecurityLoggingMiddleware',
 ]
 
@@ -161,7 +184,7 @@ else:
 # ─── PASSWORD VALIDATION ────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 10}},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
@@ -190,8 +213,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
 # ─── JWT AUTHENTICATION ─────────────────────────────────────────────────────
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('ACCESS_TOKEN_MINUTES', '30'))),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.getenv('REFRESH_TOKEN_DAYS', '7'))),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('ACCESS_TOKEN_MINUTES', '15'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.getenv('REFRESH_TOKEN_DAYS', '1'))),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
@@ -205,9 +228,9 @@ SIMPLE_JWT = {
 # ─── CORS ────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv(
     'CORS_ALLOWED_ORIGINS',
-    'https://pii-casso.vercel.app,https://piicasso.vercel.app,http://localhost:3000,http://127.0.0.1:3000,https://piicasso-yokeshkumar.vercel.app,https://piicasso-frontend-yokeshkumar.vercel.app'
+    'http://localhost:3000,http://127.0.0.1:3000'
 ).split(',') if origin.strip()]
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'accept', 'accept-encoding', 'authorization', 'content-type',
@@ -234,11 +257,14 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '1000/minute',
-        'user': '5000/minute',
-        'login': '10/minute',
-        'pii_submit': '30/hour',
-        'breach_search': '5/minute',
+        'anon': '20/minute',
+        'user': '100/minute',
+        'login': '5/minute',
+        'pii_submit': '10/hour',
+        'breach_search': '3/minute',
+        'otp_verify': '5/hour',
+        'password_reset': '3/hour',
+        'register': '5/hour',
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -256,6 +282,7 @@ SPECTACULAR_SETTINGS = {
                    'team collaboration, threat intelligence, and breach monitoring.',
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAdminUser'],
     'SECURITY': [{'Bearer': []}],
     'COMPONENT_SPLIT_REQUEST': True,
     'TAGS': [
