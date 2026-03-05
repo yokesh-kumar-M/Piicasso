@@ -39,6 +39,7 @@ const TeamsPage = React.lazy(() => import('./pages/TeamsPage'));
 const DarkWebPage = React.lazy(() => import('./pages/DarkWebPage'));
 const SuperAdminPage = React.lazy(() => import('./pages/SuperAdminPage'));
 const InboxPage = React.lazy(() => import('./pages/InboxPage'));
+const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 
 function App() {
   // ── Yokesh's Iconic Touch: The HELP Beacon ──
@@ -115,6 +116,9 @@ function App() {
                       </PrivateRoute>
                     } />
                   </Route>
+
+                  {/* Catch-all 404 Custom Error Route */}
+                  <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </Suspense>
             </div>
