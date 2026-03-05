@@ -1,3 +1,6 @@
+import html as html_module
+import logging
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -11,6 +14,9 @@ from .models import Team, TeamMembership, TeamMessage
 from analytics.models import UserActivity
 from generator.models import GenerationHistory
 
+logger = logging.getLogger('wordgen')
+
+
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -21,16 +27,18 @@ def create_team(request):
         if TeamMembership.objects.filter(user=user).exists():
             return Response({"error": "You are already a member of an active team."}, status=status.HTTP_400_BAD_REQUEST)
 
-        name = request.data.get('name')
+        name = request.data.get('name', '').strip()
         if not name:
             return Response({"error": "A unique team identification name is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(name) > 100:
+            return Response({"error": "Team name too long (max 100 characters)."}, status=status.HTTP_400_BAD_REQUEST)
 
-        team = Team.objects.create(name=name, owner=user)
+        team = Team.objects.create(name=html_module.escape(name, quote=True), owner=user)
         TeamMembership.objects.create(user=user, team=team, role='LEADER')
 
         UserActivity.objects.create(
             activity_type='TEAM_JOIN',
-            description=f"Unit established: {name} (Cmdr: {user.username})",
+            description=f"Unit established: {team.name} (Cmdr: {user.username})",
             city="HQ Command Center",
             latitude=0.0,
             longitude=0.0
@@ -42,7 +50,9 @@ def create_team(request):
             "id": team.id
         }, status=status.HTTP_201_CREATED)
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Team creation error: {e}")
+        return Response({"error": "Team creation failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
@@ -57,17 +67,17 @@ def join_team(request):
         code = request.data.get('invite_code') or request.data.get('code')
         if not code:
             return Response({"error": "Valid invitation credentials required."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         team = get_object_or_404(Team, invite_code=code)
 
         TeamMembership.objects.create(user=user, team=team, role='MEMBER')
-        
+
         UserActivity.objects.create(
             activity_type='TEAM_JOIN',
             description=f"Operator {user.username} deployed to unit {team.name}",
             city="Strategic Node"
         )
-        
+
         # Notify team owner
         from operations.views import create_notification
         create_notification(
@@ -77,19 +87,21 @@ def join_team(request):
             description=f'{user.username} has joined {team.name}',
             link='/teams'
         )
-        
+
         # Notify the joining user
         create_notification(
             user=user,
             notification_type='TEAM',
             title=f'Welcome to {team.name}!',
-            description=f'You have successfully joined the team.',
+            description='You have successfully joined the team.',
             link='/teams'
         )
-        
+
         return Response({"message": f"Successfully joined {team.name}."}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Team join error: {e}")
+        return Response({"error": "Failed to join team."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
@@ -113,7 +125,7 @@ def get_team_info(request):
 
         member_ids = [m.user.id for m in members]
         recent_ops = GenerationHistory.objects.filter(user_id__in=member_ids).order_by('-timestamp')[:10]
-        
+
         feed = [{
             "id": op.id,
             "operator": op.user.username if op.user else "System",
@@ -131,7 +143,9 @@ def get_team_info(request):
             "feed": feed
         })
     except Exception as e:
-        return Response({"error": f"Intelligence report failure: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Team info error: {e}")
+        return Response({"error": "Failed to fetch team info."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
@@ -147,7 +161,7 @@ def leave_team(request):
             if count == 1:
                 team.delete()
                 return Response({"message": "Unit decommissioned (no remaining operators)."})
-            
+
             # Transfer command hierarchy
             next_member = TeamMembership.objects.filter(team=team).exclude(user=request.user).order_by('joined_at').first()
             if next_member:
@@ -159,13 +173,15 @@ def leave_team(request):
         membership.delete()
         return Response({"message": f"Successfully detached from unit {team.name}."})
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Team leave error: {e}")
+        return Response({"error": "Failed to leave team."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET', 'POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def team_chat_messages(request):
-    """Secure encrypted team communication channel."""
+    """Secure team communication channel."""
     try:
         membership = TeamMembership.objects.get(user=request.user)
         team = membership.team
@@ -188,6 +204,8 @@ def team_chat_messages(request):
         return Response({"error": "Empty signal transmissions are restricted."}, status=400)
     if len(content) > 2000:
         return Response({"error": "Signal transmission exceeds limit (2000 chars)."}, status=400)
+
+    content = html_module.escape(content, quote=True)
 
     msg = TeamMessage.objects.create(team=team, sender=request.user, content=content)
     return Response({

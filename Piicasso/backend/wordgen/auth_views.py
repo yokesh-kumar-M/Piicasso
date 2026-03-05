@@ -1,4 +1,5 @@
 import logging
+import hmac
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -7,11 +8,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.cache import cache
-import random
+import secrets
 import string
 from analytics.models import UserActivity
 
@@ -42,14 +44,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         city = self.initial_data.get('city', 'Unknown') if hasattr(self, 'initial_data') else 'Unknown'
         country_code = self.initial_data.get('country_code', 'UNK') if hasattr(self, 'initial_data') else 'UNK'
 
-        # Log real login activity
+        # Log real login activity (anonymized for globe data)
         UserActivity.objects.create(
             activity_type='LOGIN',
-            description=f"Operator {self.user.username} authenticated.",
+            description=f"Operator authenticated.",
             city=city or 'Unknown',
             country_code=(country_code or 'UNK')[:3],
-            latitude=float(lat) if lat is not None else 999.0,
-            longitude=float(lng) if lng is not None else 999.0
+            latitude=max(-90.0, min(90.0, float(lat))) if lat is not None else 999.0,
+            longitude=max(-180.0, min(180.0, float(lng))) if lng is not None else 999.0
         )
         
         return data
@@ -117,9 +119,9 @@ class GoogleLoginView(APIView):
             except User.DoesNotExist:
                 # Create user
                 username = email.split('@')[0]
-                # Ensure username uniqueness
+                # Ensure username uniqueness using secure random
                 while User.objects.filter(username=username).exists():
-                    username = f"{username}{random.randint(100, 999)}"
+                    username = f"{username}{secrets.randbelow(900) + 100}"
                 
                 # Split name properly
                 first_name = ''
@@ -142,14 +144,14 @@ class GoogleLoginView(APIView):
             # Generate Tokens
             refresh = RefreshToken.for_user(user)
             
-            # Log real Google login activity
+            # Log real Google login activity (anonymized)
             UserActivity.objects.create(
                 activity_type='LOGIN',
-                description=f"Operator {user.username} authenticated via Google.",
+                description=f"Operator authenticated via Google.",
                 city=city or 'Unknown',
                 country_code=(country_code or 'UNK')[:3],
-                latitude=float(lat) if lat is not None else 999.0,
-                longitude=float(lng) if lng is not None else 999.0
+                latitude=max(-90.0, min(90.0, float(lat))) if lat is not None else 999.0,
+                longitude=max(-180.0, min(180.0, float(lng))) if lng is not None else 999.0
             )
             
             return Response({
@@ -178,8 +180,12 @@ class GoogleLoginView(APIView):
 class RequestPasswordResetView(APIView):
     permission_classes = [AllowAny]
 
+    def get_throttles(self):
+        from backend.throttles import PasswordResetRateThrottle
+        return [PasswordResetRateThrottle()]
+
     def post(self, request):
-        email = request.data.get('email')
+        email = request.data.get('email', '').strip().lower()
         if not email:
             return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -188,8 +194,8 @@ class RequestPasswordResetView(APIView):
             if not user.has_usable_password():
                 return Response({"error": "This account is authenticated externally (e.g. Google). Password reset not available."}, status=status.HTTP_400_BAD_REQUEST)
                 
-            # Generate 6 digit OTP
-            otp = ''.join(random.choices(string.digits, k=6))
+            # Generate 6 digit OTP using cryptographically secure random
+            otp = ''.join(secrets.choice(string.digits) for _ in range(6))
             
             # Store in cache for 10 minutes (600 seconds)
             cache.set(f"pwd_reset_otp_{email}", otp, timeout=600)
@@ -222,26 +228,54 @@ class RequestPasswordResetView(APIView):
 class VerifyResetOTPView(APIView):
     permission_classes = [AllowAny]
 
+    def get_throttles(self):
+        from backend.throttles import OTPVerifyRateThrottle
+        return [OTPVerifyRateThrottle()]
+
     def post(self, request):
-        email = request.data.get('email')
-        otp = request.data.get('otp')
+        email = request.data.get('email', '').strip().lower()
+        otp = request.data.get('otp', '').strip()
         new_password = request.data.get('new_password')
         
         if not all([email, otp, new_password]):
             return Response({"error": "Missing required fields (email, otp, new_password)."}, status=status.HTTP_400_BAD_REQUEST)
-            
+
+        # Check OTP attempt counter to prevent brute force
+        attempt_key = f'otp_attempts_{email}'
+        attempts = cache.get(attempt_key, 0)
+        if attempts >= 5:
+            # Invalidate the OTP entirely after too many attempts
+            cache.delete(f"pwd_reset_otp_{email}")
+            cache.delete(attempt_key)
+            return Response(
+                {"error": "Too many invalid attempts. Please request a new code."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         stored_otp = cache.get(f"pwd_reset_otp_{email}")
         
-        if not stored_otp or stored_otp != otp:
+        # Use constant-time comparison to prevent timing attacks
+        if not stored_otp or not hmac.compare_digest(str(stored_otp), str(otp)):
+            # Increment attempt counter (expires in 10 minutes)
+            cache.set(attempt_key, attempts + 1, 600)
             return Response({"error": "Invalid or expired authorization code."}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
             user = User.objects.get(email=email)
+            
+            # Validate new password strength
+            from django.contrib.auth.password_validation import validate_password as django_validate_password
+            try:
+                django_validate_password(new_password, user=user)
+            except DjangoValidationError as e:
+                return Response({"error": e.messages[0] if e.messages else "Password too weak."}, status=status.HTTP_400_BAD_REQUEST)
+            
             user.set_password(new_password)
             user.save()
             
-            # Invalidate OTP
+            # Invalidate OTP and attempts counter
             cache.delete(f"pwd_reset_otp_{email}")
+            cache.delete(f"otp_attempts_{email}")
             
             # Log security event
             UserActivity.objects.create(

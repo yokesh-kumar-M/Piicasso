@@ -1,5 +1,4 @@
-from django.db import models
-# Models moved to specialized apps:
-# SystemLog -> operations.models
-# Squadron, SquadronMembership -> squadrons.models
+# Wordgen models — domain models live in specialized apps:
 # GenerationHistory -> generator.models
+# SystemLog, Message, Notification -> operations.models
+# Team, TeamMembership -> teams.models

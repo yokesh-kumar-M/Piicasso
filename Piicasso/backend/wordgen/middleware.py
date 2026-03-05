@@ -109,6 +109,86 @@ class MaintenanceModeMiddleware(MiddlewareMixin):
         )
 
 
+class ContentSecurityPolicyMiddleware(MiddlewareMixin):
+    """
+    Adds Content-Security-Policy and other security headers to all responses.
+    """
+    def process_response(self, request, response):
+        csp = getattr(settings, 'CONTENT_SECURITY_POLICY', '')
+        if csp:
+            response['Content-Security-Policy'] = csp
+        response['Permissions-Policy'] = (
+            'camera=(), microphone=(), geolocation=(self), payment=()'
+        )
+        response['X-Permitted-Cross-Domain-Policies'] = 'none'
+        return response
+
+
+class AccountLockoutMiddleware(MiddlewareMixin):
+    """
+    Tracks failed login attempts and temporarily locks accounts after
+    too many failures. Uses Django cache for tracking.
+    """
+    MAX_ATTEMPTS = 5
+    LOCKOUT_SECONDS = 900  # 15 minutes
+
+    def process_request(self, request):
+        if request.path != '/api/token/' or request.method != 'POST':
+            return None
+
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            username = body.get('username', '')
+        except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
+            return None
+
+        if not username:
+            return None
+
+        cache_key = f'login_lockout_{username.lower()}'
+        attempts = cache.get(cache_key, 0)
+
+        if attempts >= self.MAX_ATTEMPTS:
+            logger.warning(f"[LOCKOUT] Account locked: {username} (too many failed attempts)")
+            return JsonResponse(
+                {
+                    'error': True,
+                    'detail': 'Account temporarily locked due to too many failed login attempts. Try again in 15 minutes.',
+                    'code': 'account_locked',
+                },
+                status=429,
+            )
+
+    def process_response(self, request, response):
+        if request.path != '/api/token/' or request.method != 'POST':
+            return response
+
+        try:
+            body_bytes = getattr(request, '_cached_body', None) or request.body
+            body = json.loads(body_bytes.decode('utf-8'))
+            username = body.get('username', '')
+        except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
+            return response
+
+        if not username:
+            return response
+
+        cache_key = f'login_lockout_{username.lower()}'
+
+        if response.status_code == 401 or response.status_code == 400:
+            # Failed login — increment counter
+            attempts = cache.get(cache_key, 0)
+            cache.set(cache_key, attempts + 1, self.LOCKOUT_SECONDS)
+            remaining = self.MAX_ATTEMPTS - (attempts + 1)
+            if remaining > 0:
+                logger.warning(f"[AUTH] Failed login for {username}, {remaining} attempts remaining")
+        elif response.status_code == 200:
+            # Successful login — clear counter
+            cache.delete(cache_key)
+
+        return response
+
+
 class SecurityLoggingMiddleware(MiddlewareMixin):
     """
     Enterprise security & audit logging middleware.

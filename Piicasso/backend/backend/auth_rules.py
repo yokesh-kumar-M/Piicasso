@@ -1,7 +1,6 @@
 def allow_all_users_rule(user):
     """
-    JWT authentication rule: only allow active users to obtain tokens.
-    Previously returned True for ALL users (including inactive/suspended),
-    which meant blocked users could still get valid JWTs.
+    JWT authentication rule: only active users can obtain tokens.
+    Name kept for backward compatibility with settings reference.
     """
     return user is not None and user.is_active

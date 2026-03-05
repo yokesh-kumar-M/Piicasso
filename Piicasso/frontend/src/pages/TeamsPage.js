@@ -387,7 +387,7 @@ const TeamsPage = () => {
                                                                         {msg.sender.charAt(0).toUpperCase()}
                                                                     </div>
                                                                 )}
-                                                                <div className={`max-w-[70%] ${msg.is_me ? '' : ''}`}>
+                                                                <div className={`max-w-[85%] sm:max-w-[70%]`}>
                                                                     {!msg.is_me && (
                                                                         <p className="text-[10px] text-zinc-500 mb-0.5 ml-1">{msg.sender}</p>
                                                                     )}

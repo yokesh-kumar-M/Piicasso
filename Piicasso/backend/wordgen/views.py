@@ -8,6 +8,7 @@ import os
 import csv
 import json
 import html
+import re
 import logging
 from io import StringIO, BytesIO
 
@@ -30,7 +31,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .llm_handler import build_prompt, call_gemini_api
 from generator.models import GenerationHistory
-from teams.models import Team, TeamMembership
+from teams.models import TeamMembership
 from operations.models import SystemLog
 from .serializers import Piiserializer, SystemLogSerializer
 from .report_generator import generate_report_pdf
@@ -115,48 +116,15 @@ def health_check(request):
 
 # ─── BEACON ──────────────────────────────────────────────────────────────────
 
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def beacon_view(request):
-    """
-    Lightweight heartbeat for the frontend globe — logs geo-located activity.
-    Now requires authentication to prevent anonymous spam (1.1 fix).
-    NOTE: This is a duplicate of analytics.HelpBeaconView — see 2.2.
-    Kept temporarily for backward compatibility; frontend should migrate to
-    /api/analytics/beacon/ and this endpoint should be removed.
-    """
-    message = request.data.get('message', '')
-    lat = request.data.get('lat')
-    lng = request.data.get('lng')
-    user = request.user.username
-
-    if lat is not None and lng is not None:
-        try:
-            from datetime import timedelta
-            last_activity = UserActivity.objects.filter(
-                activity_type='LOGIN', description__contains=user
-            ).order_by('-timestamp').first()
-
-            if not last_activity or (timezone.now() - last_activity.timestamp) > timedelta(minutes=5):
-                UserActivity.objects.create(
-                    activity_type='LOGIN',
-                    description=f"Active connection from {user}",
-                    latitude=float(lat),
-                    longitude=float(lng),
-                    city="Verified Location",
-                )
-        except Exception:
-            pass  # Silent fail — non-critical telemetry
-
-    return Response({"status": "received"})
-
-
 # ─── REGISTRATION ────────────────────────────────────────────────────────────
 
 class RegisterView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+
+    def get_throttles(self):
+        from backend.throttles import RegisterRateThrottle
+        return [RegisterRateThrottle()]
 
     def post(self, request):
         # Check system setting: registration_enabled (5.4 fix)
@@ -187,6 +155,20 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Username must be alphanumeric with underscores/hyphens only
+        if not re.match(r'^[a-zA-Z0-9_-]+$', username):
+            return Response(
+                {'error': 'Username may only contain letters, numbers, underscores, and hyphens.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Email format validation
+        if email and not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            return Response(
+                {'error': 'Invalid email format.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # Password strength validation (uses Django's built-in validators)
         try:
             validate_password(password)
@@ -197,20 +179,20 @@ class RegisterView(APIView):
             )
 
         if User.objects.filter(username=username).exists():
-            return Response({'error': 'Username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Registration failed. Username or email may already be in use.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if email and User.objects.filter(email=email).exists():
-            return Response({'error': 'Email already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Registration failed. Username or email may already be in use.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.create_user(username=username, email=email, password=password)
 
             UserActivity.objects.create(
                 activity_type='LOGIN',
-                description=f"New operator registered: {username}",
+                description=f"New operator registered",
                 city="Unknown Cluster",
-                latitude=float(lat) if lat is not None else 999.0,
-                longitude=float(lng) if lng is not None else 999.0,
+                latitude=max(-90.0, min(90.0, float(lat))) if lat is not None else 999.0,
+                longitude=max(-180.0, min(180.0, float(lng))) if lng is not None else 999.0,
             )
 
             from operations.views import create_notification
@@ -237,9 +219,18 @@ class PiiSubmitView(APIView):
     throttle_classes = [PiiSubmitRateThrottle]
 
     def get_client_ip(self, request):
+        """
+        Get client IP. In production behind a reverse proxy, use the
+        rightmost IP in X-Forwarded-For (last external hop) for safety,
+        or fall back to REMOTE_ADDR.
+        """
         xff = request.META.get('HTTP_X_FORWARDED_FOR')
         if xff:
-            return xff.split(',')[0].strip()
+            # Use first IP (client IP when behind trusted proxy like Render/Cloudflare)
+            ip = xff.split(',')[0].strip()
+            # Basic validation
+            if ip and len(ip) <= 45:  # Max IPv6 length
+                return ip
         return request.META.get('REMOTE_ADDR')
 
     def post(self, request):
@@ -499,6 +490,17 @@ def user_profile(request):
                 u.set_password(data['new_password'])
 
             u.save()
+
+            # If password was changed, blacklist all existing refresh tokens
+            if 'new_password' in data and 'current_password' in data:
+                try:
+                    from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+                    outstanding = OutstandingToken.objects.filter(user=u)
+                    for token in outstanding:
+                        BlacklistedToken.objects.get_or_create(token=token)
+                except Exception:
+                    pass  # Token blacklist may not be available
+
             return Response({"message": "Profile updated successfully."})
         except Exception as e:
             logger.error(f"Profile update error: {e}")
@@ -662,10 +664,6 @@ class SystemLogView(APIView):
         return Response(serializer.data)
 
 
-# ThreatMapView REMOVED (1.1 fix) — was unused and returned random data.
-# If threat intelligence visualization is needed in the future, implement
-# with real data sources and proper authentication.
-
 
 # ─── SIMULATED TERMINAL (1.7 fix — renamed + enum-based commands) ───────────
 # ⚠️  WARNING: This endpoint does NOT execute real system commands.
@@ -727,10 +725,6 @@ class SimulatedTerminalView(APIView):
         return Response({'output': output})
 
 
-# Keep backward compatibility alias
-TerminalExecView = SimulatedTerminalView
-
-
 # ─── SUPER ADMIN ─────────────────────────────────────────────────────────────
 
 class SuperAdminView(APIView):
@@ -749,10 +743,17 @@ class SuperAdminView(APIView):
             target_id = request.query_params.get('user_id')
             if not target_id:
                 return Response({"error": "user_id required."}, status=400)
+            try:
+                target_id = int(target_id)
+            except (ValueError, TypeError):
+                return Response({"error": "Invalid user_id."}, status=400)
+            # Verify user exists
+            if not User.objects.filter(id=target_id).exists():
+                return Response({"error": "User not found."}, status=404)
             gens = list(
                 GenerationHistory.objects.filter(user_id=target_id)
                 .order_by('-timestamp')
-                .values('id', 'timestamp', 'ip_address', 'wordlist')
+                .values('id', 'timestamp', 'ip_address', 'wordlist')[:100]  # Limit results
             )
             for g in gens:
                 g['wordlist_count'] = len(g['wordlist']) if g['wordlist'] else 0
@@ -800,6 +801,11 @@ class SuperAdminView(APIView):
             return Response({"error": "user_id required."}, status=400)
 
         try:
+            target_id = int(target_id)
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid user_id."}, status=400)
+
+        try:
             target_user = User.objects.get(id=target_id)
             if target_user.is_superuser and action in ("block", "delete", "change_password"):
                 return Response({"error": "Admin Protection: Cannot modify another administrator."}, status=400)
@@ -818,8 +824,19 @@ class SuperAdminView(APIView):
             new_pwd = request.data.get('new_password')
             if not new_pwd:
                 return Response({"error": "new_password required."}, status=400)
+            try:
+                validate_password(new_pwd, user=target_user)
+            except DjangoValidationError as e:
+                return Response({"error": e.messages[0] if e.messages else "Password too weak."}, status=400)
             target_user.set_password(new_pwd)
             target_user.save()
+            # Invalidate all existing tokens for the target user
+            try:
+                from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+                for token in OutstandingToken.objects.filter(user=target_user):
+                    BlacklistedToken.objects.get_or_create(token=token)
+            except Exception:
+                pass
             return Response({"message": f"Security clearance for {target_user.username} manually overridden."})
 
         return Response({"error": "Invalid action parameter."}, status=400)
@@ -828,6 +845,10 @@ class SuperAdminView(APIView):
         target_id = request.query_params.get('user_id')
         if not target_id:
             return Response({"error": "Provide user_id parameter."}, status=400)
+        try:
+            target_id = int(target_id)
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid user_id."}, status=400)
         try:
             u = User.objects.get(id=target_id)
             if u.is_superuser:
@@ -894,6 +915,9 @@ def admin_message_view(request):
         content = request.data.get('content', '').strip()
         if not recipient_id or not content:
             return Response({"error": "recipient_id and content are required."}, status=400)
+        if len(content) > 2000:
+            return Response({"error": "Message too long (max 2000 characters)."}, status=400)
+        content = html.escape(content, quote=True)
         try:
             recipient = User.objects.get(id=recipient_id)
         except User.DoesNotExist:
@@ -929,6 +953,9 @@ def admin_message_view(request):
         content = request.data.get('content', '').strip()
         if not content:
             return Response({"error": "Message cannot be empty."}, status=400)
+        if len(content) > 2000:
+            return Response({"error": "Message too long (max 2000 characters)."}, status=400)
+        content = html.escape(content, quote=True)
         msg = Message.objects.create(sender=request.user, recipient=admin, content=content)
 
         from operations.views import create_notification

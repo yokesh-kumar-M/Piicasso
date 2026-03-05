@@ -1,24 +1,26 @@
 import os
-import json
+import logging
 import requests
+
+logger = logging.getLogger('wordgen')
+
 
 def mask_pii_for_api(pii_data):
     """
     Optional masker: remove or mask extremely sensitive fields before sending to external LLM.
-    You can tune which keys to mask. For now we mask ssn_last4 and crypto_wallet.
     """
     safe = dict(pii_data)
-    for k in ['ssn_last4', 'bank_name', 'crypto_wallet']:
+    for k in ['ssn_last4', 'bank_name', 'crypto_wallet', 'gov_id', 'passport_id', 'bank_suffix']:
         if k in safe and safe[k]:
             safe[k] = '[MASKED]'
     return safe
+
 
 def build_prompt(pii_data):
     """
     Constructs a detailed prompt for the LLM using all available PII fields.
     """
-    
-    # Helper to format values
+
     def fmt(key):
         val = pii_data.get(key)
         if not val:
@@ -27,16 +29,12 @@ def build_prompt(pii_data):
             return ", ".join(str(v) for v in val if v)
         return str(val)
 
-    # Categories based on NEW schema
     identity = f"""
     Full Name: {fmt('full_name')}
-    DOB/Year: {fmt('dob')}
-    Phone Digits: {fmt('phone_digits')}
+    DOB/Year: {fmt('dob') if fmt('dob') != 'N/A' else fmt('birth_year')}
+    Phone Digits: {fmt('phone_digits') if fmt('phone_digits') != 'N/A' else fmt('phone_suffix')}
     Username: {fmt('username')}
     Email Handle: {fmt('email')}
-    SSN Last 4: {fmt('ssn_last4')}
-    Blood Type: {fmt('blood_type')}
-    Height: {fmt('height')}
     """
 
     family = f"""
@@ -47,10 +45,11 @@ def build_prompt(pii_data):
     Father's Name: {fmt('father_name')}
     Siblings: {fmt('sibling_names')}
     Best Friend: {fmt('best_friend')}
+    Childhood Nickname: {fmt('childhood_nickname')}
     """
 
     work = f"""
-    Company: {fmt('company')}
+    Company: {fmt('company') if fmt('company') != 'N/A' else fmt('employer_name')}
     Job Title: {fmt('job_title')}
     Department: {fmt('department')}
     Employee ID: {fmt('employee_id')}
@@ -58,6 +57,7 @@ def build_prompt(pii_data):
     Past Company: {fmt('past_company')}
     University: {fmt('university')}
     Degree/Major: {fmt('degree')}
+    School: {fmt('school_name')}
     """
 
     location = f"""
@@ -68,25 +68,24 @@ def build_prompt(pii_data):
     State: {fmt('state')}
     Country: {fmt('country')}
     Vacation Spot: {fmt('vacation_spot')}
+    Last Location: {fmt('last_location')}
     """
 
     interests = f"""
     Sports Team: {fmt('sports_team')}
     Musician: {fmt('musician')}
-    Movies: {fmt('movies')}
+    Movies: {fmt('movies') if fmt('movies') != 'N/A' else fmt('favourite_movies')}
     Hobbies: {fmt('hobbies')}
     Books: {fmt('books')}
     Games: {fmt('games')}
-    Favorite Food: {fmt('food')}
+    Favorite Food: {fmt('food') if fmt('food') != 'N/A' else fmt('favourite_food')}
     """
 
     assets = f"""
-    Car Model: {fmt('car_model')}
+    Car Model: {fmt('car_model') if fmt('car_model') != 'N/A' else fmt('first_car_model')}
     License Plate: {fmt('license_plate')}
-    Bank: {fmt('bank_name')}
     Brand Affinity: {fmt('brand_affinity')}
     Device: {fmt('device_type')}
-    Crypto Wallet: {fmt('crypto_wallet')}
     Subscription: {fmt('subscription')}
     """
 
@@ -125,38 +124,31 @@ INSTRUCTIONS:
 
     return prompt
 
+
 def generate_fallback_wordlist(pii_data):
     """
     Generates a basic wordlist using algorithmic permutations when the LLM is unavailable.
     """
     seeds = []
-    
-    # Extract raw values from ALL inputs
+
     for k, val in pii_data.items():
         if val:
             if isinstance(val, list):
-                # Split comma-separated strings if they were merged or just lists
-                if isinstance(val, str) and ',' in val:
-                    seeds.extend([v.strip() for v in val.split(',')])
-                else:
-                    seeds.extend([str(v) for v in val if v])
+                seeds.extend([str(v) for v in val if v])
             else:
                 s_val = str(val)
-                # Split multi-word fields like addresses or full names optionally
-                # But keep the full phrase too
                 seeds.append(s_val)
                 if ' ' in s_val:
                     seeds.extend(s_val.split())
-    
-    # Split full names
+
     if pii_data.get('full_name'):
         parts = pii_data['full_name'].split()
         seeds.extend(parts)
 
     # Clean seeds
     seeds = [s.strip() for s in seeds if s and len(s) > 1]
-    seeds = list(set(seeds)) # Unique
-    
+    seeds = list(set(seeds))
+
     passwords = set()
     suffixes = ['', '1', '123', '!', '.', '2024', '2025', '2020', '@123']
     transforms = [lambda s: s, lambda s: s.lower(), lambda s: s.upper(), lambda s: s.capitalize()]
@@ -167,53 +159,52 @@ def generate_fallback_wordlist(pii_data):
             for suff in suffixes:
                 passwords.add(f"{base}{suff}")
                 passwords.add(f"{base}{suff}!")
-    
+
     # Combos
     import itertools
     if len(seeds) >= 2:
-        for a, b in itertools.permutations(seeds, 2):
+        for a, b in itertools.permutations(seeds[:20], 2):  # Limit to prevent explosion
             passwords.add(f"{a}{b}")
             passwords.add(f"{a}.{b}")
             passwords.add(f"{a}_{b}")
             passwords.add(f"{a}{b}123")
             passwords.add(f"{a.lower()}{b.lower()}")
-            
+
     return "\n".join(list(passwords))
+
 
 def call_gemini_api(prompt, pii_data=None):
     """
-    Call Gemini (or fallback) to generate content.
-    Returns a newline-separated string on success, or raises an exception / returns an error string.
+    Call Gemini API to generate content.
+    Falls back to algorithmic generation on failure.
     """
-    
-    # Try Gemini API First
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY not set")
-
-        # Optionally mask pii
-        send_data = mask_pii_for_api(pii_data or {})
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         payload = {
             "contents": [{"parts": [{"text": prompt}]}]
         }
-    
-        resp = requests.post(url, headers=headers, json=payload, timeout=10) # Reduced timeout
-        
+
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+
+        if resp.status_code == 429:
+            logger.warning("Gemini API rate limited, falling back to offline mode.")
+            raise RuntimeError("API rate limited")
+
         if resp.status_code != 200:
-            print(f"Gemini API Error (Falling back to offline mode): {resp.text}")
+            logger.warning(f"Gemini API returned status {resp.status_code}, falling back to offline mode.")
             raise RuntimeError(f"API Error {resp.status_code}")
 
         data = resp.json()
 
         candidates = data.get("candidates", [])
         if not candidates:
-            raise RuntimeError("Returned no candidates")
+            raise RuntimeError("No candidates returned")
 
-        # robust path to text content
         text = None
         for c in candidates:
             content = c.get("content", {})
@@ -223,12 +214,12 @@ def call_gemini_api(prompt, pii_data=None):
                 break
 
         if not text:
-            raise RuntimeError("Response format changed")
+            raise RuntimeError("Unexpected response format")
 
         return text
 
     except Exception as e:
-        print(f"LLM Generation Failed: {e}. Engaging Offline Fallback Mode.")
+        logger.warning(f"LLM generation failed: {e}. Using offline fallback.")
         if pii_data:
             return generate_fallback_wordlist(pii_data)
         return "fallback\npassword\n123456"

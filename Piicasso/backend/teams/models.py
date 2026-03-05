@@ -1,14 +1,14 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+import secrets
 import string
-import random
 
 User = get_user_model()
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
-    invite_code = models.CharField(max_length=10, unique=True, blank=True)
+    invite_code = models.CharField(max_length=12, unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_teams')
 
@@ -20,9 +20,10 @@ class Team(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.invite_code:
-            # Generate unique code
+            # Generate unique code using cryptographically secure random (8 chars)
+            alphabet = string.ascii_uppercase + string.digits
             while True:
-                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                code = ''.join(secrets.choice(alphabet) for _ in range(8))
                 if not Team.objects.filter(invite_code=code).exists():
                     self.invite_code = code
                     break

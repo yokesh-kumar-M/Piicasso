@@ -15,7 +15,6 @@ from .views import (
     download_file_with_token,
     SimulatedTerminalView,
     SystemLogView,
-    beacon_view,
     super_admin_view,
     health_check,
     admin_message_view,
@@ -58,6 +57,5 @@ urlpatterns = [
     # System
     path('terminal/', SimulatedTerminalView.as_view(), name='terminal'),
     path('logs/', SystemLogView.as_view(), name='logs'),
-    path('beacon/', beacon_view, name='beacon'),
     path('admin/', super_admin_view, name='admin'),
 ]

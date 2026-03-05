@@ -1,3 +1,1 @@
-from django.test import TestCase
-
-# Create your tests here.
+# Generator tests — generation tests live in wordgen/tests.py

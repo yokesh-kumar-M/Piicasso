@@ -1,3 +1,4 @@
 from django.contrib import admin
+from .models import GenerationHistory
 
-# GenerationHistory is registered in wordgen/admin.py
+# GenerationHistory admin is registered in wordgen/admin.py

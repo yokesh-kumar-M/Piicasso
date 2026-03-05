@@ -12,6 +12,9 @@ db.sqlite3-journal
 
 # Environment
 .env
+.env.*
+.env.local
+.env.production
 .venv
 env/
 venv/
@@ -24,10 +27,20 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+.continue/
 
-# Custom
-backend/logs/
-backend/media/
-backend/staticfiles/
+# Build artifacts
 frontend/node_modules/
 frontend/build/
+backend/staticfiles/
+
+# Runtime
+backend/logs/*.log
+backend/media/
+
+# Security — never commit these
+*.pem
+*.key
+*.crt
+*.p12
+backend/rockyou.txt

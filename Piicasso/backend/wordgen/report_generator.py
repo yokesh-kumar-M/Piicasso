@@ -6,7 +6,6 @@ from reportlab.lib.units import inch
 from django.conf import settings
 from io import BytesIO
 import json
-import random
 
 def generate_report_pdf(history_entry, file_buffer):
     """

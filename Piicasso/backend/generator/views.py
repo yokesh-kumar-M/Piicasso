@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+# Generator views — all generation logic lives in wordgen/views.py
