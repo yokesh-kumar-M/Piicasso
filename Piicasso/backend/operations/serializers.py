@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Message
+from .models import Message, Notification, SystemSetting
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -12,3 +12,19 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'sender', 'sender_name', 'recipient', 'recipient_name', 'content', 'timestamp', 'is_read']
         read_only_fields = ['id', 'sender', 'timestamp', 'is_read']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'notification_type', 'title', 'description', 'is_read', 'timestamp', 'link']
+        read_only_fields = ['id', 'notification_type', 'title', 'description', 'timestamp', 'link']
+
+
+class SystemSettingSerializer(serializers.ModelSerializer):
+    updated_by_name = serializers.CharField(source='updated_by.username', read_only=True, default='System')
+
+    class Meta:
+        model = SystemSetting
+        fields = ['key', 'value', 'description', 'updated_at', 'updated_by_name']
+        read_only_fields = ['updated_at', 'updated_by_name']

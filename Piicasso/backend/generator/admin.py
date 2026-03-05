@@ -1,3 +1,3 @@
 from django.contrib import admin
 
-# Register your models here.
+# GenerationHistory is registered in wordgen/admin.py

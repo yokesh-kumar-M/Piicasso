@@ -57,6 +57,11 @@ axiosInstance.interceptors.response.use(
     if (!originalRequest) return Promise.reject(err);
 
     if (err.response && err.response.status === 401 && !originalRequest._retry) {
+      // Don't retry token refresh endpoint itself
+      if (originalRequest.url && originalRequest.url.includes('token/refresh')) {
+        return Promise.reject(err);
+      }
+
       const refresh = localStorage.getItem('refresh_token');
       if (!refresh) {
         localStorage.removeItem('access_token');
@@ -91,6 +96,11 @@ axiosInstance.interceptors.response.use(
             processQueue(error, null);
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
+            delete axiosInstance.defaults.headers.common['Authorization'];
+            // Redirect to login to stop all polling and force re-auth
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
             reject(error);
           })
           .finally(() => { isRefreshing = false; });

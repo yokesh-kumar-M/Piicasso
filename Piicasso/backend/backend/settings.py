@@ -1,5 +1,7 @@
 """
-Enhanced Django settings with better security and configuration management.
+PIIcasso — Enterprise-Grade Django Settings
+=============================================
+Security-hardened, scalable, and production-ready configuration.
 """
 import os
 import logging.config
@@ -10,42 +12,45 @@ from datetime import timedelta
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Security improvements
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-if not SECRET_KEY:
-    if os.getenv("ENV") == "production":
-        raise RuntimeError("DJANGO_SECRET_KEY must be set in production")
-    SECRET_KEY = "dev-insecure-secret-please-change"
-
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
-ENV = os.getenv('ENV', 'development')
-
-# Make logs directory early to avoid FileHandler errors if used
+# ─── BASE ────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
-# Hosts and security
+# ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
+ENV = os.getenv('ENV', 'development')
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
+
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if ENV == 'production':
+        raise RuntimeError("DJANGO_SECRET_KEY must be set in production!")
+    SECRET_KEY = "dev-insecure-secret-please-change"
+
+# ─── HOSTS & SECURITY HEADERS ───────────────────────────────────────────────
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',') if not DEBUG else ['*']
 if os.getenv('RENDER_EXTERNAL_HOSTNAME'):
     ALLOWED_HOSTS.append(os.getenv('RENDER_EXTERNAL_HOSTNAME'))
 
-# Security Headers
+# Security headers (always on)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
+# Production-only hardened security
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Application definition
+# ─── INSTALLED APPS ─────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,15 +58,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # Third-party
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'drf_spectacular',
 
-    # Local
-    'wordgen', # Primary Gateway App
+    # Local apps
+    'wordgen',
     'users',
     'generator',
     'operations',
@@ -69,10 +75,12 @@ INSTALLED_APPS = [
     'analytics',
 ]
 
+# ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'wordgen.middleware.RequestIDMiddleware',          # Enterprise: Request correlation
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,7 +88,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'wordgen.middleware.PolicyViolationMiddleware',
-    'wordgen.middleware.SecurityLoggingMiddleware',  # Custom middleware
+    'wordgen.middleware.MaintenanceModeMiddleware',     # 5.4: Respect maintenance_mode system setting
+    'wordgen.middleware.SecurityLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -103,7 +112,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# Database with connection pooling
+# ─── DATABASE (with connection pooling) ──────────────────────────────────────
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
@@ -111,19 +120,18 @@ DATABASES = {
         conn_health_checks=True,
     ) if os.getenv('DATABASE_URL') else {
         'ENGINE': 'django.db.backends.postgresql' if ENV == 'production' else 'django.db.backends.sqlite3',
-        'NAME': os.getenv('DATABASE_NAME', os.getenv('POSTGRES_DB', BASE_DIR / 'db.sqlite3')),
+        'NAME': os.getenv('DATABASE_NAME', os.getenv('POSTGRES_DB', str(BASE_DIR / 'db.sqlite3'))),
         'USER': os.getenv('DATABASE_USER', os.getenv('POSTGRES_USER', '')),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', os.getenv('POSTGRES_PASSWORD', '')),
         'HOST': os.getenv('DATABASE_HOST', 'db'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
         'OPTIONS': {
             'MAX_CONNS': 20,
-            'conn_max_age': 300,
-        } if ENV == 'production' else {}
+        } if ENV == 'production' else {},
     }
 }
 
-# Caching
+# ─── CACHING ─────────────────────────────────────────────────────────────────
 if ENV == 'production':
     CACHES = {
         'default': {
@@ -131,11 +139,16 @@ if ENV == 'production':
             'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+                'RETRY_ON_TIMEOUT': True,
             },
             'KEY_PREFIX': 'piicasso',
             'TIMEOUT': 3600,
         }
     }
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
 else:
     CACHES = {
         'default': {
@@ -145,18 +158,21 @@ else:
         }
     }
 
-# Scalability: Use Redis for sessions in production
-if ENV == 'production':
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-    SESSION_CACHE_ALIAS = "default"
+# ─── PASSWORD VALIDATION ────────────────────────────────────────────────────
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
 
-# Internationalization
+# ─── INTERNATIONALIZATION ────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = os.getenv('TIME_ZONE', 'Asia/Kolkata')
 USE_I18N = True
 USE_TZ = True
 
-# Static files with compression
+# ─── STATIC & MEDIA FILES ───────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 _static_dir = os.path.join(BASE_DIR, 'static')
@@ -167,12 +183,12 @@ STORAGES = {
     },
 }
 
-# Media files with secure handling
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB limit
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
-# Enhanced JWT Settings
+# ─── JWT AUTHENTICATION ─────────────────────────────────────────────────────
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('ACCESS_TOKEN_MINUTES', '30'))),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.getenv('REFRESH_TOKEN_DAYS', '7'))),
@@ -186,20 +202,26 @@ SIMPLE_JWT = {
     'USER_AUTHENTICATION_RULE': 'backend.auth_rules.allow_all_users_rule',
 }
 
+# ─── CORS ────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv(
-    'CORS_ALLOWED_ORIGINS', 
+    'CORS_ALLOWED_ORIGINS',
     'https://pii-casso.vercel.app,https://piicasso.vercel.app,http://localhost:3000,http://127.0.0.1:3000,https://piicasso-yokeshkumar.vercel.app,https://piicasso-frontend-yokeshkumar.vercel.app'
 ).split(',') if origin.strip()]
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development; production uses the whitelist above
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+    'x-request-id',
+]
 
-# Enhanced REST Framework settings
+# ─── REST FRAMEWORK ─────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'backend.permissions.IsActiveUserOrMessagesOnly',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -209,58 +231,120 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
+        'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '1000/minute',
         'user': '5000/minute',
         'login': '10/minute',
-        'pii_submit': '10/hour',  # Custom rate for PII submissions
+        'pii_submit': '30/hour',
+        'breach_search': '5/minute',
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'backend.exception_handler.enterprise_exception_handler',
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
+    'DEFAULT_VERSION': '1.0',
+    'ALLOWED_VERSIONS': ['1.0'],
 }
 
-# Logging configuration
+# ─── DRF-SPECTACULAR (OpenAPI / Swagger) ─────────────────────────────────────
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PIIcasso — Threat Intelligence API',
+    'DESCRIPTION': 'Enterprise-grade API for AI-powered wordlist generation, '
+                   'team collaboration, threat intelligence, and breach monitoring.',
+    'VERSION': '2.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SECURITY': [{'Bearer': []}],
+    'COMPONENT_SPLIT_REQUEST': True,
+    'TAGS': [
+        {'name': 'Auth', 'description': 'Authentication & registration'},
+        {'name': 'Intelligence', 'description': 'Wordlist generation & history'},
+        {'name': 'Teams', 'description': 'Team management & chat'},
+        {'name': 'Operations', 'description': 'System logs, messages, notifications'},
+        {'name': 'Analytics', 'description': 'Globe data & activity tracking'},
+        {'name': 'Admin', 'description': 'Super-admin operations'},
+        {'name': 'Health', 'description': 'System health & monitoring'},
+    ],
+}
+
+# ─── LOGGING ─────────────────────────────────────────────────────────────────
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'format': '[{asctime}] {levelname} [{name}:{funcName}:{lineno}] {message}',
             'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
         'simple': {
             'format': '{levelname} {message}',
             'style': '{',
         },
+        'json': {
+            'format': '{asctime} {levelname} {name} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'formatter': 'verbose',
+        },
+        'file_app': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs' / 'piicasso.log'),
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'file_security': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs' / 'security.log'),
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 10,
+            'formatter': 'verbose',
         },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'file_app'],
         'level': 'INFO',
     },
     'loggers': {
-        'wordgen.security': {
-            'handlers': ['console'],
+        'django': {
+            'handlers': ['console', 'file_app'],
             'level': 'WARNING',
-            'propagate': True,
+            'propagate': False,
         },
         'django.security': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file_security'],
             'level': 'WARNING',
-            'propagate': True,
+            'propagate': False,
+        },
+        'wordgen.security': {
+            'handlers': ['console', 'file_security'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'wordgen': {
+            'handlers': ['console', 'file_app'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
         },
     },
 }
 
-# Custom settings for PIIcasso
+# ─── PIICASSO APPLICATION SETTINGS ───────────────────────────────────────────
 PIICASSO_SETTINGS = {
     'MAX_WORDLIST_SIZE': int(os.getenv('MAX_WORDLIST_SIZE', '1000')),
     'GEMINI_API_KEY': os.getenv('GEMINI_API_KEY'),
@@ -268,7 +352,8 @@ PIICASSO_SETTINGS = {
     'DATA_RETENTION_DAYS': int(os.getenv('DATA_RETENTION_DAYS', '30')),
     'ENABLE_AUDIT_LOG': True,
 }
-# Email Configuration
+
+# ─── EMAIL ───────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
@@ -276,9 +361,19 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# ─── MISC ────────────────────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Google OAuth Client ID (1.4 fix — set in environment for production)
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
 
 AUTHENTICATION_BACKENDS = [
     'wordgen.backends.EmailOrUsernameModelBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+# ─── ADMIN SITE CUSTOMIZATION ───────────────────────────────────────────────
+ADMIN_SITE_HEADER = 'PIIcasso Command Center'
+ADMIN_SITE_TITLE = 'PIIcasso Admin'
+ADMIN_INDEX_TITLE = 'System Administration'

@@ -1,7 +1,16 @@
 # wordgen/middleware.py
+"""
+Enterprise middleware stack for PIIcasso:
+- RequestIDMiddleware: Attaches a unique request ID for log correlation.
+- PolicyViolationMiddleware: Blocks suspended users from non-auth endpoints.
+- MaintenanceModeMiddleware: Returns 503 when maintenance_mode is enabled (5.4 fix).
+- SecurityLoggingMiddleware: Audit logging with PII sanitization.
+"""
 import logging
 import time
 import json
+import uuid
+
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth.models import AnonymousUser
@@ -10,180 +19,246 @@ from django.core.cache import cache
 
 logger = logging.getLogger('wordgen.security')
 
-class PolicyViolationMiddleware(MiddlewareMixin):
+
+class RequestIDMiddleware(MiddlewareMixin):
+    """
+    Attaches a unique X-Request-ID to every request/response for correlation
+    across logs, monitoring dashboards, and error reports.
+    """
     def process_request(self, request):
-        if hasattr(request, 'user') and request.user.is_authenticated and not request.user.is_active:
-            # Allow auth endpoints (token generation, refresh)
-            if request.path.startswith('/api/token/') or request.path.startswith('/api/auth/'):
+        request.request_id = request.META.get(
+            'HTTP_X_REQUEST_ID', uuid.uuid4().hex[:16]
+        )
+
+    def process_response(self, request, response):
+        request_id = getattr(request, 'request_id', None)
+        if request_id:
+            response['X-Request-ID'] = request_id
+        return response
+
+
+class PolicyViolationMiddleware(MiddlewareMixin):
+    """
+    Blocks inactive (suspended) users from accessing any endpoint except
+    auth and messaging endpoints so they can still appeal or communicate.
+    """
+    # Paths that suspended users are still allowed to access
+    EXEMPT_PREFIXES = (
+        '/api/token/',
+        '/api/auth/',
+        '/api/operations/messages/',
+        '/api/health/',
+    )
+
+    def process_request(self, request):
+        if (
+            hasattr(request, 'user')
+            and request.user.is_authenticated
+            and not request.user.is_active
+        ):
+            if any(request.path.startswith(prefix) for prefix in self.EXEMPT_PREFIXES):
                 return None
-            
-            # Allow message endpoints (so they can use INBOX)
-            if request.path.startswith('/api/operations/messages/'):
-                return None
-                
-            return JsonResponse({'detail': 'Your account has been suspended due to a policy violation', 'code': 'user_inactive'}, status=403)
+            return JsonResponse(
+                {
+                    'error': True,
+                    'detail': 'Your account has been suspended due to a policy violation.',
+                    'code': 'user_inactive',
+                },
+                status=403,
+            )
+
+
+class MaintenanceModeMiddleware(MiddlewareMixin):
+    """
+    Returns 503 for all non-admin, non-health requests when the
+    'maintenance_mode' SystemSetting is set to 'true' (5.4 fix).
+    Superusers can still access the site during maintenance.
+    """
+    EXEMPT_PREFIXES = (
+        '/api/health/',
+        '/api/token/',
+        '/admin/',
+    )
+
+    def process_request(self, request):
+        # Only check if the app is loaded (avoid import errors during startup)
+        try:
+            from operations.models import SystemSetting
+            maintenance = SystemSetting.get('maintenance_mode', 'false')
+        except Exception:
+            return None
+
+        if maintenance.lower() not in ('true', '1', 'yes'):
+            return None
+
+        # Allow exempt paths
+        if any(request.path.startswith(prefix) for prefix in self.EXEMPT_PREFIXES):
+            return None
+
+        # Allow superusers through
+        if hasattr(request, 'user') and request.user.is_authenticated and request.user.is_superuser:
+            return None
+
+        return JsonResponse(
+            {
+                'error': True,
+                'detail': 'PIIcasso is currently under maintenance. Please try again later.',
+                'code': 'maintenance_mode',
+            },
+            status=503,
+        )
+
 
 class SecurityLoggingMiddleware(MiddlewareMixin):
-    """Enhanced security and audit logging middleware."""
-    
-    SENSITIVE_FIELDS = [
-        'password', 'token', 'secret', 'key', 'gov_id', 
-        'passport_id', 'bank_suffix', 'crypto_wallet'
-    ]
-    
+    """
+    Enterprise security & audit logging middleware.
+    - Logs all PII submissions (sanitised)
+    - Logs auth attempts (success/failure)
+    - Logs failed requests (4xx/5xx)
+    - Detects automated scanning tools
+    """
+
+    SENSITIVE_FIELDS = frozenset([
+        'password', 'token', 'secret', 'key', 'gov_id',
+        'passport_id', 'bank_suffix', 'crypto_wallet',
+    ])
+
+    # Only flag actual attack tools, not legitimate HTTP clients
+    SCANNER_SIGNATURES = frozenset([
+        'sqlmap', 'nikto', 'burp', 'nessus', 'dirbuster',
+        'gobuster', 'wfuzz', 'nuclei', 'masscan', 'zap',
+    ])
+
     def process_request(self, request):
-        """Log incoming requests with security context."""
         request.start_time = time.time()
-        
-        # Store request body early before it's consumed
+
+        # Cache body for later audit logging
         if request.method == 'POST' and hasattr(request, 'body'):
             try:
-                # Store the raw body data before it gets consumed
                 request._cached_body = request.body
             except Exception:
                 request._cached_body = None
-        
-        # Get client information
-        ip_address = self.get_client_ip(request)
+
+        ip_address = self._get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
-        
-        # Log suspicious patterns
-        if self.is_suspicious_request(request, ip_address, user_agent):
+
+        if self._is_scanner(user_agent):
             logger.warning(
-                f"Suspicious request detected: IP={ip_address}, "
-                f"User-Agent={user_agent}, Path={request.path}"
+                f"[SCANNER] tool={user_agent!r} ip={ip_address} path={request.path}"
             )
-        
-        # DRF Throttling handles rate limits in production; middleware focusing on audit logging.
-        
-        # Store request info for response processing
+
+        if self._has_path_traversal(request):
+            logger.warning(
+                f"[SUSPICIOUS] path_traversal ip={ip_address} path={request.path}"
+            )
+
         request.security_context = {
             'ip_address': ip_address,
             'user_agent': user_agent,
             'path': request.path,
             'method': request.method,
         }
-    
+
     def process_response(self, request, response):
-        """Log response with security metrics."""
-        if hasattr(request, 'start_time'):
-            duration = time.time() - request.start_time
-            
-            # Log PII submission attempts
-            if request.path == '/api/submit-pii/' and request.method == 'POST':
-                self.log_pii_submission(request, response, duration)
-            
-            # Log authentication attempts
-            if request.path == '/api/token/' and request.method == 'POST':
-                self.log_auth_attempt(request, response, duration)
-            
-            # Log failed requests
-            if response.status_code >= 400:
-                self.log_failed_request(request, response, duration)
-        
+        if not hasattr(request, 'start_time'):
+            return response
+
+        duration = time.time() - request.start_time
+        request_id = getattr(request, 'request_id', '-')
+
+        # Audit: PII submissions
+        if request.path == '/api/submit/' and request.method == 'POST':
+            self._log_pii_submission(request, response, duration, request_id)
+
+        # Audit: auth attempts
+        if request.path == '/api/token/' and request.method == 'POST':
+            self._log_auth_attempt(request, response, duration, request_id)
+
+        # Monitor: 4xx/5xx
+        if response.status_code >= 400:
+            self._log_failed_request(request, response, duration, request_id)
+
         return response
-    
-    def get_client_ip(self, request):
-        """Get the real client IP address."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR', 'Unknown')
-        return ip
-    
-    def is_suspicious_request(self, request, ip_address, user_agent):
-        """Detect suspicious request patterns."""
-        suspicious_patterns = [
-            'sqlmap', 'nikto', 'burp', 'nessus', 'nmap',
-            'python-requests', 'curl', 'wget'
-        ]
-        
-        # Check user agent
-        user_agent_lower = user_agent.lower()
-        if any(pattern in user_agent_lower for pattern in suspicious_patterns):
+
+    # ── helpers ──────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _get_client_ip(request):
+        xff = request.META.get('HTTP_X_FORWARDED_FOR')
+        if xff:
+            return xff.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR', 'Unknown')
+
+    def _is_scanner(self, user_agent):
+        ua_lower = user_agent.lower()
+        return any(sig in ua_lower for sig in self.SCANNER_SIGNATURES)
+
+    @staticmethod
+    def _has_path_traversal(request):
+        """Detect directory-traversal and extension-probing attacks."""
+        path = request.path.lower()
+        query = request.META.get('QUERY_STRING', '').lower()
+
+        if path.endswith(('.php', '.asp', '.jsp', '.cgi')):
             return True
-        
-        # Check for unusual request patterns
-        if request.path.endswith(('.php', '.asp', '.jsp')):
+        if any(p in query for p in ('union select', 'drop table', 'insert into', "' or ", '1=1')):
             return True
-        
-        # Check for SQL injection patterns in query params
-        query_string = request.META.get('QUERY_STRING', '').lower()
-        sql_patterns = ['union select', 'drop table', 'insert into', '--', ';']
-        if any(pattern in query_string for pattern in sql_patterns):
-            return True
-        
         return False
-    
-    
-    def log_pii_submission(self, request, response, duration):
-        """Log PII submission attempts with sanitized data."""
+
+    def _log_pii_submission(self, request, response, duration, request_id):
         user = getattr(request, 'user', AnonymousUser())
-        
+        ip = request.security_context.get('ip_address', 'Unknown')
+
         log_data = {
             'event': 'pii_submission',
+            'request_id': request_id,
             'user_id': user.id if user.is_authenticated else None,
-            'ip_address': getattr(request, 'security_context', {}).get('ip_address', 'Unknown'),
-            'status_code': response.status_code,
-            'duration': round(duration, 3),
+            'ip': ip,
+            'status': response.status_code,
+            'duration_ms': round(duration * 1000),
         }
-        
-        # Try to get request data safely
-        if response.status_code == 201 and hasattr(request, '_cached_body') and request._cached_body:
+
+        if response.status_code == 201 and getattr(request, '_cached_body', None):
             try:
-                request_data = json.loads(request._cached_body.decode('utf-8'))
-                sanitized_data = self.sanitize_pii_data(request_data)
-                log_data['fields_submitted'] = list(sanitized_data.keys())
+                body = json.loads(request._cached_body.decode('utf-8'))
+                log_data['fields'] = [k for k, v in body.items() if v]
             except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
                 pass
-        
-        logger.info(f"PII submission: {json.dumps(log_data)}")
-    
-    def log_auth_attempt(self, request, response, duration):
-        """Log authentication attempts."""
+
+        logger.info(f"PII_SUBMIT: {json.dumps(log_data)}")
+
+    def _log_auth_attempt(self, request, response, duration, request_id):
         username = 'Unknown'
-        if hasattr(request, '_cached_body') and request._cached_body:
+        if getattr(request, '_cached_body', None):
             try:
-                request_data = json.loads(request._cached_body.decode('utf-8'))
-                username = request_data.get('username', 'Unknown')
+                body = json.loads(request._cached_body.decode('utf-8'))
+                username = body.get('username', 'Unknown')
             except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
                 pass
-        
+
         log_data = {
             'event': 'auth_attempt',
+            'request_id': request_id,
             'username': username,
-            'ip_address': getattr(request, 'security_context', {}).get('ip_address', 'Unknown'),
-            'status_code': response.status_code,
-            'duration': round(duration, 3),
+            'ip': request.security_context.get('ip_address', 'Unknown'),
+            'status': response.status_code,
             'success': response.status_code == 200,
+            'duration_ms': round(duration * 1000),
         }
-        
-        if response.status_code != 200:
-            logger.warning(f"Failed auth attempt: {json.dumps(log_data)}")
+
+        if response.status_code == 200:
+            logger.info(f"AUTH_OK: {json.dumps(log_data)}")
         else:
-            logger.info(f"Successful auth: {json.dumps(log_data)}")
-    
-    def log_failed_request(self, request, response, duration):
-        """Log failed requests for monitoring."""
+            logger.warning(f"AUTH_FAIL: {json.dumps(log_data)}")
+
+    def _log_failed_request(self, request, response, duration, request_id):
         log_data = {
             'event': 'failed_request',
+            'request_id': request_id,
             'path': request.path,
             'method': request.method,
-            'status_code': response.status_code,
-            'ip_address': getattr(request, 'security_context', {}).get('ip_address', 'Unknown'),
-            'user_agent': getattr(request, 'security_context', {}).get('user_agent', 'Unknown'),
-            'duration': round(duration, 3),
+            'status': response.status_code,
+            'ip': request.security_context.get('ip_address', 'Unknown'),
+            'duration_ms': round(duration * 1000),
         }
-        
-        logger.warning(f"Failed request: {json.dumps(log_data)}")
-    
-    def sanitize_pii_data(self, data):
-        """Remove sensitive values from PII data for logging."""
-        sanitized = {}
-        for key, value in data.items():
-            if key.lower() in self.SENSITIVE_FIELDS:
-                sanitized[key] = '[REDACTED]' if value else None
-            else:
-                sanitized[key] = value if value else None
-        return sanitized
+        logger.warning(f"FAIL: {json.dumps(log_data)}")

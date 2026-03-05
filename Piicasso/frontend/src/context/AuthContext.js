@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../api/axios';
 
 export const AuthContext = createContext();
@@ -11,10 +11,77 @@ const parseJwt = (token) => {
   }
 };
 
+/**
+ * Check if a JWT token is expired or about to expire (within 30s buffer).
+ * Returns true if the token is still valid.
+ */
+const isTokenValid = (token) => {
+  if (!token) return false;
+  const decoded = parseJwt(token);
+  if (!decoded || !decoded.exp) return false;
+  // Add 30-second buffer to account for clock skew
+  return decoded.exp > (Date.now() / 1000) + 30;
+};
+
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('access_token') || null);
+  const [token, setToken] = useState(() => {
+    // 3.2 fix: On initial load, check if stored token is still valid
+    const stored = localStorage.getItem('access_token');
+    if (stored && isTokenValid(stored)) {
+      return stored;
+    }
+    // Token is expired — don't treat user as authenticated
+    // We'll attempt refresh below if refresh token exists
+    return null;
+  });
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Attempt to refresh an expired access token using the refresh token
+  const attemptTokenRefresh = useCallback(async () => {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) {
+      // No refresh token, clear everything
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      setToken(null);
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const baseURL = process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/';
+      const res = await fetch(`${baseURL}token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('access_token', data.access);
+        if (data.refresh) {
+          localStorage.setItem('refresh_token', data.refresh);
+        }
+        setToken(data.access);
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+      } else {
+        // Refresh failed — full logout
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        setToken(null);
+        setUser(null);
+      }
+    } catch (e) {
+      console.error('Token refresh failed:', e);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      setToken(null);
+      setUser(null);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -23,11 +90,19 @@ export const AuthProvider = ({ children }) => {
       if (decoded) {
         setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
       }
+      setLoading(false);
     } else {
-      setUser(null);
+      // No valid token — try refreshing
+      const stored = localStorage.getItem('access_token');
+      if (stored && !isTokenValid(stored)) {
+        // Token exists but is expired — try refresh
+        attemptTokenRefresh();
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
     }
-    setLoading(false);
-  }, [token]);
+  }, [token, attemptTokenRefresh]);
 
   const getLocationData = async () => {
     try {
@@ -77,11 +152,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('refresh_token', refresh);
       setToken(access);
 
-      // Decode and set user immediately
       const decoded = parseJwt(access);
       if (decoded) {
-        // Handle extra fields if backend returns them in JWT, or just stick to username/superuser
-        // Backend now returns them directly in response too, but decoding token is safer source of truth for auth state
         setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
       }
 
@@ -104,7 +176,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('refresh_token', refresh);
       setToken(access);
 
-      // Decode and set user immediately
       const decoded = parseJwt(access);
       if (decoded) {
         setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
@@ -127,7 +198,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, loading, isAuthenticated: !!token, login, googleLogin, logout }}>
+    <AuthContext.Provider value={{
+      token,
+      user,
+      loading,
+      isAuthenticated: !!token && isTokenValid(token),
+      login,
+      googleLogin,
+      logout,
+    }}>
       {children}
     </AuthContext.Provider>
   );

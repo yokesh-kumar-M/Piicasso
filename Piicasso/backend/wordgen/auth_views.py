@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
@@ -9,12 +11,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
 from django.core.cache import cache
-import requests
 import random
 import string
 from analytics.models import UserActivity
 
 User = get_user_model()
+logger = logging.getLogger('wordgen')
+
+# Google OAuth Client ID — must be set in environment for production (1.4 fix)
+GOOGLE_CLIENT_ID = getattr(settings, 'GOOGLE_CLIENT_ID', None) or __import__('os').environ.get('GOOGLE_CLIENT_ID', '')
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -28,8 +34,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         
-        # Log real login activity
-
         data['username'] = self.user.username
         data['is_superuser'] = self.user.is_superuser
         
@@ -50,10 +54,24 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         return data
 
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
+    def get_throttles(self):
+        from backend.throttles import LoginRateThrottle
+        return [LoginRateThrottle()]
+
+
 class GoogleLoginView(APIView):
+    """
+    Google OAuth login — verifies Google ID tokens using the google-auth library
+    with proper audience (client ID) checking (1.4 fix).
+    
+    Previously used the deprecated tokeninfo debug endpoint which:
+    - Did not verify the audience claim
+    - Accepted tokens from ANY Google app
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -67,22 +85,35 @@ class GoogleLoginView(APIView):
             return Response({'error': 'No token provided'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Verify token with Google
-            res = requests.get(f'https://oauth2.googleapis.com/tokeninfo?id_token={token}')
-            
-            if res.status_code != 200:
-                return Response({'error': 'Invalid Google token', 'details': res.json()}, status=status.HTTP_400_BAD_REQUEST)
-            
-            payload = res.json()
+            from google.oauth2 import id_token
+            from google.auth.transport import requests as google_requests
+
+            # Verify the token with proper audience check (1.4 fix)
+            # This verifies: signature, expiry, issuer, and audience
+            payload = id_token.verify_oauth2_token(
+                token,
+                google_requests.Request(),
+                audience=GOOGLE_CLIENT_ID if GOOGLE_CLIENT_ID else None,
+            )
+
             email = payload.get('email')
             name = payload.get('name', '')
             
             if not email:
                 return Response({'error': 'Email not found in token'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
+            if not payload.get('email_verified', False):
+                return Response({'error': 'Google email is not verified.'}, status=status.HTTP_400_BAD_REQUEST)
+
             # Check if user exists
             try:
                 user = User.objects.get(email=email)
+                # Check if user is active (1.3 related)
+                if not user.is_active:
+                    return Response(
+                        {'error': 'Your account has been suspended.'},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
             except User.DoesNotExist:
                 # Create user
                 username = email.split('@')[0]
@@ -128,8 +159,21 @@ class GoogleLoginView(APIView):
                 'is_superuser': user.is_superuser
             })
             
+        except ValueError as e:
+            # google.oauth2.id_token raises ValueError for invalid tokens
+            logger.warning(f"Google OAuth token verification failed: {e}")
+            return Response(
+                {'error': 'Invalid Google token. Please try again.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # 1.5 fix: generic error message; log full exception server-side
+            logger.error(f"Google login error: {e}", exc_info=True)
+            return Response(
+                {'error': 'Authentication failed. Please try again.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
 
 class RequestPasswordResetView(APIView):
     permission_classes = [AllowAny]
@@ -150,14 +194,19 @@ class RequestPasswordResetView(APIView):
             # Store in cache for 10 minutes (600 seconds)
             cache.set(f"pwd_reset_otp_{email}", otp, timeout=600)
             
-            # Send Email
-            send_mail(
-                subject='PIIcasso - System Recovery Authorization',
-                message=f'Operator {user.username},\n\nA password reset was requested for your account.\n\nYour Authorization Code: {otp}\n\nThis code will self-destruct in 10 minutes.\nIf you did not request this, ignore this transmission.',
-                from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@piicasso.com',
-                recipient_list=[email],
-                fail_silently=False,
-            )
+            # Send Email (5.3: using fail_silently=True as a fallback;
+            # ideally this should be moved to a Celery task)
+            try:
+                send_mail(
+                    subject='PIIcasso - System Recovery Authorization',
+                    message=f'Operator {user.username},\n\nA password reset was requested for your account.\n\nYour Authorization Code: {otp}\n\nThis code will self-destruct in 10 minutes.\nIf you did not request this, ignore this transmission.',
+                    from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@piicasso.com',
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error(f"SMTP send failure for password reset: {e}")
+                # Still return success to avoid leaking info about email existence
             
             return Response({"message": "If an account exists, a recovery code has been sent."}, status=status.HTTP_200_OK)
             
@@ -165,8 +214,10 @@ class RequestPasswordResetView(APIView):
             # Mask existence of user
             return Response({"message": "If an account exists, a recovery code has been sent."}, status=status.HTTP_200_OK)
         except Exception as e:
-            print(f"SMTP Error: {e}")
-            return Response({"error": "Failed to transmit recovery code. Check SMTP logs."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # 1.5 fix: generic error; log details server-side
+            logger.error(f"Password reset error: {e}", exc_info=True)
+            return Response({"error": "Failed to process request. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class VerifyResetOTPView(APIView):
     permission_classes = [AllowAny]

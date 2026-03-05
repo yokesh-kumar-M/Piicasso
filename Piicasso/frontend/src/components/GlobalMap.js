@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import Globe from 'react-globe.gl';
 import axiosInstance from '../api/axios';
+import { AuthContext } from '../context/AuthContext';
 
 const GlobalMap = () => {
     const globeEl = useRef();
@@ -9,6 +10,7 @@ const GlobalMap = () => {
     const [countries, setCountries] = useState({ features: [] });
     const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
     const [isLive, setIsLive] = useState(false);
+    const { isAuthenticated } = useContext(AuthContext);
 
     // Tracks the server timestamp of the last response — used for incremental fetches
     const lastServerTimeRef = useRef(null);
@@ -54,6 +56,8 @@ const GlobalMap = () => {
     }, []);
 
     useEffect(() => {
+        if (!isAuthenticated) return;
+
         let intervalId;
         let destroyed = false;
 
@@ -102,7 +106,7 @@ const GlobalMap = () => {
             destroyed = true;
             clearInterval(intervalId);
         };
-    }, [mergePoints]);
+    }, [mergePoints, isAuthenticated]);
 
     return (
         <div ref={containerRef} className="w-full h-full relative group flex items-center justify-center bg-transparent overflow-hidden">

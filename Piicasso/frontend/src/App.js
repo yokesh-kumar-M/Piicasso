@@ -6,19 +6,24 @@ import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Footer from './components/Footer';
 import CinematicTransition from './components/CinematicTransition';
+import NetworkStatus from './components/NetworkStatus';
 import { AuthContext } from './context/AuthContext';
 
 // ── Yokesh's Iconic Touch: The HELP Beacon ──
 // Sends "HELP" to the backend every 10 seconds as a silent heartbeat.
 const useHelpBeacon = () => {
+  const { isAuthenticated } = useContext(AuthContext);
+
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const sendBeacon = () => {
       axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => { });
     };
     sendBeacon(); // Send immediately on mount
     const interval = setInterval(sendBeacon, 10000); // Then every 10 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated]);
 };
 
 const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
@@ -49,6 +54,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <NetworkStatus />
       <ScrollToTop />
       <div className="bg-black min-h-screen flex flex-col w-full overflow-x-hidden">
         <CinematicTransition>

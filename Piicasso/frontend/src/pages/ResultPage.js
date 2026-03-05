@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WordlistViewer from '../components/WordlistViewer';
+import axiosInstance from '../api/axios';
 import { Download, Terminal, FileText, CheckCircle, ShieldCheck, ArrowRight, Database } from 'lucide-react';
 
 const ResultPage = () => {
@@ -116,9 +117,19 @@ const ResultPage = () => {
 
                 {historyId ? (
                   <button
-                    onClick={() => {
-                      const baseUrl = (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api').replace(/\/$/, '');
-                      window.open(`${baseUrl}/report/${historyId}/`, '_blank');
+                    onClick={async () => {
+                      try {
+                        const baseUrl = (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api').replace(/\/$/, '');
+                        const res = await axiosInstance.post('download-token/', {
+                          file_type: 'report',
+                          record_id: historyId,
+                        });
+                        const downloadToken = res.data.download_token;
+                        window.open(`${baseUrl}/file/report/${historyId}/?token=${encodeURIComponent(downloadToken)}`, '_blank');
+                      } catch (err) {
+                        console.error('Download failed:', err);
+                        alert('Download failed. Please try again.');
+                      }
                     }}
                     className="bg-[#141414] border border-zinc-800 hover:border-red-900/50 hover:text-red-500 text-gray-300 h-12 rounded flex items-center justify-center gap-2 text-sm font-medium transition-colors"
                   >

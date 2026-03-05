@@ -1,1 +1,1 @@
-web: gunicorn backend.wsgi:application --log-file -
+web: cd backend && python manage.py migrate --noinput && gunicorn backend.wsgi:application --workers 2 --threads 2 --bind 0.0.0.0:$PORT --log-file -

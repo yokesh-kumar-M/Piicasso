@@ -72,17 +72,24 @@ const SavedPage = () => {
         return (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/').replace(/\/$/, '');
     };
 
-    const downloadWordlist = (id) => {
-        const token = localStorage.getItem('access_token');
-        const url = `${getApiBase()}/file/wordlist/${id}/?token=${encodeURIComponent(token)}`;
-        window.open(url, '_blank');
+    const downloadWithSignedToken = async (fileType, id) => {
+        try {
+            // Request a short-lived signed download token (1.2 fix)
+            const res = await axiosInstance.post('download-token/', {
+                file_type: fileType,
+                record_id: id,
+            });
+            const downloadToken = res.data.download_token;
+            const url = `${getApiBase()}/file/${fileType}/${id}/?token=${encodeURIComponent(downloadToken)}`;
+            window.open(url, '_blank');
+        } catch (err) {
+            console.error('Failed to generate download token:', err);
+            alert('Download failed. Please try again.');
+        }
     };
 
-    const downloadPDF = (id) => {
-        const token = localStorage.getItem('access_token');
-        const url = `${getApiBase()}/file/report/${id}/?token=${encodeURIComponent(token)}`;
-        window.open(url, '_blank');
-    };
+    const downloadWordlist = (id) => downloadWithSignedToken('wordlist', id);
+    const downloadPDF = (id) => downloadWithSignedToken('report', id);
 
     const filtered = items.filter(item => {
         if (!searchTerm) return true;
@@ -104,6 +111,7 @@ const SavedPage = () => {
                         </h1>
                         <p className="text-xs text-zinc-500">
                             Your bookmarked generation records — save items from the History page
+                            <span className="text-yellow-600 ml-1">(stored locally in this browser only)</span>
                         </p>
                     </div>
 

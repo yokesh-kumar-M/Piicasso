@@ -11,9 +11,9 @@ from .views import (
     download_report_pdf,
     user_stats,
     user_profile,
+    generate_download_token,
     download_file_with_token,
-    TerminalExecView,
-    # Teams moved to teams.views
+    SimulatedTerminalView,
     SystemLogView,
     beacon_view,
     super_admin_view,
@@ -43,6 +43,9 @@ urlpatterns = [
     path('report/<int:id>/', download_report_pdf, name='download_report'),
     path('stats/', user_stats, name='stats'),
     path('profile/', user_profile, name='profile'),
+
+    # File downloads — signed token flow (1.2 fix)
+    path('download-token/', generate_download_token, name='generate_download_token'),
     path('file/<str:file_type>/<int:id>/', download_file_with_token, name='download_file'),
 
     # Teams (Delegated to teams/urls.py)
@@ -53,7 +56,7 @@ urlpatterns = [
     path('admin/users/', admin_users_list, name='admin_users'),
 
     # System
-    path('terminal/', TerminalExecView.as_view(), name='terminal'),
+    path('terminal/', SimulatedTerminalView.as_view(), name='terminal'),
     path('logs/', SystemLogView.as_view(), name='logs'),
     path('beacon/', beacon_view, name='beacon'),
     path('admin/', super_admin_view, name='admin'),

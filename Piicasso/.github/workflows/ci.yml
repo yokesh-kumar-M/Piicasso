@@ -1,0 +1,112 @@
+name: PIIcasso CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: piicasso
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: piicasso_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          cd Piicasso
+          pip install -r requirements.txt
+      
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgres://piicasso:testpass@localhost:5432/piicasso_test
+          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+          ENV: development
+          DEBUG: 'true'
+        run: |
+          cd Piicasso/backend
+          python manage.py migrate --noinput
+      
+      - name: Run tests
+        env:
+          DATABASE_URL: postgres://piicasso:testpass@localhost:5432/piicasso_test
+          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+          ENV: development
+          DEBUG: 'true'
+        run: |
+          cd Piicasso/backend
+          python manage.py test --verbosity=2 --parallel
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: Piicasso/frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd Piicasso/frontend
+          npm ci
+      
+      - name: Run tests
+        run: |
+          cd Piicasso/frontend
+          CI=true npm test -- --watchAll=false
+      
+      - name: Build
+        run: |
+          cd Piicasso/frontend
+          npm run build
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install linters
+        run: pip install flake8 isort
+      
+      - name: Flake8 (Python)
+        run: |
+          cd Piicasso/backend
+          flake8 --max-line-length=120 --exclude=migrations,__pycache__ --ignore=E501,W503,E722 .
+      
+      - name: isort check (Python)
+        run: |
+          cd Piicasso/backend
+          isort --check-only --diff --skip migrations .

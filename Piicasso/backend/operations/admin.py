@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Message, SystemLog
+from .models import Message, SystemLog, Notification, SystemSetting
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
@@ -11,3 +11,14 @@ class MessageAdmin(admin.ModelAdmin):
 class SystemLogAdmin(admin.ModelAdmin):
     list_display = ('timestamp', 'level', 'message', 'source')
     list_filter = ('level', 'source')
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'notification_type', 'title', 'is_read', 'timestamp')
+    list_filter = ('notification_type', 'is_read')
+    search_fields = ('user__username', 'title', 'description')
+
+@admin.register(SystemSetting)
+class SystemSettingAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value', 'updated_at', 'updated_by')
+    search_fields = ('key', 'description')

@@ -68,6 +68,25 @@ def join_team(request):
             city="Strategic Node"
         )
         
+        # Notify team owner
+        from operations.views import create_notification
+        create_notification(
+            user=team.owner,
+            notification_type='TEAM',
+            title=f'{user.username} joined your team',
+            description=f'{user.username} has joined {team.name}',
+            link='/teams'
+        )
+        
+        # Notify the joining user
+        create_notification(
+            user=user,
+            notification_type='TEAM',
+            title=f'Welcome to {team.name}!',
+            description=f'You have successfully joined the team.',
+            link='/teams'
+        )
+        
         return Response({"message": f"Successfully joined {team.name}."}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
