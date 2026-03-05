@@ -1,13 +1,12 @@
 # PIIcasso Backend — Enterprise Dependencies
 # ============================================
+# Cleaned: removed unused packages
 
 # Core framework
 Django==5.2.4
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
 django-cors-headers==4.6.0
-django-filter==24.3
-django-extensions==3.2.3
 
 # API documentation
 drf-spectacular==0.28.0
@@ -25,57 +24,26 @@ whitenoise==6.8.2
 
 # Security & auth
 PyJWT==2.10.1
-cryptography==44.0.0
-pyOpenSSL==24.2.1
-django-rest-auth==0.9.5
-django-rest-knox==5.0.2
-django-rest-passwordreset==1.6.0
+cryptography>=43.0.0,<44
 
-# AI / LLM
-google-api-core==2.24.0
-google-api-python-client==2.155.0
+# AI / LLM (Google Gemini)
 google-auth==2.37.0
-google-auth-httplib2==0.2.0
-google-auth-oauthlib==1.2.1
-googleapis-common-protos==1.66.0
-openai==1.58.1
-
-# Firebase
-firebase-admin==6.6.0
 
 # HTTP clients
 requests==2.32.3
-httpx==0.28.1
-httplib2==0.22.0
 
 # PDF / Report generation
 reportlab==4.2.5
-xhtml2pdf==0.2.16
-arabic-reshaper==3.0.0
-python-bidi==0.6.3
-svglib==1.5.1
-html5lib==1.1
-pypdf==4.3.0
 
-# Data processing
-pandas==2.2.3
-openpyxl==3.1.5
+# Image processing
 pillow==11.0.0
-
-# Google Sheets (optional)
-gspread==6.1.4
 
 # Environment
 python-dotenv==1.0.1
-django-environ==0.11.2
 
 # Server
 gunicorn==20.1.0
 
 # Utilities
-colorama==0.4.6
-rich==13.9.4
-tqdm==4.67.1
 PyYAML==6.0.2
-Jinja2==3.1.5
 defusedxml==0.7.1
