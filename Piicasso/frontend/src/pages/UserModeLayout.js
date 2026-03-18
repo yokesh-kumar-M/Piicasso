@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import { Shield, History, Home, ChevronRight } from 'lucide-react';
 
 const UserModeLayout = ({ children }) => {
@@ -59,7 +59,7 @@ const UserModeLayout = ({ children }) => {
           </div>
 
           <div className="lg:col-span-3">
-            {children}
+            <Outlet />
           </div>
         </div>
       </div>
