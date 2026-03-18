@@ -64,9 +64,9 @@ const ResultPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white font-body selection:bg-red-900 selection:text-white flex flex-col">
       {/* Top Bar */}
-      <div className="h-16 border-b border-zinc-900 flex items-center px-8 justify-between bg-[#0a0a0a]">
-        <div className="font-heading text-xl tracking-widest text-gray-400">GENERATION <span className="text-white">COMPLETE</span></div>
-        <button onClick={() => navigate('/dashboard')} className="text-xs font-mono text-gray-500 hover:text-white">Go to Dashboard</button>
+      <div className="h-16 border-b border-zinc-900 flex items-center px-4 md:px-8 justify-between bg-[#0a0a0a]">
+        <div className="font-heading text-base md:text-xl tracking-widest text-gray-400">GENERATION <span className="text-white">COMPLETE</span></div>
+        <button onClick={() => navigate('/dashboard')} className="text-xs font-mono text-gray-500 hover:text-white">Dashboard</button>
       </div>
 
       <div className="flex-1 p-4 md:p-8 overflow-y-auto w-full">
@@ -152,7 +152,7 @@ const ResultPage = () => {
                 <span>Data Preview</span>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto overflow-x-auto p-0 custom-scrollbar">
               {/* Using the simple list here instead of the component to style it tightly */}
               <table className="w-full text-left text-sm font-mono text-gray-400">
                 <thead className="bg-[#161616] text-gray-500 text-xs sticky top-0">

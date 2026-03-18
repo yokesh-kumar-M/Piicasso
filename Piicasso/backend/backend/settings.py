@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'operations',
     'teams',
     'analytics',
+    'password_security',
 ]
 
 # ─── MIDDLEWARE ───────────────────────────────────────────────────────────────

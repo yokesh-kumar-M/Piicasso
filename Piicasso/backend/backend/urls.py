@@ -40,6 +40,7 @@ urlpatterns = [
     # Application APIs
     path('api/analytics/', include('analytics.urls')),
     path('api/operations/', include('operations.urls')),
+    path('api/password/', include('password_security.urls')),
     path('api/', include('wordgen.urls')),
 ]
 

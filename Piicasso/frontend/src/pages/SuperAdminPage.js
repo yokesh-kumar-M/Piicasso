@@ -11,6 +11,7 @@ const SuperAdminPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('users');
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Modals & Action State
     const [selectedUser, setSelectedUser] = useState(null);
@@ -161,9 +162,27 @@ const SuperAdminPage = () => {
         <div className="bg-[#050505] min-h-screen text-white font-mono flex flex-col pt-16">
             <Navbar />
 
-            <div className="flex-1 w-full flex overflow-hidden">
+            <div className="flex-1 w-full flex overflow-hidden relative">
+                {/* Mobile sidebar toggle */}
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="lg:hidden fixed bottom-6 left-6 z-50 bg-netflix-red text-white p-3 rounded-full shadow-lg shadow-red-900/50 hover:bg-red-700 transition-colors"
+                >
+                    <ShieldAlert className="w-5 h-5" />
+                </button>
+
+                {/* Mobile sidebar overlay */}
+                {sidebarOpen && (
+                    <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+                )}
+
                 {/* Admin Sidebar Navigation */}
-                <div className="w-64 bg-[#0a0a0a] border-r border-red-900/30 flex flex-col p-4 shadow-[5px_0_30px_rgba(229,9,20,0.05)] z-10 shrink-0">
+                <div className={`
+                    fixed lg:relative inset-y-0 left-0 z-40 w-64 bg-[#0a0a0a] border-r border-red-900/30 flex flex-col p-4 shadow-[5px_0_30px_rgba(229,9,20,0.05)] shrink-0
+                    transform transition-transform duration-300 ease-in-out
+                    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                    pt-20 lg:pt-4
+                `}>
                     <div className="pb-8 pt-4 border-b border-zinc-900">
                         <h2 className="text-xl font-bold tracking-widest text-netflix-red flex items-center gap-2">
                             <ShieldAlert className="w-5 h-5" />
@@ -180,7 +199,7 @@ const SuperAdminPage = () => {
                         ].map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
                                 className={`flex items-center gap-3 p-3 rounded-sm text-sm transition-all ${activeTab === tab.id ? 'bg-red-900/30 text-red-400 border border-red-900/50' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
                             >
                                 <tab.icon className="w-4 h-4" /> {tab.label}
@@ -195,9 +214,9 @@ const SuperAdminPage = () => {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 p-8 overflow-y-auto">
+                <div className="flex-1 p-4 md:p-8 overflow-y-auto">
                     {/* Top Status Bar */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
                         <div className="bg-black p-4 border border-zinc-900 rounded-sm">
                             <p className="text-[10px] text-zinc-500 uppercase">Total Users</p>
                             <h3 className="text-2xl font-bold mt-1 text-white">{data.users.length}</h3>

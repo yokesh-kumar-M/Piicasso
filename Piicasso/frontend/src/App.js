@@ -8,9 +8,11 @@ import Footer from './components/Footer';
 import CinematicTransition from './components/CinematicTransition';
 import NetworkStatus from './components/NetworkStatus';
 import { AuthContext } from './context/AuthContext';
+import { ModeProvider, ModeContext } from './context/ModeContext';
+import ModeSelectionModal from './components/ModeSelectionModal';
+import ModeManager from './components/ModeManager';
 
 // ── Yokesh's Iconic Touch: The HELP Beacon ──
-// Sends "HELP" to the backend every 10 seconds as a silent heartbeat.
 const useHelpBeacon = () => {
   const { isAuthenticated } = useContext(AuthContext);
 
@@ -20,8 +22,8 @@ const useHelpBeacon = () => {
     const sendBeacon = () => {
       axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => { });
     };
-    sendBeacon(); // Send immediately on mount
-    const interval = setInterval(sendBeacon, 10000); // Then every 10 seconds
+    sendBeacon();
+    const interval = setInterval(sendBeacon, 10000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 };
@@ -40,12 +42,13 @@ const DarkWebPage = React.lazy(() => import('./pages/DarkWebPage'));
 const SuperAdminPage = React.lazy(() => import('./pages/SuperAdminPage'));
 const InboxPage = React.lazy(() => import('./pages/InboxPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
+const UserModeLayout = React.lazy(() => import('./pages/UserModeLayout'));
+const PasswordCheckerPage = React.lazy(() => import('./pages/PasswordCheckerPage'));
+const AnalysisHistoryPage = React.lazy(() => import('./pages/AnalysisHistoryPage'));
 
-function App() {
-  // ── Yokesh's Iconic Touch: The HELP Beacon ──
+function AppContent() {
   useHelpBeacon();
 
-  // Guard: only superusers can access a route
   const SuperuserRoute = ({ children }) => {
     const { user, loading } = useContext(AuthContext);
     if (loading) return null;
@@ -54,61 +57,70 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
-      <NetworkStatus />
-      <ScrollToTop />
+    <>
+      <ModeSelectionModal />
+      <ModeManager />
       <div className="bg-black min-h-screen flex flex-col w-full overflow-x-hidden">
         <CinematicTransition>
           {(locationToRender) => (
             <div className="flex-1 flex flex-col relative w-full">
               <Suspense fallback={<div className="flex-1 bg-black w-full" />}>
                 <Routes location={locationToRender} key={locationToRender.pathname}>
-                  {/* Main Home Page (Netflix Style) */}
                   <Route path="/" element={<HomePage />} />
-                  <Route path="/operation" element={<NewOperationPage />} />
-                  <Route path="/workspace" element={<SavedPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/register" element={<RegisterPage />} />
 
+                  <Route path="/user" element={
+                    <PrivateRoute>
+                      <UserModeLayout />
+                    </PrivateRoute>
+                  }>
+                    <Route path="dashboard" element={<PasswordCheckerPage />} />
+                    <Route path="history" element={<AnalysisHistoryPage />} />
+                  </Route>
+
+                  <Route path="/operation" element={
+                    <PrivateRoute>
+                      <NewOperationPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspace" element={
+                    <PrivateRoute>
+                      <SavedPage />
+                    </PrivateRoute>
+                  } />
                   <Route path="/profile" element={
                     <PrivateRoute>
                       <ProfilePage />
                     </PrivateRoute>
                   } />
-
                   <Route path="/teams" element={
                     <PrivateRoute>
                       <TeamsPage />
                     </PrivateRoute>
                   } />
-
                   <Route path="/darkweb" element={
                     <PrivateRoute>
                       <DarkWebPage />
                     </PrivateRoute>
                   } />
-
                   <Route path="/system-admin" element={
                     <PrivateRoute>
                       <SuperAdminPage />
                     </PrivateRoute>
                   } />
-
                   <Route path="/inbox" element={
                     <PrivateRoute>
                       <InboxPage />
                     </PrivateRoute>
                   } />
-
-                  {/* Dashboard (Standalone Layout) */}
                   <Route path="/dashboard" element={
                     <PrivateRoute>
                       <DashboardPage />
                     </PrivateRoute>
                   } />
 
-                  {/* Legacy Layout Routes */}
                   <Route element={<Layout />}>
                     <Route path="/result" element={
                       <PrivateRoute>
@@ -117,7 +129,6 @@ function App() {
                     } />
                   </Route>
 
-                  {/* Catch-all 404 Custom Error Route */}
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </Suspense>
@@ -128,6 +139,18 @@ function App() {
           <Footer />
         </div>
       </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ModeProvider>
+        <NetworkStatus />
+        <ScrollToTop />
+        <AppContent />
+      </ModeProvider>
     </BrowserRouter>
   );
 }

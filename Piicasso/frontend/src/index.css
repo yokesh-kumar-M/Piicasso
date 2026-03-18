@@ -58,6 +58,41 @@ h6 {
   background: var(--netflix-red);
 }
 
+/* Mobile: Disable custom scrollbar (too thin to grab on touch) */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* Ensure tap targets are large enough on mobile */
+@media (max-width: 640px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Exclude tiny inline elements */
+  span > button, .inline-btn {
+    min-height: unset;
+    min-width: unset;
+  }
+}
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* Utilities */
 .text-shadow {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);

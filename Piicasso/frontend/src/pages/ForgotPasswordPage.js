@@ -84,7 +84,7 @@ const ForgotPasswordPage = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full max-w-md relative z-10"
+                className="w-full max-w-md relative z-10 px-4"
             >
                 <div className="bg-[#0f0f0f] border border-zinc-800 rounded-lg shadow-[0_0_50px_rgba(229,9,20,0.1)] overflow-hidden">
                     {/* Header */}

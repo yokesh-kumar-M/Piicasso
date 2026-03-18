@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, Bell, Menu, X, User, Mail } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import { ModeContext } from '../context/ModeContext';
 import axiosInstance from '../api/axios';
 import Logo from './Logo';
+import ModeSwitcher from './ModeSwitcher';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -16,6 +18,7 @@ const Navbar = () => {
     const [showNotifDropdown, setShowNotifDropdown] = useState(false);
 
     const { isAuthenticated, logout, user } = useContext(AuthContext);
+    const { mode } = useContext(ModeContext);
     const location = useLocation();
 
     // Fetch notifications
@@ -124,7 +127,12 @@ const Navbar = () => {
                 </div>
 
                 {/* Right Side: Icons & Profile */}
-                <div className="flex items-center gap-6 text-white">
+                <div className="flex items-center gap-4 text-white">
+                    {/* Mode Switcher - Only show when authenticated */}
+                    {isAuthenticated && (
+                        <ModeSwitcher />
+                    )}
+
                     <Link to="/darkweb" className="hidden sm:block" title="Breach Search">
                         <Search className="w-5 h-5 cursor-pointer text-gray-400 hover:text-white transition-colors" />
                     </Link>
@@ -245,6 +253,67 @@ const Navbar = () => {
             {isMobileMenuOpen && (
                 <div className="md:hidden bg-[#0a0a0a]/95 backdrop-blur-md absolute top-[68px] left-0 w-full px-6 pt-6 pb-12 border-t border-zinc-900 shadow-2xl h-[calc(100vh-68px)] overflow-y-auto">
                     <div className="flex flex-col space-y-1">
+                        {/* Mobile: Search & Notifications */}
+                        <div className="flex items-center justify-center gap-4 pb-4 mb-2 border-b border-zinc-800/50">
+                            <Link
+                                to="/darkweb"
+                                className="flex items-center gap-2 px-4 py-3 text-xs font-bold tracking-widest uppercase text-gray-400 hover:text-white bg-zinc-900/50 rounded border border-zinc-800 transition-colors"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                <Search className="w-4 h-4" /> Breach Search
+                            </Link>
+                            {isAuthenticated && (
+                                <button
+                                    onClick={() => { setShowNotifDropdown(!showNotifDropdown); }}
+                                    className="relative flex items-center gap-2 px-4 py-3 text-xs font-bold tracking-widest uppercase text-gray-400 hover:text-white bg-zinc-900/50 rounded border border-zinc-800 transition-colors"
+                                >
+                                    <Bell className="w-4 h-4" /> Alerts
+                                    {unreadCount > 0 && (
+                                        <span className="min-w-[18px] h-[18px] bg-netflix-red rounded-full text-[9px] font-bold flex items-center justify-center">
+                                            {unreadCount > 9 ? '9+' : unreadCount}
+                                        </span>
+                                    )}
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Mobile Notification Dropdown (inline) */}
+                        {showNotifDropdown && isAuthenticated && (
+                            <div className="mb-4 bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden">
+                                <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
+                                    <h3 className="text-xs font-bold text-white">Notifications</h3>
+                                    {unreadCount > 0 && (
+                                        <button onClick={markAllRead} className="text-[10px] text-netflix-red hover:text-red-400 font-bold uppercase">
+                                            Mark all read
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="max-h-60 overflow-y-auto">
+                                    {notifications.length === 0 ? (
+                                        <div className="text-xs text-center text-gray-500 py-8">No notifications yet.</div>
+                                    ) : (
+                                        notifications.slice(0, 10).map(n => (
+                                            <Link
+                                                key={n.id}
+                                                to={n.link || '#'}
+                                                onClick={() => { markOneRead(n.id); setShowNotifDropdown(false); setIsMobileMenuOpen(false); }}
+                                                className={`block px-4 py-3 border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors ${!n.is_read ? 'bg-zinc-900/30' : ''}`}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.is_read ? 'bg-netflix-red' : 'bg-zinc-700'}`} />
+                                                    <div className="min-w-0">
+                                                        <p className={`text-xs font-bold ${getNotifColor(n.notification_type)} truncate`}>{n.title}</p>
+                                                        {n.description && <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{n.description}</p>}
+                                                        <p className="text-[9px] text-zinc-600 font-mono mt-1">{timeSince(n.timestamp)}</p>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}

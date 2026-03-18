@@ -105,7 +105,7 @@ const DarkWebPage = () => {
                         </p>
                     </div>
 
-                    <div className="bg-red-900/10 border border-red-900/40 p-4 rounded min-w-[300px]">
+                    <div className="bg-red-900/10 border border-red-900/40 p-4 rounded w-full md:min-w-[300px]">
                         <div className="flex items-center gap-3 mb-4">
                             <Globe className="w-5 h-5 text-red-500" />
                             <span className="text-xs font-mono uppercase tracking-widest text-red-500">Data Sources</span>
@@ -131,18 +131,18 @@ const DarkWebPage = () => {
                 <div className="max-w-4xl mx-auto">
                     <form onSubmit={handleSearch} className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-red-600/20 to-zinc-900/50 rounded-lg blur opacity-25 group-focus-within:opacity-100 transition duration-1000"></div>
-                        <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-lg p-2 flex items-center">
-                            <Search className="w-6 h-6 text-zinc-600 ml-4" />
+                        <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-lg p-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-0">
+                            <Search className="w-6 h-6 text-zinc-600 ml-4 hidden sm:block" />
                             <input
                                 type="text"
                                 placeholder="Enter email address or search term..."
-                                className="bg-transparent border-none outline-none flex-1 p-4 text-sm font-mono tracking-widest text-white placeholder-zinc-700"
+                                className="bg-transparent border-none outline-none flex-1 p-3 sm:p-4 text-sm font-mono tracking-widest text-white placeholder-zinc-700"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                             <button
                                 disabled={isSearching || !query.trim()}
-                                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded font-heading text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded font-heading text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                             >
                                 {isSearching ? "Scanning..." : "Search"}
                             </button>
@@ -195,7 +195,7 @@ const DarkWebPage = () => {
                                     className="space-y-6"
                                 >
                                     {/* Risk Summary Card */}
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                                         <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-5 text-center">
                                             <p className="text-[10px] text-zinc-500 uppercase font-mono mb-2">Risk Score</p>
                                             <p className={`text-4xl font-heading ${getRiskLevel(results.risk_score).color}`}>

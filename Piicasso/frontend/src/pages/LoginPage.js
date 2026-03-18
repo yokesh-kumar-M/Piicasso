@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { ModeContext } from '../context/ModeContext';
 import { motion } from 'framer-motion';
 import { Lock, User, ShieldCheck, AlertCircle, Eye, EyeOff, Fingerprint, ScanLine } from 'lucide-react';
 import { auth, googleProvider } from '../firebase';
@@ -9,6 +10,7 @@ import Logo from '../components/Logo';
 
 const LoginPage = () => {
   const { login, googleLogin } = useContext(AuthContext);
+  const { openModeModal } = useContext(ModeContext);
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
@@ -18,22 +20,36 @@ const LoginPage = () => {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleFirebaseGoogleLogin = async () => {
+    if (!auth || !googleProvider) {
+      setError('Google login is not configured. Please use username/password.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
-      const googleIdToken = credential.idToken; // Using the Google Auth idToken directly for our backend
+      const googleIdToken = credential.idToken;
 
       const res = await googleLogin(googleIdToken);
       if (res.success) {
+        const hasSelectedMode = localStorage.getItem('app_mode');
+        if (!hasSelectedMode) {
+          openModeModal();
+        }
         navigate('/');
       } else {
         setError(res.error || 'Google Login Failed');
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Google Login Error');
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Login cancelled.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError(err.message || 'Google Login Error');
+      }
     } finally {
       setLoading(false);
     }
@@ -44,13 +60,16 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
 
-    // Simulate biometric scan delay for effect
     await new Promise(r => setTimeout(r, 800));
 
     const res = await login(form.username, form.password);
     setLoading(false);
 
     if (res.success) {
+      const hasSelectedMode = localStorage.getItem('app_mode');
+      if (!hasSelectedMode) {
+        openModeModal();
+      }
       navigate('/');
     } else {
       setError(res.error || 'Authentication denied. Invalid credentials.');

@@ -377,7 +377,7 @@ const ProfilePage = () => {
                     <div className="md:col-span-2 space-y-6">
 
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 gap-3 md:gap-4">
                             {[
                                 { label: 'GENERATIONS', val: stats.operations, icon: Terminal, color: 'text-purple-500' },
                                 { label: 'WORDS', val: formatNumber(stats.data_points), icon: Database, color: 'text-blue-500' },

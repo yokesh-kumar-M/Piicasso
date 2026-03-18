@@ -1,0 +1,43 @@
+# ─── Secrets & Environment ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Python ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+
+# ─── Django ─────────────────────────────────────────────────────────────────
+*.sqlite3
+db.sqlite3
+Piicasso/backend/staticfiles/
+Piicasso/backend/media/
+Piicasso/backend/logs/
+
+# ─── Node / React ────────────────────────────────────────────────────────────
+node_modules/
+Piicasso/frontend/build/
+
+# ─── IDE ─────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Security ────────────────────────────────────────────────────────────────
+*.pem
+*.key
+*.crt
+rockyou.txt

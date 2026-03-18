@@ -23,6 +23,7 @@ const InboxPage = () => {
     const [conversations, setConversations] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Shared Messaging State
     const [messages, setMessages] = useState([]);
@@ -108,6 +109,7 @@ const InboxPage = () => {
         setSelectedUser(u);
         setShowNewConv(false);
         setError('');
+        setSidebarOpen(false);
     };
 
     const handleSend = async (e) => {
@@ -157,11 +159,30 @@ const InboxPage = () => {
             <Navbar />
 
             <div className="pt-20 h-screen flex flex-col">
-                <div className="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full px-4 pb-4 gap-4">
+                <div className="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full px-2 sm:px-4 pb-4 gap-2 sm:gap-4">
 
                     {/* ── Admin Sidebar (Conditional) ── */}
                     {isSuperuser && (
-                        <div className="w-72 shrink-0 flex flex-col bg-[#141414] border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
+                        <>
+                            {/* Mobile toggle for sidebar */}
+                            <button
+                                onClick={() => setSidebarOpen(!sidebarOpen)}
+                                className="lg:hidden fixed bottom-6 left-6 z-50 bg-netflix-red text-white p-3 rounded-full shadow-lg shadow-red-900/50 hover:bg-red-700 transition-colors"
+                            >
+                                <Mail className="w-5 h-5" />
+                            </button>
+
+                            {/* Overlay */}
+                            {sidebarOpen && (
+                                <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+                            )}
+
+                            <div className={`
+                                fixed lg:relative inset-y-0 left-0 z-40
+                                w-72 shrink-0 flex flex-col bg-[#141414] border border-zinc-800 rounded-xl overflow-hidden shadow-2xl
+                                transform transition-transform duration-300 ease-in-out
+                                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                            `}>
                             <div className="p-4 border-b border-zinc-800 bg-black/40">
                                 <div className="flex items-center justify-between mb-4">
                                     <h1 className="font-bold flex items-center gap-2 text-sm text-zinc-100 italic tracking-wider">
@@ -236,6 +257,7 @@ const InboxPage = () => {
                                 )}
                             </div>
                         </div>
+                        </>
                     )}
 
                     {/* ── Main Chat Area ── */}
@@ -286,7 +308,7 @@ const InboxPage = () => {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 className={`flex ${msg.is_me ? 'justify-end' : 'justify-start'}`}
                                             >
-                                                <div className={`max-w-[80%] md:max-w-[70%]`}>
+                                                <div className={`max-w-[90%] sm:max-w-[80%] md:max-w-[70%]`}>
                                                     <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-lg ${msg.is_me
                                                         ? 'bg-red-700 text-white rounded-br-sm border border-red-800'
                                                         : 'bg-[#222] text-zinc-200 rounded-bl-sm border border-zinc-700'
@@ -304,7 +326,7 @@ const InboxPage = () => {
                                 </div>
 
                                 {/* Chat Input */}
-                                <form onSubmit={handleSend} className="px-6 py-5 border-t border-zinc-900 bg-black/20 flex flex-col gap-4">
+                                <form onSubmit={handleSend} className="px-3 sm:px-6 py-3 sm:py-5 border-t border-zinc-900 bg-black/20 flex flex-col gap-3 sm:gap-4">
                                     {error && (
                                         <div className="text-red-600 text-[10px] font-mono flex items-center gap-2 px-2 uppercase animate-pulse">
                                             <AlertCircle className="w-3.5 h-3.5" /> Link Error: {error}
