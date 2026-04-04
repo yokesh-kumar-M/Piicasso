@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable for API base URL with production fallback
-const baseURL = process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/';
+const baseURL = process.env.REACT_APP_API_URL || '/api/';
 
 const axiosInstance = axios.create({
   baseURL,

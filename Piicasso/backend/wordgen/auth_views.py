@@ -23,6 +23,12 @@ logger = logging.getLogger('wordgen')
 # Google OAuth Client ID — must be set in environment for production (1.4 fix)
 GOOGLE_CLIENT_ID = getattr(settings, 'GOOGLE_CLIENT_ID', None) or __import__('os').environ.get('GOOGLE_CLIENT_ID', '')
 
+def safe_float(val, default=999.0):
+    try:
+        return float(val) if val is not None and val != "" else default
+    except (ValueError, TypeError):
+        return default
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -50,8 +56,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             description=f"Operator authenticated.",
             city=city or 'Unknown',
             country_code=(country_code or 'UNK')[:3],
-            latitude=max(-90.0, min(90.0, float(lat))) if lat is not None else 999.0,
-            longitude=max(-180.0, min(180.0, float(lng))) if lng is not None else 999.0
+            latitude=max(-90.0, min(90.0, safe_float(lat))) if safe_float(lat) != 999.0 else 999.0,
+            longitude=max(-180.0, min(180.0, safe_float(lng))) if safe_float(lng) != 999.0 else 999.0
         )
         
         return data
@@ -90,13 +96,24 @@ class GoogleLoginView(APIView):
             from google.oauth2 import id_token
             from google.auth.transport import requests as google_requests
 
-            # Verify the token with proper audience check (1.4 fix)
-            # This verifies: signature, expiry, issuer, and audience
-            payload = id_token.verify_oauth2_token(
-                token,
-                google_requests.Request(),
-                audience=GOOGLE_CLIENT_ID if GOOGLE_CLIENT_ID else None,
-            )
+            # First try as a Firebase token (which is what the frontend uses)
+            firebase_project_id = getattr(settings, 'FIREBASE_PROJECT_ID', 'piicasso-d923a')
+            try:
+                payload = id_token.verify_firebase_token(
+                    token,
+                    google_requests.Request(),
+                    audience=firebase_project_id,
+                    clock_skew_in_seconds=60,
+                )
+            except ValueError as fe:
+                # Fallback to standard Google OAuth2 token check
+                payload = id_token.verify_oauth2_token(
+                    token,
+                    google_requests.Request(),
+                    audience=GOOGLE_CLIENT_ID if GOOGLE_CLIENT_ID else None,
+                    clock_skew_in_seconds=60,
+                )
+
 
             email = payload.get('email')
             name = payload.get('name', '')
@@ -150,8 +167,8 @@ class GoogleLoginView(APIView):
                 description=f"Operator authenticated via Google.",
                 city=city or 'Unknown',
                 country_code=(country_code or 'UNK')[:3],
-                latitude=max(-90.0, min(90.0, float(lat))) if lat is not None else 999.0,
-                longitude=max(-180.0, min(180.0, float(lng))) if lng is not None else 999.0
+                latitude=max(-90.0, min(90.0, safe_float(lat))) if safe_float(lat) != 999.0 else 999.0,
+                longitude=max(-180.0, min(180.0, safe_float(lng))) if safe_float(lng) != 999.0 else 999.0
             )
             
             return Response({

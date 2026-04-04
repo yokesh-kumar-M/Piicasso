@@ -32,17 +32,17 @@ const AnalysisHistoryPage = () => {
       high: 'text-orange-500',
       critical: 'text-red-500'
     };
-    return colors[level] || 'text-zinc-400';
+    return colors[level] || 'text-user-text/60';
   };
 
   const getLevelBg = (level) => {
     const colors = {
-      low: 'bg-green-500/20',
-      medium: 'bg-yellow-500/20',
-      high: 'bg-orange-500/20',
-      critical: 'bg-red-500/20'
+      low: 'bg-green-500/20 border border-green-500/30',
+      medium: 'bg-yellow-500/20 border border-yellow-500/30',
+      high: 'bg-orange-500/20 border border-orange-500/30',
+      critical: 'bg-red-500/20 border border-red-500/30'
     };
-    return colors[level] || 'bg-zinc-500/20';
+    return colors[level] || 'bg-white/5 border border-user-border';
   };
 
   const formatDate = (dateStr) => {
@@ -64,94 +64,96 @@ const AnalysisHistoryPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-            <History className="w-6 h-6 text-green-500" />
+          <div className="w-12 h-12 rounded-xl bg-user-cobalt/20 border border-user-cobalt/30 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+            <History className="w-6 h-6 text-user-cobalt" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Analysis History</h1>
-            <p className="text-zinc-400 text-sm">View your past password analyses</p>
+            <h1 className="text-2xl font-bold text-white user-heading">Analysis History</h1>
+            <p className="text-user-text/70 text-sm">View your past password analyses</p>
           </div>
         </div>
         <button
           onClick={fetchHistory}
-          className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors"
+          className="p-2 bg-white/5 border border-user-border rounded-lg hover:bg-white/10 transition-colors text-user-text/80 hover:text-white"
           title="Refresh"
         >
-          <RefreshCw className="w-5 h-5 text-zinc-400" />
+          <RefreshCw className="w-5 h-5" />
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-center gap-3 text-red-400">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-3 text-red-400">
           <AlertCircle className="w-5 h-5 shrink-0" />
-          <span className="text-sm">{error}</span>
+          <span className="text-sm font-medium">{error}</span>
         </div>
       )}
 
       {!loading && analyses.length === 0 ? (
-        <div className="bg-[#141414] border border-zinc-800 rounded-lg p-12 text-center">
-          <Shield className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-white mb-2">No Analyses Yet</h3>
-          <p className="text-zinc-500 text-sm">
-            Check your first password to see analysis history here.
+        <div className="user-glass-panel p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+            <Shield className="w-8 h-8 text-user-text/40" />
+          </div>
+          <h3 className="text-lg font-bold text-white mb-2 user-heading">No Analyses Yet</h3>
+          <p className="text-user-text/60 text-sm max-w-sm">
+            Check your first password on the Dashboard to see your analysis history here.
           </p>
         </div>
       ) : (
-        <div className="bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="user-glass-panel overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left p-4 text-xs text-zinc-500 uppercase tracking-wider">Date</th>
-                  <th className="text-left p-4 text-xs text-zinc-500 uppercase tracking-wider">Level</th>
-                  <th className="text-left p-4 text-xs text-zinc-500 uppercase tracking-wider">Score</th>
-                  <th className="text-left p-4 text-xs text-zinc-500 uppercase tracking-wider">Crack Time</th>
-                  <th className="text-left p-4 text-xs text-zinc-500 uppercase tracking-wider">Breaches</th>
-                  <th className="text-left p-4 text-xs text-zinc-500 uppercase tracking-wider">Issues</th>
+                <tr className="border-b border-user-border bg-white/5">
+                  <th className="p-5 text-xs text-user-text/70 uppercase tracking-widest font-semibold">Date</th>
+                  <th className="p-5 text-xs text-user-text/70 uppercase tracking-widest font-semibold">Level</th>
+                  <th className="p-5 text-xs text-user-text/70 uppercase tracking-widest font-semibold">Score</th>
+                  <th className="p-5 text-xs text-user-text/70 uppercase tracking-widest font-semibold">Crack Time</th>
+                  <th className="p-5 text-xs text-user-text/70 uppercase tracking-widest font-semibold">Breaches</th>
+                  <th className="p-5 text-xs text-user-text/70 uppercase tracking-widest font-semibold">Issues</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-user-border bg-transparent">
                 {analyses.map((analysis) => (
-                  <tr key={analysis.id} className="hover:bg-zinc-900/30 transition-colors">
-                    <td className="p-4">
-                      <span className="text-sm text-zinc-400">{formatDate(analysis.created_at)}</span>
+                  <tr key={analysis.id} className="hover:bg-white/5 transition-colors">
+                    <td className="p-5">
+                      <span className="text-sm text-user-text/80 font-medium">{formatDate(analysis.created_at)}</span>
                     </td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getLevelBg(analysis.vulnerability_level)} ${getLevelColor(analysis.vulnerability_level)}`}>
+                    <td className="p-5">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getLevelBg(analysis.vulnerability_level)} ${getLevelColor(analysis.vulnerability_level)}`}>
                         {analysis.vulnerability_level.toUpperCase()}
                       </span>
                     </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <td className="p-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">
                           <div
-                            className={`h-full ${
-                              analysis.strength_score >= 75 ? 'bg-green-500' :
-                              analysis.strength_score >= 50 ? 'bg-yellow-500' :
-                              analysis.strength_score >= 25 ? 'bg-orange-500' : 'bg-red-500'
+                            className={`h-full rounded-full transition-all duration-1000 ${
+                              analysis.strength_score >= 75 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' :
+                              analysis.strength_score >= 50 ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]' :
+                              analysis.strength_score >= 25 ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
                             }`}
                             style={{ width: `${analysis.strength_score}%` }}
                           />
                         </div>
-                        <span className="text-sm text-zinc-400">{analysis.strength_score}%</span>
+                        <span className="text-sm font-bold text-white">{analysis.strength_score}%</span>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2 text-zinc-400">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-sm">{analysis.crack_time_estimate}</span>
+                    <td className="p-5">
+                      <div className="flex items-center gap-2 text-user-text/80 bg-white/5 px-3 py-1.5 rounded-lg border border-user-border w-fit">
+                        <Clock className="w-4 h-4 text-user-cobalt" />
+                        <span className="text-sm font-medium">{analysis.crack_time_estimate}</span>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className={`flex items-center gap-2 ${analysis.breach_count > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                    <td className="p-5">
+                      <div className={`flex items-center gap-2 font-bold ${analysis.breach_count > 0 ? 'text-red-400' : 'text-green-400'}`}>
                         <Database className="w-4 h-4" />
                         <span className="text-sm">{analysis.breach_count}</span>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2 text-zinc-400">
-                        <AlertTriangle className="w-4 h-4" />
-                        <span className="text-sm">{analysis.vulnerabilities_count}</span>
+                    <td className="p-5">
+                      <div className="flex items-center gap-2 text-user-text/80">
+                        <AlertTriangle className={`w-4 h-4 ${analysis.vulnerabilities_count > 0 ? 'text-yellow-500' : 'text-user-text/50'}`} />
+                        <span className="text-sm font-medium">{analysis.vulnerabilities_count}</span>
                       </div>
                     </td>
                   </tr>

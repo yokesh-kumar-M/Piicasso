@@ -32,6 +32,10 @@ Piicasso/frontend/build/
 *.swo
 *~
 
+# ─── Local AI / tooling scratch ─────────────────────────────────────────────
+.claude/
+.mcp-debug-tools/
+
 # ─── OS ──────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db

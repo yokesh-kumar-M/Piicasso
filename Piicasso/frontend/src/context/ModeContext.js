@@ -14,6 +14,14 @@ export const ModeProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('app_mode', mode);
+    // Dynamic Netflix Theme Variables via Body Class
+    if (mode === 'security') {
+      document.body.classList.add('mode-security');
+      document.body.classList.remove('mode-user');
+    } else {
+      document.body.classList.add('mode-user');
+      document.body.classList.remove('mode-security');
+    }
   }, [mode]);
 
   const fetchPreferences = useCallback(async () => {
@@ -65,6 +73,7 @@ export const ModeProvider = ({ children }) => {
   return (
     <ModeContext.Provider value={{
       mode,
+      switchMode,
       setMode: switchMode,
       showModeModal,
       openModeModal,

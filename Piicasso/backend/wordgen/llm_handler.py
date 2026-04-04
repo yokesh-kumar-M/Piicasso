@@ -16,9 +16,9 @@ def mask_pii_for_api(pii_data):
     return safe
 
 
-def build_prompt(pii_data):
+def build_prompt(pii_data, pattern_mode="standard"):
     """
-    Constructs a detailed prompt for the LLM using all available PII fields.
+    Constructs a detailed prompt for the LLM using all available PII fields and generation pattern.
     """
 
     def fmt(key):
@@ -89,9 +89,43 @@ def build_prompt(pii_data):
     Subscription: {fmt('subscription')}
     """
 
+    # Adjust instructions based on user's selected pattern mode
+    if pattern_mode == "corporate":
+        pattern_instructions = """
+2. Generate password candidates focusing on Corporate and Active Directory environments:
+   - "Season+Year" patterns (e.g., "Summer2024!", "Fall24@")
+   - "Company+Year" (e.g., "Tesla2024", "SpaceX_123")
+   - Combinations of Job Title, Department, and Employee ID.
+   - Include special character requirements usually enforced by AD (!@#$).
+        """
+    elif pattern_mode == "leetspeak":
+        pattern_instructions = """
+2. Generate password candidates focusing heavily on LEETSPEAK and hacker culture:
+   - Substitute vowels extensively (e.g., a=@, e=3, i=1, o=0, s=$)
+   - E.g., "P@$$w0rd", "J0hnD03!"
+   - Combine usernames with aggressive punctuation and leetspeak substitutions.
+        """
+    elif pattern_mode == "deep":
+        pattern_instructions = """
+2. Generate password candidates focusing on DEEP personal connections:
+   - Combinations of Pet Names + Birth Years + Symbols.
+   - Spouse Names + Anniversary Dates.
+   - Hometowns + High School Names + Graduation Years.
+   - Look for non-obvious emotional connections in the dataset.
+        """
+    else:
+        # Standard mode
+        pattern_instructions = """
+2. Generate password candidates using a balanced standard approach:
+   - Concatenations (e.g., "John1990", "Rover@Tesla")
+   - Light Leetspeak (e.g., "P@ssw0rd")
+   - Common patterns (e.g., "Summer2024!", "ChangeMe123")
+   - Specific combinations of spouse/pet/child names and dates.
+        """
+
     prompt = f"""
-You are a penetration testing AI engine. Your goal is to generate a highly probable password wordlist (up to 300 entries) for a target based on their profile.
-Think like a hacker: users often combine personal details, important dates, and common patterns.
+You are a highly advanced penetration testing AI engine. Your goal is to generate a highly probable password wordlist (up to 300 entries) for a target based on their profile.
+Think like an advanced threat actor profiling a target.
 
 TARGET PROFILE:
 [IDENTITY]
@@ -113,13 +147,9 @@ TARGET PROFILE:
 {assets}
 
 INSTRUCTIONS:
-1. Analyze the profile for keywords (names, dates, brands, terms).
-2. Generate password candidates using:
-   - Concatenations (e.g., "John1990", "Rover@Tesla")
-   - Leetspeak (e.g., "P@ssw0rd", "K@liL1nux")
-   - Common patterns (e.g., "Summer2024!", "ChangeMe123")
-   - Specific combinations of spouse/pet/child names and dates.
-3. Return ONLY the list of passwords, one per line. No conversational text.
+1. Analyze the profile deeply for keywords, names, dates, brands, and terms.
+{pattern_instructions}
+3. IMPORTANT: Return ONLY the raw list of generated passwords, one per line. Do NOT output any markdown, explanations, bullet points, numbering, or conversational text. Start the first password on the very first line.
     """.strip()
 
     return prompt

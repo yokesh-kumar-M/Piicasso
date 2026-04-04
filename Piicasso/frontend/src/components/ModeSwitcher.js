@@ -1,10 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Terminal, ChevronDown, Check, Menu, X } from 'lucide-react';
+import { Shield, Terminal, ChevronDown, Check } from 'lucide-react';
 import { ModeContext } from '../context/ModeContext';
 
 const ModeSwitcher = () => {
-  const { mode, switchMode, openModeModal } = useContext(ModeContext);
+  const { mode, switchMode } = useContext(ModeContext);
   const [isOpen, setIsOpen] = useState(false);
 
   const modes = [
@@ -12,17 +12,17 @@ const ModeSwitcher = () => {
       id: 'user',
       label: 'User Mode',
       icon: Shield,
-      color: 'text-green-500',
-      bgColor: 'bg-green-500/20',
-      description: 'Password Security'
+      color: 'text-[#22C55E]',
+      bgColor: 'bg-[#22C55E]/10',
+      description: 'Personal Security'
     },
     {
       id: 'security',
       label: 'Security Mode',
       icon: Terminal,
-      color: 'text-netflix-red',
-      bgColor: 'bg-red-500/20',
-      description: 'Operations'
+      color: 'text-[#E50914]',
+      bgColor: 'bg-[#E50914]/10',
+      description: 'Advanced Operations'
     }
   ];
 
@@ -33,17 +33,13 @@ const ModeSwitcher = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-2 py-2 rounded-lg border transition-all ${
-          mode === 'user'
-            ? 'border-green-500/50 bg-green-500/10'
-            : 'border-netflix-red/50 bg-red-500/10'
-        } hover:opacity-80`}
+        className="flex items-center gap-2.5 px-3 py-2 rounded-md border border-white/10 bg-[#181818] transition-all hover:border-white/30 hover:bg-[#232323] shadow-md"
       >
         <CurrentIcon className={`w-5 h-5 ${currentMode.color}`} />
-        <span className="text-xs font-medium text-white hidden md:inline">
+        <span className="text-sm font-semibold text-white hidden md:inline tracking-wide">
           {currentMode.label}
         </span>
-        <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -57,14 +53,15 @@ const ModeSwitcher = () => {
               onClick={() => setIsOpen(false)}
             />
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute right-0 mt-2 w-56 bg-[#141414] border border-zinc-800 rounded-lg shadow-xl z-50 overflow-hidden"
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-0 mt-3 w-64 bg-[#141414]/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
             >
               <div className="p-2">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wider px-3 py-2">
-                  Switch Mode
+                <p className="text-xs text-gray-400 uppercase tracking-widest font-bold px-3 py-2 border-b border-white/10 mb-2">
+                  Select Environment
                 </p>
                 {modes.map((m) => {
                   const Icon = m.icon;
@@ -76,37 +73,25 @@ const ModeSwitcher = () => {
                         switchMode(m.id);
                         setIsOpen(false);
                       }}
-                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded transition-all ${
                         isActive
-                          ? 'bg-zinc-800'
-                          : 'hover:bg-zinc-900'
+                          ? 'bg-white/10'
+                          : 'hover:bg-white/5'
                       }`}
                     >
-                      <div className={`w-8 h-8 rounded-full ${m.bgColor} flex items-center justify-center`}>
-                        <Icon className={`w-4 h-4 ${m.color}`} />
+                      <div className={`w-10 h-10 rounded-full ${m.bgColor} flex items-center justify-center border border-white/5`}>
+                        <Icon className={`w-5 h-5 ${m.color}`} />
                       </div>
                       <div className="flex-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-white">{m.label}</span>
-                          {isActive && <Check className="w-3 h-3 text-green-500" />}
+                        <div className="flex items-center justify-between">
+                          <span className={`text-sm font-bold ${isActive ? 'text-white' : 'text-gray-300'}`}>{m.label}</span>
+                          {isActive && <Check className={`w-4 h-4 ${m.color}`} />}
                         </div>
-                        <span className="text-xs text-zinc-500">{m.description}</span>
+                        <span className="text-xs text-gray-500 font-medium">{m.description}</span>
                       </div>
                     </button>
                   );
                 })}
-              </div>
-              
-              <div className="border-t border-zinc-800 p-2">
-                <button
-                  onClick={() => {
-                    openModeModal();
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-center py-2 text-xs text-zinc-500 hover:text-white transition-colors"
-                >
-                  Choose mode later
-                </button>
               </div>
             </motion.div>
           </>

@@ -6,7 +6,7 @@ const SkeletonLoader = ({ className = '' }) => (
 
 export const PasswordCheckerSkeleton = () => (
   <div className="space-y-6">
-    <div className="bg-[#141414] border border-zinc-800 rounded-lg p-6">
+    <div className="bg-dark-bg border border-zinc-800 rounded-lg p-6">
       <div className="flex items-center gap-3 mb-6">
         <SkeletonLoader className="w-12 h-12 rounded-full" />
         <div>
@@ -25,7 +25,7 @@ export const PasswordCheckerSkeleton = () => (
 );
 
 export const AnalysisResultSkeleton = () => (
-  <div className="bg-[#141414] border border-zinc-800 rounded-lg p-6 space-y-6">
+  <div className="bg-dark-bg border border-zinc-800 rounded-lg p-6 space-y-6">
     <div className="flex items-center justify-between">
       <SkeletonLoader className="h-6 w-40" />
       <SkeletonLoader className="h-8 w-24" />
@@ -55,7 +55,7 @@ export const HistorySkeleton = () => (
       </div>
       <SkeletonLoader className="h-10 w-10 rounded-lg" />
     </div>
-    <div className="bg-[#141414] border border-zinc-800 rounded-lg overflow-hidden">
+    <div className="bg-dark-bg border border-zinc-800 rounded-lg overflow-hidden">
       <div className="p-4 border-b border-zinc-800">
         <SkeletonLoader className="h-6 w-full" />
       </div>

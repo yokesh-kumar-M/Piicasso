@@ -74,12 +74,17 @@ CONTENT_SECURITY_POLICY = (
 
 # ─── INSTALLED APPS ─────────────────────────────────────────────────────────
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Observability
+    'django_prometheus',
 
     # Third-party
     'rest_framework',
@@ -99,6 +104,7 @@ INSTALLED_APPS = [
 
 # ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -114,6 +120,7 @@ MIDDLEWARE = [
     'wordgen.middleware.ContentSecurityPolicyMiddleware',  # CSP headers
     'wordgen.middleware.AccountLockoutMiddleware',           # Brute force protection
     'wordgen.middleware.SecurityLoggingMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -135,6 +142,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 # ─── DATABASE (with connection pooling) ──────────────────────────────────────
 DATABASES = {
@@ -405,3 +413,21 @@ AUTHENTICATION_BACKENDS = [
 ADMIN_SITE_HEADER = 'PIIcasso Command Center'
 ADMIN_SITE_TITLE = 'PIIcasso Admin'
 ADMIN_INDEX_TITLE = 'System Administration'
+
+# CELERY CONFIGURATION
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/1')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+# CHANNELS / WEBSOCKET CONFIGURATION
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.getenv('REDIS_URL', 'redis://localhost:6379/2')],
+        },
+    },
+}

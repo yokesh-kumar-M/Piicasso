@@ -23,10 +23,10 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-8">
+        <div className="min-h-screen bg-dark-bg text-white flex items-center justify-center p-8">
           <div className="max-w-lg w-full text-center">
             <div className="w-20 h-20 bg-red-900/20 border border-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertTriangle className="w-10 h-10 text-red-500" />
+              <AlertTriangle className="w-10 h-10 text-neon-green" />
             </div>
             
             <h1 className="text-2xl font-bold mb-2 tracking-wide">Something went wrong</h1>
@@ -45,7 +45,7 @@ class ErrorBoundary extends React.Component {
             <div className="flex gap-4 justify-center flex-wrap">
               <button
                 onClick={this.handleReset}
-                className="bg-netflix-red hover:bg-red-700 px-6 py-3 rounded font-bold text-sm flex items-center gap-2 transition-colors"
+                className="bg-neon-green hover:bg-[#00cc00] px-6 py-3 rounded font-bold text-sm flex items-center gap-2 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" /> Try Again
               </button>

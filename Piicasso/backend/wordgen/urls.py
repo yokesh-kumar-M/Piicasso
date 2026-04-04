@@ -1,61 +1,44 @@
-from django.urls import path, include
+from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .auth_views import MyTokenObtainPairView, GoogleLoginView, RequestPasswordResetView, VerifyResetOTPView
 from .views import (
-    RegisterView,
-    PiiSubmitView,
-    HistoryView,
-    export_history_csv,
-    download_wordlist,
-    delete_history_entry,
-    download_report_pdf,
-    user_stats,
-    user_profile,
-    generate_download_token,
-    download_file_with_token,
-    SimulatedTerminalView,
-    SystemLogView,
-    super_admin_view,
-    health_check,
-    admin_message_view,
-    admin_users_list,
+    RegisterView, PiiSubmitView, HistoryView, delete_history_entry,
+    download_wordlist, export_history_csv, download_report_pdf,
+    user_profile, user_stats, admin_message_view, super_admin_view,
+    admin_users_list, generate_download_token, download_file_with_token,
+    SystemLogView, SimulatedTerminalView, health_check, get_cached_wordlist
+)
+from .auth_views import (
+    MyTokenObtainPairView, GoogleLoginView, RequestPasswordResetView, VerifyResetOTPView
 )
 
 urlpatterns = [
-    # Health check
-    path('health/', health_check, name='health'),
-
-    # Authentication
-    path('token/', MyTokenObtainPairView.as_view(), name='token'),
+    # Auth Endpoints
+    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
-    path('auth/request-reset/', RequestPasswordResetView.as_view(), name='request_reset'),
-    path('auth/verify-reset/', VerifyResetOTPView.as_view(), name='verify_reset'),
+    path('auth/password/reset/', RequestPasswordResetView.as_view(), name='password_reset_request'),
+    path('auth/password/reset/verify/', VerifyResetOTPView.as_view(), name='password_reset_verify'),
 
-    # User operations
-    path('register/', RegisterView.as_view(), name='register'),
-    path('submit/', PiiSubmitView.as_view(), name='submit'),
-    path('history/', HistoryView.as_view(), name='history'),
-    path('history/<int:id>/', delete_history_entry, name='delete_history'),
-    path('history/export/', export_history_csv, name='export_csv'),
-    path('download/<int:id>/', download_wordlist, name='download_wordlist'),
-    path('report/<int:id>/', download_report_pdf, name='download_report'),
-    path('stats/', user_stats, name='stats'),
-    path('profile/', user_profile, name='profile'),
-
-    # File downloads — signed token flow (1.2 fix)
-    path('download-token/', generate_download_token, name='generate_download_token'),
-    path('file/<str:file_type>/<int:id>/', download_file_with_token, name='download_file'),
-
-    # Teams (Delegated to teams/urls.py)
-    path('teams/', include('teams.urls')),
-
-    # Admin messaging (superuser only)
-    path('admin/messages/', admin_message_view, name='admin_messages'),
-    path('admin/users/', admin_users_list, name='admin_users'),
-
-    # System
-    path('terminal/', SimulatedTerminalView.as_view(), name='terminal'),
-    path('logs/', SystemLogView.as_view(), name='logs'),
-    path('admin/', super_admin_view, name='admin'),
+    path('health/', health_check),
+    path('register/', RegisterView.as_view()),
+    path('submit/', PiiSubmitView.as_view()),
+    path('cached/<str:cache_key>/', get_cached_wordlist),
+    path('history/', HistoryView.as_view()),
+    path('history/<int:id>/', delete_history_entry),
+    path('download/<int:id>/', download_wordlist),
+    path('export/csv/', export_history_csv),
+    path('report/pdf/<int:id>/', download_report_pdf),
+    path('profile/', user_profile),
+    path('stats/', user_stats),
+    
+    # 1.2 download token flow
+    path('download-token/', generate_download_token),
+    path('file/<str:file_type>/<int:id>/', download_file_with_token),
+    
+    # Admin / System
+    path('admin/users/', admin_users_list),
+    path('messages/', admin_message_view),
+    path('super-admin/', super_admin_view),
+    path('system/logs/', SystemLogView.as_view()),
+    path('terminal/', SimulatedTerminalView.as_view()),
 ]

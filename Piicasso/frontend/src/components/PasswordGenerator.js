@@ -93,7 +93,7 @@ const PasswordGenerator = ({ onUsePassword }) => {
   const strength = getStrengthIndicator();
 
   return (
-    <div className="bg-[#141414] border border-zinc-800 rounded-lg p-6 space-y-6">
+    <div className="bg-dark-bg border border-zinc-800 rounded-lg p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -118,7 +118,7 @@ const PasswordGenerator = ({ onUsePassword }) => {
           type={showPassword ? "text" : "password"}
           value={password}
           readOnly
-          className="w-full bg-black/50 border border-zinc-700 rounded-lg py-4 px-4 pr-24 text-white font-mono text-lg focus:border-green-500 outline-none"
+          className="w-full bg-dark-surface border border-zinc-700 rounded-lg py-4 px-4 pr-24 text-white font-mono text-lg focus:border-green-500 outline-none"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
           <button

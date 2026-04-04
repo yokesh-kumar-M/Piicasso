@@ -12,6 +12,8 @@ const KaliTerminal = () => {
         isGod ? "SUPERUSER DETECTED. GOD MODE ENGAGED." : "Restricted Shell: Only 'hydra' tool is authorized.",
         "" // Spacer
     ]);
+    const [commandHistory, setCommandHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
     const [input, setInput] = useState('');
     const [isRunning, setIsRunning] = useState(false);
 
@@ -39,9 +41,10 @@ const KaliTerminal = () => {
         }
     }, []);
 
-    // Auto-scroll to bottom of terminal internally without affecting page scroll
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (bottomRef.current && bottomRef.current.parentNode) {
+            bottomRef.current.parentNode.scrollTop = bottomRef.current.parentNode.scrollHeight;
+        }
     }, [history]);
 
     // Focus input on click
@@ -55,8 +58,29 @@ const KaliTerminal = () => {
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
+            if (input.trim()) {
+                setCommandHistory(prev => [...prev, input.trim()]);
+                setHistoryIndex(-1);
+            }
             processCommand(input);
             setInput('');
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (commandHistory.length > 0) {
+                const newIndex = historyIndex < commandHistory.length - 1 ? historyIndex + 1 : historyIndex;
+                setHistoryIndex(newIndex);
+                setInput(commandHistory[commandHistory.length - 1 - newIndex]);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex > 0) {
+                const newIndex = historyIndex - 1;
+                setHistoryIndex(newIndex);
+                setInput(commandHistory[commandHistory.length - 1 - newIndex]);
+            } else if (historyIndex === 0) {
+                setHistoryIndex(-1);
+                setInput('');
+            }
         }
     };
 
@@ -106,11 +130,11 @@ const KaliTerminal = () => {
             {/* Header */}
             <div className="flex items-center justify-between border-b pb-2 mb-2 select-none border-zinc-900">
                 <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse"></div>
+                    <div className="w-3 h-3 rounded-full bg-neon-green animate-pulse"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-600"></div>
                     <div className="w-3 h-3 rounded-full bg-green-600"></div>
                 </div>
-                <div className={`flex items-center gap-2 font-bold ${isGod ? 'text-red-500' : 'text-gray-400'}`}>
+                <div className={`flex items-center gap-2 font-bold ${isGod ? 'text-neon-green' : 'text-gray-400'}`}>
                     {isGod ? <Skull className="w-4 h-4" /> : <Terminal className="w-4 h-4" />}
                     <span>{isGod ? 'GOD_MODE :: UNRESTRICTED' : 'root@kali: ~/piicasso'}</span>
                 </div>
@@ -118,15 +142,15 @@ const KaliTerminal = () => {
             </div>
 
             {/* Output */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 font-mono">
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 font-mono whitespace-pre-wrap">
                 {history.map((item, i) => {
                     // Handle legacy string format or new object format
                     const text = typeof item === 'string' ? item : item.text;
                     const type = typeof item === 'string' ? 'info' : item.type;
 
                     let colorClass = 'text-green-500';
-                    if (type === 'prompt') colorClass = isGod ? 'text-red-500 font-bold' : 'text-blue-500 font-bold';
-                    if (type === 'error') colorClass = 'text-red-500';
+                    if (type === 'prompt') colorClass = isGod ? 'text-neon-green font-bold' : 'text-blue-500 font-bold';
+                    if (type === 'error') colorClass = 'text-neon-green';
                     if (type === 'warning') colorClass = 'text-yellow-500';
                     if (type === 'dim') colorClass = 'text-gray-600';
                     if (type === 'info') colorClass = 'text-gray-300';
@@ -140,7 +164,12 @@ const KaliTerminal = () => {
                 })}
 
                 {/* Input Line */}
-                {!isRunning && (
+                {isRunning ? (
+                    <div className="flex items-center text-yellow-500 font-mono text-sm mt-2">
+                        <span>Executing...</span>
+                        <div className="ml-2 w-2 h-4 bg-yellow-500 animate-pulse"></div>
+                    </div>
+                ) : (
                     <div className="flex items-center">
                         <span className={`mr-2 font-bold ${isGod ? 'text-red-600' : 'text-blue-500'}`}>
                             {isGod ? 'GOD@KALI:~#' : 'root@kali:~/piicasso#'}
@@ -153,6 +182,7 @@ const KaliTerminal = () => {
                             onKeyDown={handleKeyDown}
                             className={`bg-transparent border-none outline-none flex-1 caret-white ${isGod ? 'text-red-100' : 'text-white'}`}
                             autoComplete="off"
+                            spellCheck="false"
                         />
                     </div>
                 )}

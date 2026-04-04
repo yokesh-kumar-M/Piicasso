@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     command: gunicorn --workers 4 --threads 4 --worker-class gthread --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --timeout 600 backend.wsgi:application
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health/" ]
@@ -14,6 +16,7 @@ services:
     volumes:
       - media_volume:/app/media
       - static_volume:/app/staticfiles
+      - app_logs:/app/logs
     environment:
       - POSTGRES_DB=${POSTGRES_DB:?Set POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER:?Set POSTGRES_USER}
@@ -26,6 +29,40 @@ services:
     depends_on:
       - db
       - redis
+    networks:
+      - backend
+
+  user_backend:
+    build: 
+      context: ../user_microservice
+      dockerfile: Dockerfile
+    command: gunicorn --workers 2 --bind 0.0.0.0:8001 user_backend.wsgi:application
+    ports:
+      - "8001:8001"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:?Set POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER:?Set POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-dev-insecure-secret-please-change}
+      - ENV=production
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - web
     networks:
       - backend
 
@@ -53,11 +90,59 @@ services:
     networks:
       - backend
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - backend
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - backend
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml
+      # Mount the volume where Django writes logs
+      - app_logs:/app/logs
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - backend
+
 volumes:
   postgres_data:
   redis_data:
   static_volume:
   media_volume:
+  app_logs:
+  prometheus_data:
+  grafana_data:
 
 networks:
   backend:

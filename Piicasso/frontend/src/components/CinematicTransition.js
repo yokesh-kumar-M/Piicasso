@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ModeContext } from '../context/ModeContext';
 
 const PAGE_LABELS = {
     '/': 'PIIcasso',
@@ -16,10 +17,13 @@ const PAGE_LABELS = {
     '/dashboard': 'History',
     '/result': 'Results',
     '/inbox': 'Inbox',
+    '/user/dashboard': 'User Dashboard',
+    '/security/dashboard': 'Security Dashboard',
 };
 
 const CinematicTransition = ({ children }) => {
     const location = useLocation();
+    const { mode } = useContext(ModeContext);
     const [displayLocation, setDisplayLocation] = useState(location);
     const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -29,16 +33,15 @@ const CinematicTransition = ({ children }) => {
 
             setTimeout(() => {
                 setDisplayLocation(location);
-            }, 250);
+            }, 10); // Instant path switch
 
             setTimeout(() => {
                 setIsTransitioning(false);
-            }, 900);
+            }, 50); // Almost invisible loader
         }
     }, [location.pathname, displayLocation.pathname, isTransitioning]);
 
     const label = PAGE_LABELS[location.pathname] || 'Loading';
-    const letters = label.split('');
 
     return (
         <div className="relative w-full h-full flex-1 flex flex-col">
@@ -49,7 +52,7 @@ const CinematicTransition = ({ children }) => {
             <AnimatePresence>
                 {isTransitioning && (
                     <motion.div
-                        className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center pointer-events-none"
+                        className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-md flex items-center justify-center pointer-events-none"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1, transition: { duration: 0.15 } }}
                         exit={{ opacity: 0, transition: { duration: 0.5, delay: 0.2, ease: 'easeIn' } }}
@@ -61,17 +64,17 @@ const CinematicTransition = ({ children }) => {
                             exit={{ opacity: 0, scale: 1.05, transition: { duration: 0.35 } }}
                         >
                             {/* Brand mark */}
-                            <span className="text-[10px] tracking-[0.4em] text-zinc-500 font-mono uppercase">PIIcasso</span>
+                            <span className="text-[10px] tracking-[0.4em] text-zinc-400 font-mono uppercase">PIIcasso</span>
 
                             {/* Page name — clean, no buzzwords */}
-                            <span className="text-white text-xl md:text-2xl font-bold tracking-wide">
+                            <span className={`text-xl md:text-2xl font-bold tracking-wide ${mode === 'user' ? 'text-white' : 'text-white font-display uppercase'}`}>
                                 {label}
                             </span>
 
                             {/* Loading bar */}
-                            <div className="w-32 h-[2px] bg-zinc-800 rounded-full overflow-hidden mt-1">
+                            <div className="w-32 h-[2px] bg-white/10 rounded-full overflow-hidden mt-1">
                                 <motion.div
-                                    className="h-full bg-red-600"
+                                    className={`h-full ${mode === 'user' ? 'bg-user-cobalt' : 'bg-security-red'}`}
                                     initial={{ width: '0%' }}
                                     animate={{ width: '100%', transition: { duration: 0.7, ease: 'easeInOut' } }}
                                 />

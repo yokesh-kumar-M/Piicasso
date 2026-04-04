@@ -2,138 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
-:root {
-  --netflix-red: #E50914;
-  --bg-black: #141414;
-  --bg-dark: #000000;
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --border: 240 3.7% 15.9%;
+    --radius: 0.5rem;
+  }
 }
 
-body {
-  background-color: var(--bg-black);
-  color: #fff;
-  font-family: 'Rajdhani', sans-serif;
-  overflow-x: hidden;
-}
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+  
+  /* The global body switches dynamically via ModeManager context but defaults to Tactical Dark */
+  body {
+    @apply font-sans antialiased overflow-x-hidden transition-colors duration-700 bg-security-bg text-security-text;
+  }
+  
+  /* --- Security Mode (Tactical Dark/Red) --- */
+  .theme-security {
+    @apply bg-security-bg text-security-text font-sans min-h-screen selection:bg-security-red/30 selection:text-white;
+  }
+  
+  /* --- User Mode (Midnight Cobalt Glass) --- */
+  .theme-user {
+    @apply bg-cobalt-gradient text-user-text font-sans min-h-screen selection:bg-user-cobalt/30 selection:text-white;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Orbitron', sans-serif;
-  letter-spacing: 1px;
-}
+  h1, h2, h3, h4, h5, h6 {
+    /* Base headings */
+    @apply tracking-tight font-semibold;
+  }
+  
+  .theme-security h1, .theme-security h2, .theme-security h3 {
+    @apply font-display uppercase tracking-wide; /* Oswald / Tactical */
+  }
 
-.font-logo {
-  font-family: 'Montserrat', sans-serif;
-}
-
-.font-tech {
-  font-family: 'Rajdhani', sans-serif;
-}
-
-.font-terminal {
-  font-family: 'Share Tech Mono', monospace;
-}
-
-/* Custom Scrollbar (Netflix Style) */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1f1f1f;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--netflix-red);
-}
-
-/* Mobile: Disable custom scrollbar (too thin to grab on touch) */
-@media (max-width: 768px) {
+  /* Custom Scrollbar */
   ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .theme-security ::-webkit-scrollbar-thumb:hover {
+    background: #E11D48; /* Tactical Red */
+  }
+  .theme-user ::-webkit-scrollbar-thumb:hover {
+    background: #3B82F6; /* Cobalt Blue */
   }
 }
 
-/* Ensure tap targets are large enough on mobile */
-@media (max-width: 640px) {
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  /* Exclude tiny inline elements */
-  span > button, .inline-btn {
-    min-height: unset;
-    min-width: unset;
-  }
+/* Global utility classes for themes */
+
+/* --- Security Mode Utilities (Tactical Dark/Red) --- */
+.security-card {
+  @apply bg-security-surface border border-security-border rounded-xl shadow-xl transition-all duration-300 hover:border-white/10;
+}
+.security-btn-primary {
+  @apply bg-security-red text-white hover:bg-security-red-hover font-bold transition-all shadow-[0_0_15px_rgba(225,29,72,0.3)] hover:shadow-[0_0_25px_rgba(225,29,72,0.5)] active:scale-95;
+}
+.security-heading {
+  @apply font-display text-4xl uppercase tracking-widest text-white;
 }
 
-/* Prevent iOS zoom on input focus */
-@media (max-width: 768px) {
-  input, select, textarea {
-    font-size: 16px !important;
-  }
+/* --- User Mode Utilities (Midnight Cobalt Glass) --- */
+.user-glass-panel {
+  @apply bg-white/[0.02] backdrop-blur-xl border border-user-border rounded-2xl shadow-xl transition-all duration-300 hover:bg-white/[0.03];
+}
+.user-btn-primary {
+  @apply bg-user-cobalt text-white hover:bg-user-cobalt-hover font-semibold transition-all shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95;
+}
+.user-heading {
+  @apply font-sans font-bold tracking-tight text-white;
 }
 
-/* Safe area insets for notched devices */
-@supports (padding: env(safe-area-inset-bottom)) {
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+/* Hide default tailwind utilities we replaced */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
-
-/* Utilities */
-.text-shadow {
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-}
-
-.netflix-gradient {
-  background: linear-gradient(to top,
-      rgba(20, 20, 20, 1) 0%,
-      rgba(20, 20, 20, 0.8) 40%,
-      rgba(20, 20, 20, 0) 100%);
-}
-
-.netflix-input {
-  @apply bg-black/60 border border-gray-600 text-white px-4 py-3 w-full rounded focus:border-white outline-none transition-colors duration-200;
-}
-
-.netflix-btn-primary {
-  @apply bg-[#E50914] text-white px-6 py-2 rounded font-bold hover:bg-[#b20710] transition-colors duration-200 text-lg flex items-center justify-center gap-2;
-}
-
-.netflix-btn-secondary {
-  @apply bg-gray-500/40 text-white px-6 py-2 rounded font-bold hover:bg-gray-500/60 transition-colors duration-200 text-lg flex items-center justify-center gap-2 backdrop-blur-sm;
-}
-
-/* Tactical Animations */
-@keyframes scan {
-  from {
-    top: -100%;
-  }
-
-  to {
-    top: 200%;
-  }
-}
-
-.animate-scan-slow {
-  animation: scan 4s linear infinite;
-}
-
-@layer utilities {
-  .text-netflix-red {
-    color: var(--netflix-red);
-  }
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }

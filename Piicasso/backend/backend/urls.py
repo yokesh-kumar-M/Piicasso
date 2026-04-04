@@ -42,6 +42,9 @@ urlpatterns = [
     path('api/operations/', include('operations.urls')),
     path('api/password/', include('password_security.urls')),
     path('api/', include('wordgen.urls')),
+
+    # Observability
+    path('', include('django_prometheus.urls')),
 ]
 
 if settings.DEBUG:

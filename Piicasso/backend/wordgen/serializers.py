@@ -13,6 +13,13 @@ class Piiserializer(serializers.Serializer):
     compatibility with any existing stored data or API consumers.
     """
 
+    # ─── GENERATION CONFIG (New for AI Pattern Modes) ───────────────────────
+    pattern_mode = serializers.ChoiceField(
+        choices=['standard', 'corporate', 'leetspeak', 'deep'], 
+        required=False, 
+        default='standard'
+    )
+
     # ─── IDENTITY CORE (frontend: identity category) ─────────────────────────
     full_name = serializers.CharField(required=False, allow_blank=True, default='')
     # Frontend sends birth_year; legacy: dob

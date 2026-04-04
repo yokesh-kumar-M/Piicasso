@@ -22,8 +22,8 @@ class MessageViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
-            return Message.objects.all()
-        return Message.objects.filter(
+            return Message.objects.select_related('sender', 'recipient').all()
+        return Message.objects.select_related('sender', 'recipient').filter(
             Q(sender=user, recipient__is_superuser=True) | 
             Q(recipient=user, sender__is_superuser=True)
         )

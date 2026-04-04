@@ -1,262 +1,178 @@
-import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
-import Navbar from '../components/Navbar';
-import TargetForm from '../components/TargetForm';
-import RiskRadar from '../components/RiskRadar';
-import SystemLogs from '../components/SystemLogs';
-import { Activity, Wifi, Terminal } from 'lucide-react';
-
-const GlobalMap = lazy(() => import('../components/GlobalMap'));
+import React, { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Shield, Terminal, ArrowRight, Lock, Key } from 'lucide-react';
+import { ModeContext } from '../context/ModeContext';
+import Logo from '../components/Logo';
 
 const HomePage = () => {
-  const [metrics, setMetrics] = useState({
-    identity: 0, family: 0, work: 0, location: 0, interests: 0, assets: 0
-  });
+    const { switchMode } = useContext(ModeContext);
+    const navigate = useNavigate();
+    const [hoveredSide, setHoveredSide] = useState(null); // 'user' or 'security'
 
-  const handleFormUpdate = useCallback((data) => {
-    const countFilled = (keys) => {
-      const count = keys.filter(k => data[k] && data[k].length > 1).length;
-      return Math.min(count * 3, 10);
+    const handleSelectMode = (selectedMode) => {
+        switchMode(selectedMode);
+        // After tearing animation starts, navigate
+        setTimeout(() => {
+            navigate(selectedMode === 'security' ? '/security/dashboard' : '/user/dashboard');
+        }, 600);
     };
 
-    setMetrics({
-      identity: countFilled(['full_name', 'dob', 'phone_digits', 'username', 'email', 'ssn_last4', 'blood_type', 'height']),
-      family: countFilled(['spouse_name', 'child_names', 'pet_names', 'mother_maiden', 'father_name', 'sibling_names', 'best_friend']),
-      work: countFilled(['company', 'job_title', 'university', 'department', 'employee_id', 'boss_name', 'past_company', 'degree']),
-      location: countFilled(['current_city', 'hometown', 'street_name', 'zip_code', 'state', 'country', 'vacation_spot']),
-      interests: countFilled(['sports_team', 'musician', 'movies', 'hobbies', 'books', 'games', 'food']),
-      assets: countFilled(['car_model', 'brand_affinity', 'license_plate', 'bank_name', 'device_type', 'crypto_wallet', 'subscription'])
-    });
-  }, []);
-
-  const filledCategoriesCount = useMemo(() => Object.values(metrics).filter(v => v > 0).length, [metrics]);
-  const totalCompletenessScore = useMemo(() => Math.round((Object.values(metrics).reduce((a, b) => a + b, 0) / 60) * 100) || 0, [metrics]);
-
-
-  return (
-    <div className="bg-[#0a0a0a] text-white font-body min-h-screen flex flex-col">
-      <Navbar />
-
-      {/* Spacer for fixed navbar */}
-      <div className="pt-16 shrink-0" />
-
-      {/* 1. TOP BAR: Status Monitor */}
-      <div className="px-4 md:px-6 py-2 border-b border-zinc-900 bg-[#141414] flex flex-wrap gap-3 md:gap-6 items-center justify-between text-xs font-mono text-gray-500 uppercase tracking-widest shrink-0">
-        <div className="flex items-center gap-3 md:gap-4 text-[10px] font-mono tracking-widest text-gray-500 min-w-0">
-          <div className="flex items-center gap-2 text-green-500 shrink-0">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="hidden sm:inline">USER DASHBOARD V4</span>
-            <span className="sm:hidden">DASH V4</span>
-          </div>
-          <span className="text-zinc-700 hidden sm:block">|</span>
-          <div className="hidden sm:block">CONNECTION: <span className="text-gray-300">SECURE</span></div>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <span className="text-netflix-red font-bold hidden sm:block">STATUS: READY</span>
-        </div>
-      </div>
-
-      {/* 2. MAIN CONTENT — on mobile: stacked vertically, on desktop: 3-column grid */}
-      <div className="flex-1 bg-black p-2">
-
-        {/* MOBILE LAYOUT: Sequential stacked sections (visible < lg) */}
-        <div className="lg:hidden flex flex-col gap-2">
-
-          {/* DATA INPUT — FIRST on mobile so user sees the form immediately */}
-          <div className="bg-[#141414] border border-zinc-900 rounded-sm min-h-[600px]">
-            <div className="bg-zinc-900/30 p-2 border-b border-zinc-800 flex justify-between items-center">
-              <h2 className="text-lg font-heading tracking-wide text-white"><span className="text-netflix-red">DATA INPUT</span> CONSOLE</h2>
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500"></div>
-              </div>
-            </div>
-            <TargetForm onFormUpdate={handleFormUpdate} />
-          </div>
-
-          {/* DASHBOARD METRICS — Collapsible on mobile */}
-          <div className="bg-[#141414] border border-zinc-900 rounded-sm p-4">
-            <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
-              <div className="flex flex-col">
-                <h3 className="text-[10px] font-mono text-zinc-500 tracking-[0.2em] uppercase">Dashboard Metrics</h3>
-                <h2 className="text-sm font-bold text-white tracking-widest uppercase">Completion Profile</h2>
-              </div>
-              <div className="text-[10px] font-mono bg-red-950/30 text-red-500 px-2 py-0.5 border border-red-500/20 rounded-sm">
-                LVL_0{Math.floor(Object.values(metrics).reduce((a, b) => a + b, 0) / 10) + 1}
-              </div>
+    return (
+        <div className="relative w-full h-screen overflow-hidden bg-black font-sans text-white flex flex-col md:flex-row">
+            
+            {/* Fixed Logo at Top Center */}
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+                <Logo className="text-4xl md:text-5xl drop-shadow-2xl" />
             </div>
 
-            {/* Radar — Fixed height on mobile */}
-            <div className="h-[280px] relative flex items-center justify-center bg-zinc-950/20 rounded-lg border border-white/5">
-              <RiskRadar inputData={metrics} />
-            </div>
+            {/* Left Side: USER MODE (Midnight Cobalt Glass) */}
+            <motion.div 
+                className="relative w-full md:w-1/2 h-1/2 md:h-full cursor-pointer flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-user-border overflow-hidden"
+                onHoverStart={() => setHoveredSide('user')}
+                onHoverEnd={() => setHoveredSide(null)}
+                onClick={() => handleSelectMode('user')}
+                animate={{ 
+                    width: hoveredSide === 'user' ? '55%' : hoveredSide === 'security' ? '45%' : '50%',
+                    height: hoveredSide === 'user' && window.innerWidth < 768 ? '55%' : hoveredSide === 'security' && window.innerWidth < 768 ? '45%' : '100%'
+                }}
+                transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            >
+                {/* Background with Cobalt Glass effects */}
+                <div className="absolute inset-0 bg-cobalt-gradient z-0" />
+                
+                {/* Glowing Orbs */}
+                <motion.div 
+                    className="absolute top-1/4 left-1/4 w-64 h-64 bg-user-cobalt/20 rounded-full blur-[100px] pointer-events-none"
+                    animate={{ scale: hoveredSide === 'user' ? 1.5 : 1, opacity: hoveredSide === 'user' ? 0.4 : 0.2 }}
+                    transition={{ duration: 0.5 }}
+                />
 
-            {/* Stats below radar */}
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="bg-zinc-900/40 p-3 rounded-sm border border-zinc-800/50">
-                <div className="text-[9px] font-mono text-zinc-500 uppercase">Input Completeness</div>
-                <div className={`text-xl font-mono font-bold ${totalCompletenessScore > 10 ? 'text-red-500' : 'text-zinc-300'}`}>
-                  {totalCompletenessScore}%
-                </div>
-              </div>
-              <div className="bg-zinc-900/40 p-3 rounded-sm border border-zinc-800/50">
-                <div className="text-[9px] font-mono text-zinc-500 uppercase">Data Confidence</div>
-                <div className="text-xl font-mono font-bold text-zinc-300">
-                  {filledCategoriesCount}/6
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* GLOBE */}
-          <div className="bg-[#141414] border border-zinc-900 rounded-sm overflow-hidden">
-            <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 flex items-center gap-2 bg-[#141414]">
-              <Wifi className="w-3 h-3" /> GLOBAL ACTIVITY MAP
-            </div>
-            <div className="h-[280px] bg-black overflow-hidden relative">
-              <Suspense fallback={<div className="text-xs text-gray-600 animate-pulse p-4">LOADING MAP...</div>}>
-                <GlobalMap />
-              </Suspense>
-            </div>
-          </div>
-
-          {/* ACTIVITY FEED */}
-          <div className="bg-[#141414] border border-zinc-900 rounded-sm overflow-hidden">
-            <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 flex items-center gap-2">
-              <Terminal className="w-3 h-3" /> RECENT ACTIVITY
-            </div>
-            <div className="h-[250px] p-2 bg-black/40 overflow-hidden">
-              <SystemLogs />
-            </div>
-          </div>
-        </div>
-
-        {/* DESKTOP LAYOUT: 3-column grid (visible >= lg) */}
-        <div className="hidden lg:grid lg:grid-cols-12 gap-2 h-[calc(100vh-120px)]">
-
-          {/* LEFT COLUMN: Dashboard Metrics */}
-          <div className="col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col p-4 relative group overflow-y-auto custom-scrollbar">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 transition-opacity">
-              <Activity className="w-5 h-5 text-red-500 animate-pulse" />
-            </div>
-
-            <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
-              <div className="flex flex-col">
-                <h3 className="text-[10px] font-mono text-zinc-500 tracking-[0.2em] uppercase">Dashboard Metrics</h3>
-                <h2 className="text-sm font-bold text-white tracking-widest uppercase">Completion Profile</h2>
-              </div>
-              <div className="text-[10px] font-mono bg-red-950/30 text-red-500 px-2 py-0.5 border border-red-500/20 rounded-sm">
-                LVL_0{Math.floor(Object.values(metrics).reduce((a, b) => a + b, 0) / 10) + 1}
-              </div>
-            </div>
-
-            {/* Radar Chart — fixed max height */}
-            <div className="h-[280px] shrink-0 relative flex items-center justify-center bg-zinc-950/20 rounded-lg border border-white/5 shadow-inner">
-              <RiskRadar inputData={metrics} />
-              <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
-                <div className="w-full h-1/2 bg-gradient-to-b from-red-500/10 to-transparent top-0 absolute animate-scan-slow" />
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="mt-5 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-zinc-900/40 p-3 rounded-sm border border-zinc-800/50 hover:border-zinc-700 transition-colors">
-                  <div className="text-[9px] font-mono text-zinc-500 uppercase">Input Completeness</div>
-                  <div className={`text-xl font-mono font-bold ${totalCompletenessScore > 10 ? 'text-red-500' : 'text-zinc-300'}`}>
-                    {totalCompletenessScore}%
-                  </div>
-                  <div className="w-full bg-zinc-800 h-[1px] mt-2">
-                    <div
-                      className="bg-red-600 h-full transition-all duration-1000"
-                      style={{ width: `${totalCompletenessScore}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="bg-zinc-900/40 p-3 rounded-sm border border-zinc-800/50 hover:border-zinc-700 transition-colors">
-                  <div className="text-[9px] font-mono text-zinc-500 uppercase">Data Confidence</div>
-                  <div className="text-xl font-mono font-bold text-zinc-300">
-                    {filledCategoriesCount}/6
-                  </div>
-                  <div className="flex gap-1 mt-2">
-                    {[1, 2, 3, 4, 5, 6].map(i => (
-                      <div key={i} className={`h-1 flex-1 rounded-full ${i <= filledCategoriesCount ? 'bg-zinc-400' : 'bg-zinc-800'}`} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-black/40 p-2 rounded-sm border border-dashed border-zinc-800">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[8px] font-mono text-zinc-600">CONNECTION_SECURITY</span>
-                  <span className="text-[8px] font-mono text-green-500">SECURE</span>
-                </div>
-                <div className="text-[10px] font-mono text-zinc-500 overflow-hidden whitespace-nowrap opacity-50">
-                  0x{Math.random().toString(16).substr(2, 24).toUpperCase()}...
-                </div>
-              </div>
-
-              {/* Category Breakdown */}
-              <div className="pt-4 border-t border-zinc-900 mt-4">
-                <div className="text-[8px] font-mono text-zinc-500 mb-2 uppercase flex items-center gap-2">
-                  <div className="w-1 h-1 bg-red-500 rounded-full" /> CATEGORY_BREAKDOWN
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(metrics).map(([key, val]) => (
-                    <div key={key} className="flex items-center gap-2">
-                      <div className={`w-1 h-1 rounded-full ${val > 5 ? 'bg-red-500 animate-pulse' : 'bg-zinc-800'}`} />
-                      <div className="flex-1 flex justify-between items-center text-[9px] font-mono leading-none">
-                        <span className={`${val > 0 ? 'text-zinc-400' : 'text-zinc-700'} uppercase tracking-tighter`}>{key}</span>
-                        <span className={`${val > 5 ? 'text-red-500' : val > 0 ? 'text-zinc-500' : 'text-zinc-800'}`}>
-                          {val > 7 ? 'EXCELLENT' : val > 4 ? 'GOOD' : val > 0 ? 'FAIR' : 'EMPTY'}
-                        </span>
-                      </div>
+                <div className="relative z-10 flex flex-col items-center text-center px-8">
+                    <motion.div 
+                        className="w-24 h-24 rounded-3xl bg-user-cobalt/10 border border-user-cobalt/30 flex items-center justify-center mb-8 backdrop-blur-xl shadow-[0_0_30px_rgba(59,130,246,0.2)]"
+                        animate={{ y: hoveredSide === 'user' ? -10 : 0, boxShadow: hoveredSide === 'user' ? '0 0 50px rgba(59,130,246,0.4)' : '0 0 30px rgba(59,130,246,0.2)' }}
+                    >
+                        <Shield className="w-12 h-12 text-user-cobalt" />
+                    </motion.div>
+                    <h2 className="user-heading text-4xl md:text-5xl mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">
+                        User Mode
+                    </h2>
+                    <div className="text-user-text-muted max-w-sm text-sm md:text-base leading-relaxed mb-10 font-medium">
+                        <motion.ul className="space-y-2 text-left inline-block"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: hoveredSide === 'user' ? 1 : 0.7 }}
+                        >
+                            <li className="flex items-center gap-2"><Lock className="w-4 h-4 text-user-cobalt" /> Check password health</li>
+                            <li className="flex items-center gap-2"><Shield className="w-4 h-4 text-user-cobalt" /> Monitor breaches</li>
+                            <li className="flex items-center gap-2"><Key className="w-4 h-4 text-user-cobalt" /> Improve personal security</li>
+                        </motion.ul>
                     </div>
-                  ))}
+                    
+                    <motion.button 
+                        className="flex items-center gap-3 user-btn-primary px-6 py-3 rounded-full font-bold uppercase tracking-widest text-sm"
+                        animate={{ scale: hoveredSide === 'user' ? 1.05 : 1 }}
+                    >
+                        Enter User Mode <ArrowRight className="w-5 h-5" />
+                    </motion.button>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* CENTER COLUMN: Data Input */}
-          <div className="col-span-6 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col overflow-hidden">
-            <div className="bg-zinc-900/30 p-2 border-b border-zinc-800 flex justify-between items-center shrink-0">
-              <h2 className="text-lg font-heading tracking-wide text-white"><span className="text-netflix-red">DATA INPUT</span> CONSOLE</h2>
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500"></div>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <TargetForm onFormUpdate={handleFormUpdate} />
-            </div>
-          </div>
+                {/* Status Graphic */}
+                <motion.div 
+                    className="absolute bottom-10 left-10 md:left-auto md:right-10 right-10 flex items-center gap-4 bg-white/5 backdrop-blur-md border border-user-border px-5 py-3 rounded-xl z-10"
+                    animate={{ opacity: hoveredSide === 'user' ? 1 : 0.5, y: hoveredSide === 'user' ? -5 : 0 }}
+                >
+                    <div className="flex -space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-user-cobalt/20 border border-user-cobalt/50 flex items-center justify-center"><Key className="w-4 h-4 text-user-cobalt" /></div>
+                        <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-400/50 flex items-center justify-center"><Lock className="w-4 h-4 text-green-400" /></div>
+                    </div>
+                    <div className="text-left">
+                        <div className="text-[10px] text-blue-300 uppercase tracking-wider font-bold">System Status</div>
+                        <div className="text-xs font-mono text-white">Protected</div>
+                    </div>
+                </motion.div>
+            </motion.div>
 
-          {/* RIGHT COLUMN: Globe + Activity */}
-          <div className="col-span-3 bg-[#141414] border border-zinc-900 rounded-sm flex flex-col overflow-hidden">
-            <div className="h-1/2 flex flex-col bg-zinc-900/10 border-b border-zinc-900">
-              <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2 bg-[#141414]">
-                <Wifi className="w-3 h-3" /> GLOBAL ACTIVITY MAP
-              </div>
-              <div className="flex-1 bg-black overflow-hidden relative">
-                <Suspense fallback={<div className="text-xs text-gray-600 animate-pulse p-4">LOADING MAP...</div>}>
-                  <GlobalMap />
-                </Suspense>
-              </div>
-            </div>
-            <div className="h-1/2 flex flex-col">
-              <div className="text-xs font-bold text-gray-400 p-2 border-b border-zinc-900 shrink-0 flex items-center gap-2">
-                <Terminal className="w-3 h-3" /> RECENT ACTIVITY
-              </div>
-              <div className="flex-1 p-2 bg-black/40 overflow-hidden">
-                <SystemLogs />
-              </div>
-            </div>
-          </div>
+            {/* Right Side: SECURITY MODE (Tactical Dark/Red) */}
+            <motion.div 
+                className="relative w-full md:w-1/2 h-1/2 md:h-full cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
+                onHoverStart={() => setHoveredSide('security')}
+                onHoverEnd={() => setHoveredSide(null)}
+                onClick={() => handleSelectMode('security')}
+                animate={{ 
+                    width: hoveredSide === 'security' ? '55%' : hoveredSide === 'user' ? '45%' : '50%',
+                    height: hoveredSide === 'security' && window.innerWidth < 768 ? '55%' : hoveredSide === 'user' && window.innerWidth < 768 ? '45%' : '100%'
+                }}
+                transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            >
+                {/* Background with Tactical Red/Black effects */}
+                <div className="absolute inset-0 bg-tactical-gradient z-0" />
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 z-0"></div>
+                
+                {/* Glowing Orbs */}
+                <motion.div 
+                    className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-security-red/10 rounded-full blur-[120px] pointer-events-none"
+                    animate={{ scale: hoveredSide === 'security' ? 1.5 : 1, opacity: hoveredSide === 'security' ? 0.4 : 0.1 }}
+                    transition={{ duration: 0.5 }}
+                />
 
+                <div className="relative z-10 flex flex-col items-center text-center px-8">
+                    <motion.div 
+                        className="w-24 h-24 bg-security-surface border border-security-red/30 flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(225,29,72,0.15)] transform rotate-45 group-hover:rotate-90 transition-transform duration-700"
+                        animate={{ boxShadow: hoveredSide === 'security' ? '0 0 50px rgba(225,29,72,0.3)' : '0 0 30px rgba(225,29,72,0.15)' }}
+                    >
+                        <div className="-rotate-45 group-hover:-rotate-90 transition-transform duration-700">
+                            <Terminal className="w-10 h-10 text-security-red" />
+                        </div>
+                    </motion.div>
+                    <h2 className="security-heading text-4xl md:text-5xl mb-4 text-white drop-shadow-[0_2px_10px_rgba(225,29,72,0.3)]">
+                        Security Mode
+                    </h2>
+                    <div className="text-security-text-muted max-w-sm text-sm md:text-base leading-relaxed mb-10 font-mono">
+                        <motion.ul className="space-y-2 text-left inline-block"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: hoveredSide === 'security' ? 1 : 0.7 }}
+                        >
+                            <li className="flex items-center gap-2"><span className="text-security-red">›</span> Generate intelligence</li>
+                            <li className="flex items-center gap-2"><span className="text-security-red">›</span> Run operations</li>
+                            <li className="flex items-center gap-2"><span className="text-security-red">›</span> Analyze targets</li>
+                        </motion.ul>
+                    </div>
+                    
+                    <motion.button 
+                        className="flex items-center gap-3 security-btn-primary px-6 py-3 font-bold uppercase tracking-widest text-sm rounded-none border border-security-red/50"
+                        animate={{ scale: hoveredSide === 'security' ? 1.05 : 1 }}
+                    >
+                        Enter Security Mode <ArrowRight className="w-5 h-5" />
+                    </motion.button>
+                </div>
+
+                {/* Attack Vector Graphic */}
+                <motion.div 
+                    className="absolute bottom-10 right-10 md:right-auto md:left-10 left-10 bg-security-surface border border-security-red/30 px-5 py-3 z-10 font-mono text-[10px] md:text-xs text-security-red flex flex-col gap-1 shadow-[0_0_15px_rgba(225,29,72,0.2)]"
+                    animate={{ opacity: hoveredSide === 'security' ? 1 : 0.5, y: hoveredSide === 'security' ? -5 : 0 }}
+                >
+                    <div className="flex justify-between w-40 md:w-48">
+                        <span>SYS_STATUS:</span>
+                        <span className="text-white">ONLINE</span>
+                    </div>
+                    <div className="flex justify-between w-40 md:w-48">
+                        <span>UPLINK:</span>
+                        <span className="text-white">SECURE</span>
+                    </div>
+                    <div className="w-full h-1 bg-red-900/50 mt-1 overflow-hidden">
+                        <motion.div 
+                            className="h-full bg-security-red" 
+                            initial={{ width: "0%" }}
+                            animate={{ width: "100%" }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                        />
+                    </div>
+                </motion.div>
+            </motion.div>
+            
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default HomePage;

@@ -36,7 +36,7 @@ const NetworkStatus = () => {
       className={`fixed top-0 left-0 right-0 z-[9999] px-4 py-2 text-center text-sm font-medium transition-all duration-300 ${
         isOnline
           ? 'bg-green-600 text-white'
-          : 'bg-red-600 text-white'
+          : 'bg-neon-green text-white'
       }`}
     >
       <div className="flex items-center justify-center gap-2">

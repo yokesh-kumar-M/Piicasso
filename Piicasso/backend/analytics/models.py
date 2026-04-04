@@ -1,5 +1,4 @@
 from django.db import models
-import random
 
 class UserActivity(models.Model):
     ACTIVITY_TYPES = [

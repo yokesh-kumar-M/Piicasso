@@ -11,21 +11,24 @@ import { AuthContext } from './context/AuthContext';
 import { ModeProvider, ModeContext } from './context/ModeContext';
 import ModeSelectionModal from './components/ModeSelectionModal';
 import ModeManager from './components/ModeManager';
+import ModeTearTransition from './components/ModeTearTransition';
+
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // ── Yokesh's Iconic Touch: The HELP Beacon ──
 const useHelpBeacon = () => {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, user } = useContext(AuthContext);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?.is_superuser) return;
 
     const sendBeacon = () => {
       axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => { });
     };
     sendBeacon();
-    const interval = setInterval(sendBeacon, 10000);
+    const interval = setInterval(sendBeacon, 30000);
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 };
 
 const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
@@ -43,28 +46,32 @@ const SuperAdminPage = React.lazy(() => import('./pages/SuperAdminPage'));
 const InboxPage = React.lazy(() => import('./pages/InboxPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 const UserModeLayout = React.lazy(() => import('./pages/UserModeLayout'));
+const UserDashboardPage = React.lazy(() => import('./pages/UserDashboardPage'));
+const SecurityDashboardPage = React.lazy(() => import('./pages/SecurityDashboardPage'));
 const PasswordCheckerPage = React.lazy(() => import('./pages/PasswordCheckerPage'));
 const AnalysisHistoryPage = React.lazy(() => import('./pages/AnalysisHistoryPage'));
+const FinancialRiskPage = React.lazy(() => import('./pages/FinancialRiskPage'));
 
 function AppContent() {
   useHelpBeacon();
+  const { mode } = useContext(ModeContext);
 
-  const SuperuserRoute = ({ children }) => {
-    const { user, loading } = useContext(AuthContext);
-    if (loading) return null;
-    if (!user?.is_superuser) return <Navigate to="/" replace />;
-    return children;
-  };
+  // Apply theme class to body globally
+  useEffect(() => {
+    document.body.className = mode === 'user' ? 'theme-user' : 'theme-security';
+  }, [mode]);
 
   return (
     <>
+      <ModeTearTransition />
       <ModeSelectionModal />
       <ModeManager />
-      <div className="bg-black min-h-screen flex flex-col w-full overflow-x-hidden">
+      {/* App shell uses transparent bg since body handles the gradient/colors */}
+      <div className="min-h-screen flex flex-col w-full overflow-x-hidden transition-colors duration-300 bg-transparent">
         <CinematicTransition>
           {(locationToRender) => (
-            <div className="flex-1 flex flex-col relative w-full">
-              <Suspense fallback={<div className="flex-1 bg-black w-full" />}>
+            <div className="flex-1 flex flex-col w-full relative">
+              <Suspense fallback={<div className="flex-1 w-full bg-transparent" />}>
                 <Routes location={locationToRender} key={locationToRender.pathname}>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/login" element={<LoginPage />} />
@@ -76,10 +83,15 @@ function AppContent() {
                       <UserModeLayout />
                     </PrivateRoute>
                   }>
-                    <Route path="dashboard" element={<PasswordCheckerPage />} />
+                    <Route path="dashboard" element={<UserDashboardPage />} />
                     <Route path="history" element={<AnalysisHistoryPage />} />
                   </Route>
 
+                  <Route path="/security/dashboard" element={
+                    <PrivateRoute>
+                      <SecurityDashboardPage />
+                    </PrivateRoute>
+                  } />
                   <Route path="/operation" element={
                     <PrivateRoute>
                       <NewOperationPage />
@@ -120,6 +132,11 @@ function AppContent() {
                       <DashboardPage />
                     </PrivateRoute>
                   } />
+                  <Route path="/risk" element={
+                    <PrivateRoute>
+                      <FinancialRiskPage />
+                    </PrivateRoute>
+                  } />
 
                   <Route element={<Layout />}>
                     <Route path="/result" element={
@@ -135,7 +152,7 @@ function AppContent() {
             </div>
           )}
         </CinematicTransition>
-        <div className="shrink-0 w-full bg-black">
+        <div className="shrink-0 w-full">
           <Footer />
         </div>
       </div>
@@ -145,13 +162,15 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <ModeProvider>
-        <NetworkStatus />
-        <ScrollToTop />
-        <AppContent />
-      </ModeProvider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ''}>
+      <BrowserRouter>
+        <ModeProvider>
+          <NetworkStatus />
+          <ScrollToTop />
+          <AppContent />
+        </ModeProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 

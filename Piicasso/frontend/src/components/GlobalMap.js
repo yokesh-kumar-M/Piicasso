@@ -98,7 +98,7 @@ const GlobalMap = () => {
 
         fetchInitial().then(() => {
             if (!destroyed) {
-                intervalId = setInterval(fetchIncremental, 1500);
+                intervalId = setInterval(fetchIncremental, 30000);
             }
         });
 

@@ -3,7 +3,6 @@ import re
 import os
 import json
 import logging
-from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -11,9 +10,11 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from wordgen.throttles import BreachSearchRateThrottle
 
 logger = logging.getLogger('password_security')
 
@@ -276,6 +277,10 @@ class PasswordAnalyzeView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     
+    def get_throttles(self):
+        from wordgen.throttles import PIISubmitRateThrottle
+        return [PIISubmitRateThrottle()]
+    
     def get_client_ip(self, request):
         xff = request.META.get('HTTP_X_FORWARDED_FOR')
         if xff:
@@ -417,6 +422,7 @@ class UserPreferencesView(APIView):
 @api_view(['POST'])
 @authentication_classes([])
 @permission_classes([AllowAny])
+@throttle_classes([BreachSearchRateThrottle])
 def check_password_breach(request):
     password = request.data.get('password', '')
     
@@ -436,3 +442,71 @@ def check_password_breach(request):
             'count': None,
             'message': 'Breach check unavailable'
         }, status=status.HTTP_200_OK)
+
+
+class UserActivityFeedView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from .models import PasswordAuditLog, PasswordAnalysis
+        
+        activities = []
+        
+        audit_logs = PasswordAuditLog.objects.filter(
+            user=request.user
+        ).order_by('-timestamp')[:20]
+        
+        for log in audit_logs:
+            action_labels = {
+                'analyze': 'Password Analysis',
+                'breach_check': 'Breach Check',
+                'view_history': 'Viewed History',
+                'export': 'Exported Data',
+            }
+            
+            icon_map = {
+                'analyze': 'shield',
+                'breach_check': 'search',
+                'view_history': 'history',
+                'export': 'download',
+            }
+            
+            status_map = {
+                'analyze': 'success' if log.details.get('strength_score', 0) >= 50 else 'warning',
+                'breach_check': 'danger' if log.details.get('breach_count', 0) > 0 else 'success',
+                'view_history': 'info',
+                'export': 'info',
+            }
+            
+            activities.append({
+                'id': log.id,
+                'type': icon_map.get(log.action, 'activity'),
+                'message': f"{action_labels.get(log.action, log.action)} completed",
+                'details': log.details,
+                'time': log.timestamp.isoformat(),
+                'status': status_map.get(log.action, 'info'),
+            })
+        
+        recent_analyses = PasswordAnalysis.objects.filter(
+            user=request.user
+        ).order_by('-created_at')[:5]
+        
+        for analysis in recent_analyses:
+            breach_status = 'danger' if analysis.breach_count > 0 else 'success'
+            activities.append({
+                'id': f'analysis-{analysis.id}',
+                'type': 'scan',
+                'message': f"Security scan: {analysis.vulnerability_level.upper()} vulnerability",
+                'details': {
+                    'strength_score': analysis.strength_score,
+                    'breach_count': analysis.breach_count,
+                },
+                'time': analysis.created_at.isoformat(),
+                'status': breach_status,
+            })
+        
+        activities.sort(key=lambda x: x['time'], reverse=True)
+        activities = activities[:15]
+        
+        return Response({'activities': activities}, status=status.HTTP_200_OK)

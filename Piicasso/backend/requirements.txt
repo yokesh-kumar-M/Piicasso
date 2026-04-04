@@ -47,3 +47,10 @@ gunicorn==20.1.0
 # Utilities
 PyYAML==6.0.2
 defusedxml==0.7.1
+django-prometheus==2.3.1
+
+# Async & Real-time Processing (Added for Enterprise Scale)
+celery==5.4.0
+channels==4.1.0
+channels-redis==4.2.0
+daphne==4.1.2

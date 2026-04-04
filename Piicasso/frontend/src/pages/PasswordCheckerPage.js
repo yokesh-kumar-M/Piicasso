@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import axiosInstance from '../api/axios';
+import { ModeContext } from '../context/ModeContext';
 import { 
   Shield, Lock, Eye, EyeOff, AlertTriangle, CheckCircle, 
   XCircle, Info, RefreshCw, ChevronDown, ChevronUp,
@@ -10,6 +11,19 @@ import PasswordGenerator from '../components/PasswordGenerator';
 
 const PasswordCheckerPage = () => {
   const [password, setPassword] = useState('');
+  const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
+  const isSecurityMode = appMode === 'security';
+
+  const theme = {
+    bg: isSecurityMode ? 'bg-security-bg text-white' : 'theme-user',
+    accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
+    accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
+    card: isSecurityMode ? 'security-card group' : 'user-glass-panel group border-white/5 hover:border-user-cobalt/30 transition-all duration-300',
+    inputBg: isSecurityMode ? 'bg-[#181818] border-white/10 focus-within:border-security-red' : 'bg-black/20 border-white/10 focus-within:border-user-cobalt',
+    btnPrimary: isSecurityMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-user-cobalt text-white hover:bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.3)]',
+    btnSecondary: isSecurityMode ? 'bg-[#232323] text-white hover:bg-[#333]' : 'bg-white/10 text-white hover:bg-white/20',
+  };
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
