@@ -86,7 +86,7 @@ services:
     branch: main
     rootDir: Piicasso/backend
     dockerfilePath: Dockerfile
-    dockerCommand: "sh -c 'celery -A backend worker -l info & python -m http.server $PORT'"
+    dockerCommand: "./start-celery.sh"
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
