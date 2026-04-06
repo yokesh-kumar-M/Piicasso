@@ -8,6 +8,6 @@ def health_check(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/user/health/', health_check),
-    path('api/user/password/', include('password_security.urls')),
-    path('api/user/teams/', include('teams.urls')),
+    path('api/password/', include('password_security.urls')),
+    path('api/teams/', include('teams.urls')),
 ]

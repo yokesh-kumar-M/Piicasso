@@ -97,9 +97,7 @@ INSTALLED_APPS = [
     'wordgen',
     'generator',
     'operations',
-    'teams',
     'analytics',
-    'password_security',
 ]
 
 # ─── MIDDLEWARE ───────────────────────────────────────────────────────────────

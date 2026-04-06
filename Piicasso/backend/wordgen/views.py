@@ -31,7 +31,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .llm_handler import build_prompt, call_gemini_api
 from generator.models import GenerationHistory
-from teams.models import TeamMembership
 from operations.models import SystemLog
 from .serializers import Piiserializer, SystemLogSerializer
 from .report_generator import generate_report_pdf
@@ -546,14 +545,20 @@ def user_profile(request):
     try:
         team_info = None
         try:
-            membership = TeamMembership.objects.select_related('team').get(user=u)
-            team_info = {
-                "name": membership.team.name,
-                "role": membership.role,
-                "joined_at": membership.joined_at,
-            }
-        except TeamMembership.DoesNotExist:
-            pass
+            import requests
+            auth_header = request.headers.get('Authorization')
+            headers = {"Authorization": auth_header} if auth_header else {}
+            response = requests.get('http://identity-service:8001/api/teams/', headers=headers, timeout=2)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('active'):
+                    team_info = {
+                        "name": data.get("team_name"),
+                        "role": next((m['role'] for m in data.get('members', []) if m['username'] == u.username), None),
+                        "joined_at": next((m['joined_at'] for m in data.get('members', []) if m['username'] == u.username), None),
+                    }
+        except Exception as e:
+            logger.error(f"Failed to fetch team info from identity service: {e}")
 
         total_generations = GenerationHistory.objects.filter(user=u).count()
         total_words = GenerationHistory.objects.filter(user=u).aggregate(total=Sum('wordlist_count'))['total'] or 0
