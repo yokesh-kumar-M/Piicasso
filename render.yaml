@@ -14,7 +14,7 @@ services:
         value: 80
 
   # 2. CORE ENGINE (Monolith Backend)
-  - type: pserv
+  - type: web
     name: core-engine
     env: docker
     plan: free
@@ -47,7 +47,7 @@ services:
         value: "piicasso.onrender.com,.onrender.com"
 
   # 3. IDENTITY SERVICE (Auth/Teams)
-  - type: pserv
+  - type: web
     name: identity-service
     env: docker
     plan: free
@@ -78,7 +78,7 @@ services:
         value: "identity-service,core-engine,piicasso.onrender.com,.onrender.com,localhost"
 
   # 4. CELERY WORKER
-  - type: worker
+  - type: web
     name: celery-worker
     env: docker
     plan: free
@@ -86,7 +86,7 @@ services:
     branch: main
     rootDir: Piicasso/backend
     dockerfilePath: Dockerfile
-    dockerCommand: "celery -A backend worker -l info"
+    dockerCommand: "sh -c 'celery -A backend worker -l info & python -m http.server $PORT'"
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
