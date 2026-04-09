@@ -70,7 +70,7 @@ services:
   - key: ALLOWED_HOSTS
     value: identity-service,core-engine,piicasso.onrender.com,.onrender.com,localhost
   dockerCommand: python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:${PORT}
-    --workers 3 --threads 2 --worker-class gthread backend.wsgi:application
+    user_backend.wsgi:application
 - type: web
   name: celery-worker
   env: docker
