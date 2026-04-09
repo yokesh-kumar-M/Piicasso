@@ -37,7 +37,7 @@ const ForgotPasswordPage = React.lazy(() => import('./pages/ForgotPasswordPage')
 const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 const ResultPage = React.lazy(() => import('./pages/ResultPage'));
-const HomePage = React.lazy(() => import('./pages/HomePage'));
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const NewOperationPage = React.lazy(() => import('./pages/NewOperationPage'));
 const SavedPage = React.lazy(() => import('./pages/SavedPage'));
 const TeamsPage = React.lazy(() => import('./pages/TeamsPage'));
@@ -73,7 +73,7 @@ function AppContent() {
             <div className="flex-1 flex flex-col w-full relative">
               <Suspense fallback={<div className="flex-1 w-full bg-transparent" />}>
                 <Routes location={locationToRender} key={locationToRender.pathname}>
-                  <Route path="/" element={<HomePage />} />
+                  <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/register" element={<RegisterPage />} />
