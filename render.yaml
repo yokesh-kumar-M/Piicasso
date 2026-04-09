@@ -1,115 +1,92 @@
 services:
-  # 1. API GATEWAY (Public facing load balancer)
-  - type: web
-    name: piicasso
-    env: docker
-    plan: free
-    region: singapore
-    branch: main
-    rootDir: gateway
-    dockerfilePath: Dockerfile
-    autoDeploy: true
-    envVars:
-      - key: PORT
-        value: 80
-
-  # 2. CORE ENGINE (Monolith Backend)
-  - type: web
-    name: core-engine
-    env: docker
-    plan: free
-    region: singapore
-    branch: main
-    rootDir: Piicasso/backend
-    dockerfilePath: Dockerfile
-    autoDeploy: true
-    envVars:
-      - key: PORT
-        value: 8000
-      - key: DEBUG
-        value: "False"
-      - key: ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: piicasso-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: piicasso-redis
-          property: connectionString
-      - key: GEMINI_API_KEY
-        sync: false # User must set this manually in dashboard
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
-      - key: ALLOWED_HOSTS
-        value: "piicasso.onrender.com,.onrender.com"
-
-  # 3. IDENTITY SERVICE (Auth/Teams)
-  - type: web
-    name: identity-service
-    env: docker
-    plan: free
-    region: singapore
-    branch: main
-    rootDir: identity_service
-    dockerfilePath: Dockerfile
-    autoDeploy: true
-    envVars:
-      - key: PORT
-        value: 8001
-      - key: DEBUG
-        value: "False"
-      - key: ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: piicasso-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: piicasso-redis
-          property: connectionString
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
-      - key: ALLOWED_HOSTS
-        value: "identity-service,core-engine,piicasso.onrender.com,.onrender.com,localhost"
-
-  # 4. CELERY WORKER
-  - type: web
-    name: celery-worker
-    env: docker
-    plan: free
-    region: singapore
-    branch: main
-    rootDir: Piicasso/backend
-    dockerfilePath: Dockerfile
-    dockerCommand: "./start-celery.sh"
-    autoDeploy: true
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: piicasso-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: piicasso-redis
-          property: connectionString
-
-  # 5. REDIS: Cache
-  - type: redis
-    name: piicasso-redis
-    plan: free
-    region: singapore
-    ipAllowList: []
-
-databases:
-  # 6. DATABASE: PostgreSQL
-  - name: piicasso-db
-    plan: free
-    region: singapore
-    databaseName: piicasso_db
-    user: piicasso_user
+- type: web
+  name: piicasso
+  env: docker
+  plan: free
+  region: singapore
+  branch: main
+  rootDir: gateway
+  dockerfilePath: Dockerfile
+  autoDeploy: true
+  envVars:
+  - key: PORT
+    value: 80
+- type: web
+  name: core-engine
+  env: docker
+  plan: free
+  region: singapore
+  branch: main
+  rootDir: Piicasso/backend
+  dockerfilePath: Dockerfile
+  autoDeploy: true
+  envVars:
+  - key: PORT
+    value: 8000
+  - key: DEBUG
+    value: 'False'
+  - key: ENV
+    value: production
+  - key: DATABASE_URL
+    sync: false
+  - key: REDIS_URL
+    fromService:
+      type: redis
+      name: piicasso-redis
+      property: connectionString
+  - key: GEMINI_API_KEY
+    sync: false
+  - key: DJANGO_SECRET_KEY
+    generateValue: true
+  - key: ALLOWED_HOSTS
+    value: piicasso.onrender.com,.onrender.com
+- type: web
+  name: identity-service
+  env: docker
+  plan: free
+  region: singapore
+  branch: main
+  rootDir: identity_service
+  dockerfilePath: Dockerfile
+  autoDeploy: true
+  envVars:
+  - key: PORT
+    value: 8001
+  - key: DEBUG
+    value: 'False'
+  - key: ENV
+    value: production
+  - key: DATABASE_URL
+    sync: false
+  - key: REDIS_URL
+    fromService:
+      type: redis
+      name: piicasso-redis
+      property: connectionString
+  - key: DJANGO_SECRET_KEY
+    generateValue: true
+  - key: ALLOWED_HOSTS
+    value: identity-service,core-engine,piicasso.onrender.com,.onrender.com,localhost
+- type: web
+  name: celery-worker
+  env: docker
+  plan: free
+  region: singapore
+  branch: main
+  rootDir: Piicasso/backend
+  dockerfilePath: Dockerfile
+  dockerCommand: ./start-celery.sh
+  autoDeploy: true
+  envVars:
+  - key: DATABASE_URL
+    sync: false
+  - key: REDIS_URL
+    fromService:
+      type: redis
+      name: piicasso-redis
+      property: connectionString
+- type: redis
+  name: piicasso-redis
+  plan: free
+  region: singapore
+  ipAllowList: []
