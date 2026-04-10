@@ -1,88 +1,167 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
-import { Github, Twitter, Linkedin, Mail } from 'lucide-react';
-import { ModeContext } from '../context/ModeContext';
+import { Github, Twitter, Linkedin, Mail, Shield, ArrowRight } from 'lucide-react';
 
 const Footer = () => {
-    const { mode } = useContext(ModeContext);
-    const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
-    return (
-        <footer className={`border-t py-16 mt-auto transition-colors duration-300 ${mode === 'user' ? 'bg-[#050a05] text-gray-400 border-green-900/50' : 'bg-slate-950 text-slate-400 border-slate-900'}`}>
-            <div className="container mx-auto px-4 max-w-7xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-                    
-                    {/* Column 1: Brand & About */}
-                    <div className="col-span-1 md:col-span-2 lg:col-span-1">
-                        <Link to="/" className="inline-block mb-6">
-                            <Logo className="text-3xl text-white" />
-                        </Link>
-                        <p className={`leading-relaxed mb-6 ${mode === 'user' ? 'text-gray-400' : 'text-slate-400'}`}>
-                            Enterprise-grade PII redaction and synthetic data generation for secure AI workflows and data analysis.
-                        </p>
-                        <div className="flex space-x-4">
-                            <a href="#" className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${mode === 'user' ? 'bg-green-950/30 hover:bg-green-600 hover:text-white text-green-500' : 'bg-slate-900 hover:bg-blue-600 hover:text-white'}`}>
-                                <Twitter className="w-5 h-5" />
-                            </a>
-                            <a href="#" className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${mode === 'user' ? 'bg-green-950/30 hover:bg-green-600 hover:text-white text-green-500' : 'bg-slate-900 hover:bg-blue-600 hover:text-white'}`}>
-                                <Github className="w-5 h-5" />
-                            </a>
-                            <a href="#" className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${mode === 'user' ? 'bg-green-950/30 hover:bg-green-600 hover:text-white text-green-500' : 'bg-slate-900 hover:bg-blue-600 hover:text-white'}`}>
-                                <Linkedin className="w-5 h-5" />
-                            </a>
-                        </div>
-                    </div>
+  const footerLinks = {
+    product: [
+      { name: 'Features', href: '/features' },
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'API Docs', href: '/api' },
+      { name: 'Integrations', href: '/integrations' },
+      { name: 'Changelog', href: '/changelog' },
+    ],
+    resources: [
+      { name: 'Documentation', href: '/docs' },
+      { name: 'Blog', href: '/blog' },
+      { name: 'Security Guides', href: '/guides' },
+      { name: 'Community', href: '/community' },
+      { name: 'Support', href: '/help' },
+    ],
+    company: [
+      { name: 'About Us', href: '/about' },
+      { name: 'Careers', href: '/careers' },
+      { name: 'Contact', href: '/contact' },
+      { name: 'Press Kit', href: '/press' },
+    ],
+    legal: [
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
+      { name: 'Cookie Policy', href: '/cookies' },
+      { name: 'Security', href: '/security' },
+    ],
+  };
 
-                    {/* Column 2: Product */}
-                    <div>
-                        <h4 className="text-white font-bold mb-6 tracking-wide uppercase text-sm">Product</h4>
-                        <ul className="space-y-4">
-                            <li><Link to="/features" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Features</Link></li>
-                            <li><Link to="/pricing" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Pricing</Link></li>
-                            <li><Link to="/api" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>API Documentation</Link></li>
-                            <li><Link to="/integrations" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Integrations</Link></li>
-                            <li><Link to="/changelog" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Changelog</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 3: Resources */}
-                    <div>
-                        <h4 className="text-white font-bold mb-6 tracking-wide uppercase text-sm">Resources</h4>
-                        <ul className="space-y-4">
-                            <li><Link to="/blog" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Blog</Link></li>
-                            <li><Link to="/guides" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Security Guides</Link></li>
-                            <li><Link to="/community" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Community Forum</Link></li>
-                            <li><Link to="/help" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Help Center</Link></li>
-                            <li><Link to="/status" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>System Status</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 4: Legal & Contact */}
-                    <div>
-                        <h4 className="text-white font-bold mb-6 tracking-wide uppercase text-sm">Company</h4>
-                        <ul className="space-y-4">
-                            <li><Link to="/about" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>About Us</Link></li>
-                            <li><Link to="/careers" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Careers</Link></li>
-                            <li><Link to="/privacy" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Privacy Policy</Link></li>
-                            <li><Link to="/terms" className={`transition-colors ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>Terms of Service</Link></li>
-                            <li><Link to="/contact" className={`transition-colors flex items-center gap-2 ${mode === 'user' ? 'hover:text-green-400' : 'hover:text-blue-400'}`}>
-                                <Mail className="w-4 h-4" /> Contact Us
-                            </Link></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className={`pt-8 border-t flex flex-col md:flex-row justify-between items-center text-sm ${mode === 'user' ? 'border-green-900/50' : 'border-slate-900'}`}>
-                    <p>&copy; {currentYear} PIIcasso Inc. All rights reserved.</p>
-                    <div className="flex items-center space-x-2 mt-4 md:mt-0">
-                        <span className={`w-2 h-2 rounded-full ${mode === 'user' ? 'bg-green-500' : 'bg-blue-500'}`}></span>
-                        <span>All systems operational</span>
-                    </div>
-                </div>
+  return (
+    <footer className="bg-slate-950 text-slate-400">
+      {/* Main Footer */}
+      <div className="container mx-auto px-6 lg:px-16 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-8">
+          {/* Brand Column */}
+          <div className="col-span-2">
+            <Link to="/" className="inline-block mb-6">
+              <Logo className="text-2xl text-white" />
+            </Link>
+            <p className="text-sm leading-relaxed mb-6">
+              Enterprise-grade PII redaction and synthetic data generation for secure AI workflows.
+            </p>
+            
+            {/* Newsletter */}
+            <div className="mb-6">
+              <p className="text-sm font-medium text-slate-300 mb-3">Stay updated</p>
+              <div className="flex">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-l-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                />
+                <button className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg transition-colors">
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-        </footer>
-    );
+
+            {/* Social Links */}
+            <div className="flex items-center gap-3">
+              <a href="#" className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a href="#" className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <Github className="w-4 h-4" />
+              </a>
+              <a href="#" className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-blue-700 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <Linkedin className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          {/* Product Links */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 text-sm">Product</h4>
+            <ul className="space-y-3">
+              {footerLinks.product.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-sm hover:text-white transition-colors">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources Links */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 text-sm">Resources</h4>
+            <ul className="space-y-3">
+              {footerLinks.resources.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-sm hover:text-white transition-colors">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company Links */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 text-sm">Company</h4>
+            <ul className="space-y-3">
+              {footerLinks.company.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-sm hover:text-white transition-colors">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal Links */}
+          <div>
+            <h4 className="text-white font-semibold mb-4 text-sm">Legal</h4>
+            <ul className="space-y-3">
+              {footerLinks.legal.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-sm hover:text-white transition-colors">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="border-t border-slate-900">
+        <div className="container mx-auto px-6 lg:px-16 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-4 text-sm">
+              <p>&copy; {currentYear} PIIcasso Inc. All rights reserved.</p>
+            </div>
+            
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-900/30 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span className="text-green-400">All systems operational</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm">
+                <Shield className="w-4 h-4 text-blue-500" />
+                <span className="text-slate-500">SOC2 Certified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;
