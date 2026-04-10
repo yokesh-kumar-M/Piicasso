@@ -182,14 +182,22 @@ class GoogleLoginView(APIView):
             # google.oauth2.id_token raises ValueError for invalid tokens
             logger.warning(f"Google OAuth token verification failed: {e}")
             return Response(
-                {'error': 'Invalid Google token. Please try again.'},
+                {'error': f'Invalid Google token: {str(e)}'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
+            from google.auth.exceptions import GoogleAuthError
+            if isinstance(e, GoogleAuthError):
+                logger.error(f"GoogleAuthError in Google login: {e}")
+                return Response(
+                    {'error': f'Google Auth configuration error: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            
             # 1.5 fix: generic error message; log full exception server-side
-            logger.error(f"Google login error: {e}", exc_info=True)
+            logger.error(f"Google login error: {type(e).__name__} - {e}", exc_info=True)
             return Response(
-                {'error': 'Authentication failed. Please try again.'},
+                {'error': f'Authentication failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 

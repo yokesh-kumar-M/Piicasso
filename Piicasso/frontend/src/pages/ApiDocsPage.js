@@ -114,7 +114,7 @@ console.log(result.redactedText);
       parameters: [],
       example: {
         request: {},
-        response: { languages: ["en", "es", "fr", "de", "zh", "ja", ...], total: 52 }
+        response: { languages: ["en", "es", "fr", "de", "zh", "ja", "..."], total: 52 }
       }
     },
     {

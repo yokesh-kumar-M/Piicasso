@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, ArrowRight, Building2, Users, Headphones } from 'lucide-react';
+import { Check, X, ArrowRight, Building2, Users, Headphones, Server } from 'lucide-react';
 
 const PricingSection = () => {
   const plans = [

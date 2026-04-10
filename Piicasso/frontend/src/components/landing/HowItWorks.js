@@ -127,7 +127,7 @@ const HowItWorks = () => {
                 result = client.redact(<span className="text-green-400">"John's SSN is 123-45-6789"</span>)
               </code>
               <br />
-              <code className="text-slate-400">{'// Result: "John's SSN is [REDACTED]"'}</code>
+              <code className="text-slate-400">{'// Result: "John\'s SSN is [REDACTED]"'}</code>
             </pre>
           </div>
         </motion.div>
