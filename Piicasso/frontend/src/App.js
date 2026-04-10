@@ -51,6 +51,7 @@ const SecurityDashboardPage = React.lazy(() => import('./pages/SecurityDashboard
 const PasswordCheckerPage = React.lazy(() => import('./pages/PasswordCheckerPage'));
 const AnalysisHistoryPage = React.lazy(() => import('./pages/AnalysisHistoryPage'));
 const FinancialRiskPage = React.lazy(() => import('./pages/FinancialRiskPage'));
+const ApiDocsPage = React.lazy(() => import('./pages/ApiDocsPage'));
 
 function AppContent() {
   useHelpBeacon();
@@ -74,6 +75,7 @@ function AppContent() {
               <Suspense fallback={<div className="flex-1 w-full bg-transparent" />}>
                 <Routes location={locationToRender} key={locationToRender.pathname}>
                   <Route path="/" element={<LandingPage />} />
+                  <Route path="/api" element={<ApiDocsPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/register" element={<RegisterPage />} />
