@@ -11,6 +11,16 @@ services:
   envVars:
   - key: PORT
     value: 80
+  - key: CORE_ENGINE_HOSTPORT
+    fromService:
+      type: pserv
+      name: core-engine
+      property: hostport
+  - key: IDENTITY_SERVICE_HOSTPORT
+    fromService:
+      type: pserv
+      name: identity-service
+      property: hostport
 - type: pserv
   name: core-engine
   env: docker
