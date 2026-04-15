@@ -128,7 +128,7 @@ console.log(result.redactedText);
       ],
       example: {
         request: { items: ["Text 1...", "Text 2..."], mode: "strict" },
-        response: { results: [...], processed: 2, failed: 0 }
+        response: { results: ["..."], processed: 2, failed: 0 }
       }
     },
   ];
