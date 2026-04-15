@@ -11,7 +11,7 @@ services:
   envVars:
   - key: PORT
     value: 80
-- type: web
+- type: pserv
   name: core-engine
   env: docker
   plan: free
@@ -39,11 +39,13 @@ services:
   - key: DJANGO_SECRET_KEY
     generateValue: true
   - key: ALLOWED_HOSTS
-    value: piicasso.onrender.com,.onrender.com
+    value: piicasso.onrender.com,.onrender.com,core-engine,localhost
   - key: CORS_ALLOWED_ORIGINS
-    value: https://piicasso.onrender.com
+    value: https://piicasso.onrender.com,https://pii-casso.vercel.app
+  - key: GOOGLE_CLIENT_ID
+    value: 305149021469-58k7f23c96n60g6olr7aeb29a3m3ofok.apps.googleusercontent.com
   dockerCommand: bash ./start.sh
-- type: web
+- type: pserv
   name: identity-service
   env: docker
   plan: free
@@ -71,7 +73,7 @@ services:
   - key: ALLOWED_HOSTS
     value: identity-service,core-engine,piicasso.onrender.com,.onrender.com,localhost
   - key: CORS_ALLOWED_ORIGINS
-    value: https://piicasso.onrender.com
+    value: https://piicasso.onrender.com,https://pii-casso.vercel.app
   dockerCommand: bash ./start.sh
 - type: worker
   name: celery-worker
