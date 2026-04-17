@@ -98,6 +98,9 @@ INSTALLED_APPS = [
     'generator',
     'operations',
     'analytics',
+    'core',
+    'password_security',
+    'teams',
 ]
 
 # ─── MIDDLEWARE ───────────────────────────────────────────────────────────────

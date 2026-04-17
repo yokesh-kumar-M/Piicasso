@@ -545,20 +545,15 @@ def user_profile(request):
     try:
         team_info = None
         try:
-            import requests
-            auth_header = request.headers.get('Authorization')
-            headers = {"Authorization": auth_header} if auth_header else {}
-            response = requests.get('http://identity-service:8001/api/teams/', headers=headers, timeout=2)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('active'):
-                    team_info = {
-                        "name": data.get("team_name"),
-                        "role": next((m['role'] for m in data.get('members', []) if m['username'] == u.username), None),
-                        "joined_at": next((m['joined_at'] for m in data.get('members', []) if m['username'] == u.username), None),
-                    }
+            if hasattr(u, "team_membership"):
+                membership = u.team_membership
+                team_info = {
+                    "name": membership.team.name,
+                    "role": membership.role,
+                    "joined_at": membership.joined_at,
+                }
         except Exception as e:
-            logger.error(f"Failed to fetch team info from identity service: {e}")
+            logger.error(f"Failed to fetch team info: {e}")
 
         total_generations = GenerationHistory.objects.filter(user=u).count()
         total_words = GenerationHistory.objects.filter(user=u).aggregate(total=Sum('wordlist_count'))['total'] or 0

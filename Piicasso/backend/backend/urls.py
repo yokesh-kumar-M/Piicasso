@@ -38,6 +38,9 @@ urlpatterns = [
     path('api/redoc/', ProtectedRedocView.as_view(url_name='schema'), name='redoc'),
 
     # Application APIs
+    path('api/user/', include('core.urls')),
+    path('api/password/', include('password_security.urls')),
+    path('api/teams/', include('teams.urls')),
     path('api/analytics/', include('analytics.urls')),
     path('api/operations/', include('operations.urls')),
     path('api/', include('wordgen.urls')),

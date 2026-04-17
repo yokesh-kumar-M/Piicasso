@@ -2,10 +2,9 @@ import axios from 'axios';
 
 // Use environment variable for API base URL with production fallback
 const defaultBaseURL = process.env.REACT_APP_API_URL || '/api/';
-// Route specific endpoints to the Identity microservice if running locally without gateway
-const identityBaseURL = process.env.REACT_APP_IDENTITY_API_URL || 'http://localhost:8001/api/';
 
 const axiosInstance = axios.create({
+  baseURL: defaultBaseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,14 +13,6 @@ const axiosInstance = axios.create({
 // Attach access token to requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    const isIdentityRoute = config.url?.startsWith('password/') || config.url?.startsWith('teams/') || config.url?.startsWith('user/');
-    // ALWAYS route identity endpoints to the Identity microservice
-    if (isIdentityRoute) {
-      config.baseURL = identityBaseURL;
-    } else {
-      config.baseURL = defaultBaseURL;
-    }
-
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -93,9 +84,7 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        const refreshUrl = defaultBaseURL.includes('localhost:8000') 
-          ? `${identityBaseURL}user/token/refresh/` 
-          : `${defaultBaseURL}user/token/refresh/`;
+        const refreshUrl = \`\${defaultBaseURL}user/token/refresh/\`;
 
         axios.post(refreshUrl, { refresh })
           .then(({ data }) => {
