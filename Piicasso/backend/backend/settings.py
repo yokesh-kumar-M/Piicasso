@@ -333,6 +333,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'piilogger': {
+            'level': 'INFO',
+            'class': 'piilogger_handler.PiiloggerHandler',
+            'service_name': 'core-engine',
+            'formatter': 'verbose',
+        },
         'file_app': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -351,27 +357,27 @@ LOGGING = {
         },
     },
     'root': {
-        'handlers': ['console', 'file_app'],
+        'handlers': ['console', 'file_app', 'piilogger'],
         'level': 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file_app'],
+            'handlers': ['console', 'file_app', 'piilogger'],
             'level': 'WARNING',
             'propagate': False,
         },
         'django.security': {
-            'handlers': ['console', 'file_security'],
+            'handlers': ['console', 'file_security', 'piilogger'],
             'level': 'WARNING',
             'propagate': False,
         },
         'wordgen.security': {
-            'handlers': ['console', 'file_security'],
+            'handlers': ['console', 'file_security', 'piilogger'],
             'level': 'WARNING',
             'propagate': False,
         },
         'wordgen': {
-            'handlers': ['console', 'file_app'],
+            'handlers': ['console', 'file_app', 'piilogger'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },

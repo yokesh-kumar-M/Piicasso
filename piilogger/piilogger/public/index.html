@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piilogger Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    /* Custom Scrollbar for dark theme */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+    .log-container {
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center shrink-0 shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow shadow-blue-500/50">
+        P
+      </div>
+      <h1 class="text-xl font-semibold tracking-wide">Piilogger <span class="text-sm text-gray-400 font-normal">| Live Log Monitor</span></h1>
+    </div>
+    <div class="flex gap-4">
+      <select id="service-filter" class="bg-gray-700 border border-gray-600 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none">
+        <option value="all">All Services</option>
+        <option value="core-engine">Core Engine</option>
+        <option value="identity-service">Identity Service</option>
+      </select>
+      <select id="level-filter" class="bg-gray-700 border border-gray-600 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block p-2 outline-none">
+        <option value="all">All Levels</option>
+        <option value="ERROR">ERROR</option>
+        <option value="WARNING">WARNING</option>
+        <option value="INFO">INFO</option>
+        <option value="DEBUG">DEBUG</option>
+      </select>
+      <button id="clear-btn" class="px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/30 rounded hover:bg-red-600/30 transition-colors text-sm font-medium">Clear Console</button>
+    </div>
+  </header>
+
+  <!-- Logs Container -->
+  <main class="flex-1 p-4 overflow-hidden flex flex-col">
+    <div class="bg-gray-800 rounded-lg shadow-xl border border-gray-700 flex-1 flex flex-col overflow-hidden">
+      <!-- Table Header -->
+      <div class="grid grid-cols-12 gap-4 p-3 bg-gray-900/50 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-700 shrink-0">
+        <div class="col-span-2">Timestamp</div>
+        <div class="col-span-2">Service</div>
+        <div class="col-span-1">Level</div>
+        <div class="col-span-7">Message</div>
+      </div>
+      <!-- Logs List -->
+      <div id="logs-list" class="log-container p-2 flex flex-col gap-1">
+        <!-- Logs will be injected here -->
+        <div id="empty-state" class="text-center text-gray-500 py-10 italic">Waiting for logs...</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const socket = io();
+    const logsList = document.getElementById('logs-list');
+    const emptyState = document.getElementById('empty-state');
+    const serviceFilter = document.getElementById('service-filter');
+    const levelFilter = document.getElementById('level-filter');
+    const clearBtn = document.getElementById('clear-btn');
+    
+    let allLogs = [];
+
+    // Helper: Colors for levels
+    const getLevelColor = (level) => {
+      switch (level.toUpperCase()) {
+        case 'ERROR': return 'text-red-400 bg-red-400/10 border-red-400/20';
+        case 'WARNING': return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+        case 'INFO': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+        case 'DEBUG': return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
+        default: return 'text-green-400 bg-green-400/10 border-green-400/20';
+      }
+    };
+
+    // Helper: Format Timestamp
+    const formatTime = (isoString) => {
+      const d = new Date(isoString);
+      return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }) + '.' + d.getMilliseconds().toString().padStart(3, '0');
+    };
+
+    // Render a single log entry
+    const createLogElement = (log) => {
+      const el = document.createElement('div');
+      el.className = 'grid grid-cols-12 gap-4 p-2 rounded hover:bg-gray-700/50 transition-colors text-sm font-mono items-start border border-transparent hover:border-gray-600/50';
+      
+      el.innerHTML = `
+        <div class="col-span-2 text-gray-500 text-xs mt-0.5">${formatTime(log.timestamp)}</div>
+        <div class="col-span-2">
+          <span class="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-300 border border-gray-600 truncate inline-block max-w-full">
+            ${log.service}
+          </span>
+        </div>
+        <div class="col-span-1">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold border tracking-wider ${getLevelColor(log.level)}">
+            ${log.level}
+          </span>
+        </div>
+        <div class="col-span-7 break-words whitespace-pre-wrap ${log.level === 'ERROR' ? 'text-red-300' : 'text-gray-300'}">${log.message}</div>
+      `;
+      return el;
+    };
+
+    // Render all visible logs based on filters
+    const renderLogs = () => {
+      logsList.innerHTML = '';
+      const sFilter = serviceFilter.value;
+      const lFilter = levelFilter.value;
+      
+      const filtered = allLogs.filter(log => {
+        const matchService = sFilter === 'all' || log.service === sFilter;
+        const matchLevel = lFilter === 'all' || log.level === lFilter;
+        return matchService && matchLevel;
+      });
+
+      if (filtered.length === 0) {
+        logsList.appendChild(emptyState);
+      } else {
+        filtered.forEach(log => logsList.appendChild(createLogElement(log)));
+        // Auto-scroll to bottom
+        logsList.scrollTop = logsList.scrollHeight;
+      }
+    };
+
+    // Fetch initial history
+    fetch('/logs?limit=100')
+      .then(res => res.json())
+      .then(data => {
+        allLogs = data;
+        renderLogs();
+      })
+      .catch(err => console.error("Failed to fetch history:", err));
+
+    // Handle incoming real-time logs
+    socket.on('new_log', (log) => {
+      allLogs.push(log);
+      
+      // Keep array size manageable (e.g. max 1000 logs in memory)
+      if (allLogs.length > 1000) allLogs.shift();
+      
+      renderLogs();
+    });
+
+    // Filters and Clear Event Listeners
+    serviceFilter.addEventListener('change', renderLogs);
+    levelFilter.addEventListener('change', renderLogs);
+    
+    clearBtn.addEventListener('click', () => {
+      allLogs = [];
+      renderLogs();
+    });
+
+  </script>
+</body>
+</html>

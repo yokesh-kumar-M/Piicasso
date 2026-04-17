@@ -1,45 +1,44 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, Zap, Lock, Globe } from 'lucide-react';
+import { ArrowRight, Shield, Activity, Terminal, Lock } from 'lucide-react';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen bg-white dark:bg-slate-950 overflow-hidden">
-      {/* Subtle grid pattern background */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMDI5M2EiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnYtMmgtNHYyaC0ydi0ySDI2djJoLTJ2NGgydjJoNHYtMmgydjJoNHYtMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30 dark:opacity-20"></div>
+    <section className="relative min-h-screen bg-[#0B0E14] overflow-hidden font-sans text-slate-300">
+      {/* High-tech grid background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.8)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20"></div>
       
-      {/* Gradient orb decoration */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-purple-600/15 via-blue-600/10 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+      {/* Dynamic scanline effect */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,rgba(59,130,246,0.05)_50%,transparent_100%)] bg-[length:100%_200%] animate-[scan_8s_linear_infinite]"></div>
 
-      <div className="container mx-auto px-6 lg:px-16 relative z-10">
-        {/* Trust Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex justify-center pt-12 pb-8"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Enterprise-Grade Security • SOC2 & HIPAA Compliant
-            </span>
-          </div>
-        </motion.div>
+      {/* Glowing Accents */}
+      <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[150px] pointer-events-none"></div>
 
-        {/* Main Hero Content */}
-        <div className="max-w-4xl mx-auto text-center">
+      <div className="container mx-auto px-6 lg:px-16 relative z-10 pt-32 pb-20 flex flex-col lg:flex-row items-center justify-between gap-16 min-h-screen">
+        
+        {/* Left Column: Copy */}
+        <div className="w-full lg:w-1/2">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-3 mb-8"
+          >
+            <div className="h-px w-8 bg-blue-500"></div>
+            <span className="text-xs font-mono text-blue-400 tracking-[0.2em] uppercase">System Online // v2.4.1</span>
+          </motion.div>
+
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight mb-6"
+            className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-white leading-[1.1] mb-6"
           >
-            The Zero-Trust Platform for{' '}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-              PII-Safe AI
+            Military-Grade <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+              Data Anonymization
             </span>
           </motion.h1>
 
@@ -47,131 +46,136 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg md:text-xl text-slate-400 mb-10 leading-relaxed font-light max-w-2xl"
           >
-            Unlock your data's potential without compromising privacy. Context-aware redaction and synthetic data generation for modern AI workloads.
+            PIIcasso provides autonomous, zero-trust entity redaction and synthetic data generation. Protect sensitive intelligence workflows without sacrificing analytical utility.
           </motion.p>
 
-          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row gap-4"
           >
             <Link
               to="/operation"
-              className="group flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5"
+              className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-blue-600/10 border border-blue-500/50 hover:bg-blue-600/20 text-blue-400 rounded transition-all duration-300 overflow-hidden"
             >
-              Request Enterprise Demo
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 w-0 bg-blue-500/10 transition-all duration-[250ms] ease-out group-hover:w-full"></div>
+              <span className="relative font-mono text-sm uppercase tracking-wider font-semibold">Deploy Infrastructure</span>
+              <ArrowRight className="relative w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               to="/api"
-              className="group flex items-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-lg transition-all duration-200 hover:-translate-y-0.5"
+              className="flex items-center justify-center gap-3 px-8 py-4 bg-transparent border border-slate-700 hover:border-slate-500 text-slate-300 rounded transition-all duration-300"
             >
-              Explore API Docs
+              <Terminal className="w-4 h-4" />
+              <span className="font-mono text-sm uppercase tracking-wider">Access API Protocol</span>
             </Link>
+          </motion.div>
+
+          {/* Stats Row */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-16 grid grid-cols-3 gap-8 pt-8 border-t border-slate-800"
+          >
+            <div>
+              <div className="text-2xl font-bold text-white mb-1 font-mono">Sub-5ms</div>
+              <div className="text-xs text-slate-500 uppercase tracking-wider">Processing Latency</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-white mb-1 font-mono">AES-256</div>
+              <div className="text-xs text-slate-500 uppercase tracking-wider">Encryption Std</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-emerald-400 mb-1 font-mono">100%</div>
+              <div className="text-xs text-slate-500 uppercase tracking-wider">Zero-Trust Architecture</div>
+            </div>
           </motion.div>
         </div>
 
-        {/* Stats Row */}
+        {/* Right Column: Terminal/Radar UI */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="max-w-4xl mx-auto mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 py-8 border-t border-b border-slate-200 dark:border-slate-800"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="w-full lg:w-1/2 relative"
         >
-          {[
-            { icon: <Zap className="w-5 h-5" />, value: "50+", label: "Languages Supported" },
-            { icon: <Globe className="w-5 h-5" />, value: "99.9%", label: "API Uptime SLA" },
-            { icon: <Lock className="w-5 h-5" />, value: "Zero", label: "Data Retention" },
-            { icon: <Shield className="w-5 h-5" />, value: "HIPAA", label: "Compliant" },
-          ].map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-3">
-                {stat.icon}
+          <div className="relative rounded-xl overflow-hidden bg-[#0F172A] border border-slate-800 shadow-[0_0_40px_rgba(0,0,0,0.8)] before:absolute before:inset-0 before:ring-1 before:ring-inset before:ring-white/10">
+            {/* Terminal Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-[#0B0E14] border-b border-slate-800">
+              <div className="flex gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
               </div>
-              <div className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                {stat.value}
-              </div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">
-                {stat.label}
+              <div className="text-[10px] text-slate-500 font-mono tracking-widest flex items-center gap-2">
+                <Shield className="w-3 h-3 text-emerald-500" />
+                SECURE_ENCLAVE_ACTIVE
               </div>
             </div>
-          ))}
-        </motion.div>
+            
+            {/* Terminal Body */}
+            <div className="p-6 font-mono text-xs leading-relaxed">
+              <div className="text-slate-500 mb-4">&gt; INITIALIZING DATA STREAM INTERCEPT... <span className="text-emerald-400">OK</span></div>
+              
+              <div className="space-y-3">
+                <div className="flex flex-col bg-[#0B0E14] p-3 rounded border border-slate-800/50 relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500/50"></div>
+                  <div className="flex justify-between text-slate-400 mb-1">
+                    <span>INBOUND PAYLOAD (RAW)</span>
+                    <span className="text-red-400">THREAT DETECTED</span>
+                  </div>
+                  <div className="text-slate-300">
+                    "Patient <span className="text-red-400 bg-red-400/10 px-1">John Doe</span> (DOB: <span className="text-red-400 bg-red-400/10 px-1">05/12/1980</span>) SSN: <span className="text-red-400 bg-red-400/10 px-1">***-**-1234</span> admitted."
+                  </div>
+                </div>
 
-        {/* Hero Visual - Dashboard Mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 40, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="max-w-5xl mx-auto mt-16 mb-12"
-        >
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/20 dark:shadow-black/50 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-            {/* Browser chrome */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <div className="flex-1 mx-4">
-                <div className="px-4 py-1.5 bg-white dark:bg-slate-700 rounded-md text-sm text-slate-400 dark:text-slate-500">
-                  app.piicasso.io/dashboard
+                <div className="flex items-center justify-center py-1">
+                  <Activity className="w-4 h-4 text-blue-500 animate-pulse" />
                 </div>
+
+                <div className="flex flex-col bg-[#0B0E14] p-3 rounded border border-slate-800/50 relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/50"></div>
+                  <div className="flex justify-between text-slate-400 mb-1">
+                    <span>OUTBOUND PAYLOAD (SANITIZED)</span>
+                    <span className="text-emerald-400">CLEARED</span>
+                  </div>
+                  <div className="text-slate-300">
+                    "Patient <span className="text-emerald-400 bg-emerald-400/10 px-1">[PERSON_1]</span> (DOB: <span className="text-emerald-400 bg-emerald-400/10 px-1">[DATE_1]</span>) SSN: <span className="text-emerald-400 bg-emerald-400/10 px-1">[ID_NUM]</span> admitted."
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between text-slate-500 border-t border-slate-800 pt-4">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-3 h-3" />
+                  <span>ALGORITHM: PII-NLP-v4</span>
+                </div>
+                <span>LATENCY: 1.2ms</span>
               </div>
             </div>
-            {/* Dashboard preview */}
-            <div className="p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-4">
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-700">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">PII Detection Results</span>
-                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">Secured</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-mono rounded">John Smith</span>
-                        <span className="text-xs text-slate-500">→ [REDACTED]</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-mono rounded">SSN: ***-**-4521</span>
-                        <span className="text-xs text-slate-500">→ [REDACTED]</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 text-white">
-                    <div className="text-sm font-medium opacity-80 mb-1">Processing Speed</div>
-                    <div className="text-3xl font-bold mb-1">2.4ms</div>
-                    <div className="text-sm opacity-70">Average latency per document</div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-700">
-                    <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Entities Detected</div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Names</span><span className="font-medium">24</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Emails</span><span className="font-medium">18</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">Phones</span><span className="font-medium">7</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-slate-500">SSN</span><span className="font-medium">3</span></div>
-                    </div>
-                  </div>
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-700">
-                    <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status</div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">System Operational</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          </div>
+
+          {/* Floating UI Elements */}
+          <div className="absolute -right-8 top-1/4 bg-[#0F172A] border border-slate-700 p-3 rounded shadow-2xl backdrop-blur-sm hidden lg:block">
+            <div className="text-[10px] text-slate-400 font-mono mb-1">NETWORK_STATUS</div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+              <span className="text-sm font-bold text-white tracking-wider">OPTIMAL</span>
             </div>
           </div>
         </motion.div>
       </div>
+
+      <style jsx>{`
+        @keyframes scan {
+          0% { background-position: 0 -100vh; }
+          100% { background-position: 0 100vh; }
+        }
+      `}</style>
     </section>
   );
 };
