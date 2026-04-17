@@ -38,7 +38,7 @@ services:
   - key: ENV
     value: production
   - key: DATABASE_URL
-    value: postgresql://postgres:Makemehappy%402005@db.xwlugcmchccxgeseisfv.supabase.co:5432/postgres
+    value: postgresql://postgres.xwlugcmchccxgeseisfv:Makemehappy%402005@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
   - key: REDIS_URL
     fromService:
       type: redis
@@ -72,7 +72,7 @@ services:
   - key: ENV
     value: production
   - key: DATABASE_URL
-    value: postgresql://postgres:Makemehappy%402005@db.xwlugcmchccxgeseisfv.supabase.co:5432/postgres
+    value: postgresql://postgres.xwlugcmchccxgeseisfv:Makemehappy%402005@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
   - key: REDIS_URL
     fromService:
       type: redis
@@ -97,7 +97,7 @@ services:
   autoDeploy: true
   envVars:
   - key: DATABASE_URL
-    value: postgresql://postgres:Makemehappy%402005@db.xwlugcmchccxgeseisfv.supabase.co:5432/postgres
+    value: postgresql://postgres.xwlugcmchccxgeseisfv:Makemehappy%402005@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
   - key: REDIS_URL
     fromService:
       type: redis
