@@ -51,7 +51,7 @@ const ForgotPasswordPage = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('auth/request-reset/', { email });
+            const res = await axios.post('auth/password/reset/', { email });
             setMessage(res.data.message);
             setStep(2); // Proceed to OTP entry
         } catch (err) {
@@ -77,7 +77,7 @@ const ForgotPasswordPage = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('auth/verify-reset/', { email, otp, new_password: newPassword });
+            const res = await axios.post('auth/password/reset/verify/', { email, otp, new_password: newPassword });
             setMessage(res.data.message);
             setStep(3); // Proceed to success
         } catch (err) {

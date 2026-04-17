@@ -14,10 +14,9 @@ const axiosInstance = axios.create({
 // Attach access token to requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Dynamic routing for Decoupled Microservices
     const isIdentityRoute = config.url?.startsWith('password/') || config.url?.startsWith('teams/') || config.url?.startsWith('user/');
-    // If not running through the API gateway proxy (e.g. running React dev server against localhost:8000)
-    if (defaultBaseURL.includes('localhost:8000') && isIdentityRoute) {
+    // ALWAYS route identity endpoints to the Identity microservice
+    if (isIdentityRoute) {
       config.baseURL = identityBaseURL;
     } else {
       config.baseURL = defaultBaseURL;
@@ -94,7 +93,11 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        axios.post(`${defaultBaseURL}user/token/refresh/`, { refresh })
+        const refreshUrl = defaultBaseURL.includes('localhost:8000') 
+          ? `${identityBaseURL}user/token/refresh/` 
+          : `${defaultBaseURL}user/token/refresh/`;
+
+        axios.post(refreshUrl, { refresh })
           .then(({ data }) => {
             localStorage.setItem('access_token', data.access);
             axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + data.access;

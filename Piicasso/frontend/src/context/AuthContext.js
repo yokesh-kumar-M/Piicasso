@@ -51,8 +51,13 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const baseURL = process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/';
-      const res = await fetch(`${baseURL}user/token/refresh/`, {
+      const defaultBaseURL = process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/';
+      const identityBaseURL = process.env.REACT_APP_IDENTITY_API_URL || 'http://localhost:8001/api/';
+      const refreshUrl = defaultBaseURL.includes('localhost:8000') 
+        ? `${identityBaseURL}user/token/refresh/` 
+        : `${defaultBaseURL}user/token/refresh/`;
+
+      const res = await fetch(refreshUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: refreshToken }),
