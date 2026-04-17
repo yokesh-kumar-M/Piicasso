@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const baseURL = process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/';
-      const res = await fetch(`${baseURL}token/refresh/`, {
+      const res = await fetch(`${baseURL}user/token/refresh/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh: refreshToken }),
@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
   const googleLogin = async (googleToken) => {
     try {
       const { lat, lng, city, country_code } = await getLocationData();
-      const res = await axiosInstance.post('auth/google/', { token: googleToken, lat, lng, city, country_code });
+      const res = await axiosInstance.post('user/auth/google/', { token: googleToken, lat, lng, city, country_code });
       const access = res.data.access;
       const refresh = res.data.refresh;
 
@@ -168,7 +168,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const { lat, lng, city, country_code } = await getLocationData();
-      const res = await axiosInstance.post('token/', { username, password, lat, lng, city, country_code });
+      const res = await axiosInstance.post('user/token/', { username, password, lat, lng, city, country_code });
       const access = res.data.access;
       const refresh = res.data.refresh;
 

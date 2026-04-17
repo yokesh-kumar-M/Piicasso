@@ -65,7 +65,7 @@ const RegisterPage = () => {
       await new Promise(r => setTimeout(r, 1000));
 
       const payload = { ...form, lat, lng };
-      const res = await axiosInstance.post('register/', payload);
+      const res = await axiosInstance.post('user/register/', payload);
       if (res.status === 201) {
         setSuccess(true);
         setTimeout(() => navigate('/login'), 2000);

@@ -94,7 +94,7 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        axios.post(`${defaultBaseURL}token/refresh/`, { refresh })
+        axios.post(`${defaultBaseURL}user/token/refresh/`, { refresh })
           .then(({ data }) => {
             localStorage.setItem('access_token', data.access);
             axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + data.access;

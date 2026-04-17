@@ -6,3 +6,5 @@ psycopg2-binary>=2.9.9
 dj-database-url>=2.1.0
 python-dotenv>=1.0.1
 djangorestframework-simplejwt>=5.3.1
+google-auth>=2.23.3
+requests>=2.31.0
