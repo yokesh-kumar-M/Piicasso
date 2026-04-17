@@ -3,12 +3,14 @@ import requests
 import threading
 import traceback
 import sys
+import os
 
 class PiiloggerHandler(logging.Handler):
-    def __init__(self, service_name, url='http://localhost:4000/logs'):
+    def __init__(self, service_name):
         super().__init__()
         self.service_name = service_name
-        self.url = url
+        # Fallback to local URL if not provided in environment
+        self.url = os.getenv('PIILOGGER_URL', 'https://piilogger-service.onrender.com/logs')
 
     def emit(self, record):
         try:

@@ -15,3 +15,13 @@ Quit the server with CTRL-BREAK.
 
 C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\requests\__init__.py:113: RequestsDependencyWarning: urllib3 (2.5.0) or chardet (7.4.0.post2)/charset_normalizer (3.4.2) doesn't match a supported version!
   warnings.warn(
+Performing system checks...
+
+System check identified no issues (0 silenced).
+April 17, 2026 - 21:44:56
+Django version 5.0.14, using settings 'user_backend.settings'
+Starting development server at http://127.0.0.1:8001/
+Quit the server with CTRL-BREAK.
+
+C:\Users\yokes\AppData\Local\Programs\Python\Python313\Lib\site-packages\requests\__init__.py:113: RequestsDependencyWarning: urllib3 (2.5.0) or chardet (7.4.0.post2)/charset_normalizer (3.4.2) doesn't match a supported version!
+  warnings.warn(
