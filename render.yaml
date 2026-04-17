@@ -108,3 +108,13 @@ services:
   plan: free
   region: singapore
   ipAllowList: []
+- type: web
+  name: piilogger-service
+  env: node
+  plan: free
+  region: singapore
+  branch: main
+  rootDir: piilogger
+  buildCommand: npm install
+  startCommand: node server.js
+  autoDeploy: true
