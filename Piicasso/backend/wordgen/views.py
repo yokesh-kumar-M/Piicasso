@@ -247,7 +247,7 @@ class PiiSubmitView(APIView):
         # Sanitize PII data to prevent stored XSS (1.6 fix)
         pii_data = _sanitize_pii_data(pii_data)
 
-        non_empty_values = [v for v in pii_data.values() if v and v != '' and v != []]
+        non_empty_values = [v for k, v in pii_data.items() if k != 'pattern_mode' and v and v != '' and v != []]
         if not non_empty_values:
             return Response(
                 {"error": "No meaningful PII data provided."},

@@ -32,9 +32,15 @@ Piicasso/frontend/build/
 *.swo
 *~
 
-# ─── Local AI / tooling scratch ─────────────────────────────────────────────
+# ─── Tool scratch files (never commit) ───────────────────────────────────────
 .claude/
 .mcp-debug-tools/
+err.txt
+out.txt
+log*.txt
+opencode.log
+opencode_utf8.log
+config.schema.json
 
 # ─── OS ──────────────────────────────────────────────────────────────────────
 .DS_Store

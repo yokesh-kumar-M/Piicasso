@@ -4,27 +4,57 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class MessageSerializer(serializers.ModelSerializer):
-    sender_name = serializers.CharField(source='sender.username', read_only=True)
-    recipient_name = serializers.CharField(source='recipient.username', read_only=True)
+    sender_name = serializers.CharField(source="sender.username", read_only=True)
+    recipient_name = serializers.CharField(source="recipient.username", read_only=True)
+    recipient = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), required=False, allow_null=True
+    )
 
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'sender_name', 'recipient', 'recipient_name', 'content', 'timestamp', 'is_read']
-        read_only_fields = ['id', 'sender', 'timestamp', 'is_read']
+        fields = [
+            "id",
+            "sender",
+            "sender_name",
+            "recipient",
+            "recipient_name",
+            "content",
+            "timestamp",
+            "is_read",
+        ]
+        read_only_fields = ["id", "sender", "timestamp", "is_read"]
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'notification_type', 'title', 'description', 'is_read', 'timestamp', 'link']
-        read_only_fields = ['id', 'notification_type', 'title', 'description', 'timestamp', 'link']
+        fields = [
+            "id",
+            "notification_type",
+            "title",
+            "description",
+            "is_read",
+            "timestamp",
+            "link",
+        ]
+        read_only_fields = [
+            "id",
+            "notification_type",
+            "title",
+            "description",
+            "timestamp",
+            "link",
+        ]
 
 
 class SystemSettingSerializer(serializers.ModelSerializer):
-    updated_by_name = serializers.CharField(source='updated_by.username', read_only=True, default='System')
+    updated_by_name = serializers.CharField(
+        source="updated_by.username", read_only=True, default="System"
+    )
 
     class Meta:
         model = SystemSetting
-        fields = ['key', 'value', 'description', 'updated_at', 'updated_by_name']
-        read_only_fields = ['updated_at', 'updated_by_name']
+        fields = ["key", "value", "description", "updated_at", "updated_by_name"]
+        read_only_fields = ["updated_at", "updated_by_name"]

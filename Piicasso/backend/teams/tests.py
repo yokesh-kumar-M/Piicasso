@@ -16,7 +16,7 @@ class TeamCreateTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_create_team(self):
-        response = self.client.post('/api/user/teams/create/', {'name': 'Alpha Squad'}, format='json')
+        response = self.client.post('/api/teams/create/', {'name': 'Alpha Squad'}, format='json')
         self.assertEqual(response.status_code, 201)
         self.assertTrue(Team.objects.filter(name='Alpha Squad').exists())
         # Creator should be LEADER
@@ -24,8 +24,8 @@ class TeamCreateTest(TestCase):
         self.assertEqual(membership.role, 'LEADER')
 
     def test_create_team_already_in_team(self):
-        self.client.post('/api/user/teams/create/', {'name': 'First Team'}, format='json')
-        response = self.client.post('/api/user/teams/create/', {'name': 'Second Team'}, format='json')
+        self.client.post('/api/teams/create/', {'name': 'First Team'}, format='json')
+        response = self.client.post('/api/teams/create/', {'name': 'Second Team'}, format='json')
         self.assertIn(response.status_code, [400, 409])
 
 
@@ -39,14 +39,14 @@ class TeamJoinTest(TestCase):
     def test_join_by_invite_code(self):
         client = APIClient()
         client.force_authenticate(user=self.joiner)
-        response = client.post('/api/user/teams/join/', {'invite_code': self.team.invite_code}, format='json')
+        response = client.post('/api/teams/join/', {'invite_code': self.team.invite_code}, format='json')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(TeamMembership.objects.filter(user=self.joiner, team=self.team).exists())
 
     def test_join_invalid_code(self):
         client = APIClient()
         client.force_authenticate(user=self.joiner)
-        response = client.post('/api/user/teams/join/', {'invite_code': 'INVALID'}, format='json')
+        response = client.post('/api/teams/join/', {'invite_code': 'INVALID'}, format='json')
         self.assertIn(response.status_code, [400, 404, 500])
 
 
@@ -61,7 +61,7 @@ class TeamLeaveTest(TestCase):
     def test_member_leave(self):
         client = APIClient()
         client.force_authenticate(user=self.member)
-        response = client.post('/api/user/teams/leave/')
+        response = client.post('/api/teams/leave/')
         self.assertEqual(response.status_code, 200)
         self.assertFalse(TeamMembership.objects.filter(user=self.member).exists())
 
@@ -77,7 +77,7 @@ class TeamChatTest(TestCase):
     def test_send_message(self):
         client = APIClient()
         client.force_authenticate(user=self.member)
-        response = client.post('/api/user/teams/chat/', {'content': 'Hello team!'}, format='json')
+        response = client.post('/api/teams/chat/', {'content': 'Hello team!'}, format='json')
         self.assertEqual(response.status_code, 201)
         self.assertEqual(TeamMessage.objects.count(), 1)
 
@@ -85,12 +85,12 @@ class TeamChatTest(TestCase):
         TeamMessage.objects.create(team=self.team, sender=self.owner, content='Test msg')
         client = APIClient()
         client.force_authenticate(user=self.member)
-        response = client.get('/api/user/teams/chat/')
+        response = client.get('/api/teams/chat/')
         self.assertEqual(response.status_code, 200)
 
     def test_non_member_cannot_chat(self):
         outsider = User.objects.create_user('outsider', password='Pass1234!')
         client = APIClient()
         client.force_authenticate(user=outsider)
-        response = client.post('/api/user/teams/chat/', {'content': 'Intruder!'}, format='json')
+        response = client.post('/api/teams/chat/', {'content': 'Intruder!'}, format='json')
         self.assertIn(response.status_code, [400, 403])

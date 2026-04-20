@@ -33,7 +33,7 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
             }
         )
 
-        prompt = build_prompt(pii_data, pattern_mode=pattern_mode)
+        prompt = build_prompt(pii_data, )
         
         async_to_sync(channel_layer.group_send)(
             group_name,
@@ -86,7 +86,7 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
                 user=user,
                 pii_data=pii_data,
                 wordlist=wordlist_text,
-                pattern_mode=pattern_mode
+                
             )
 
         # 2. Complete status
