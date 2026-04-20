@@ -1,11 +1,27 @@
 version: '3.8'
 
+# ─── PIIcasso Full Stack ──────────────────────────────────────────────────────
+# Services:
+#   web         → Django backend (port 8000)
+#   frontend    → React frontend (port 80 via Nginx)
+#   db          → PostgreSQL database
+#   redis       → Redis for caching, sessions, Celery broker
+#   prometheus  → Metrics collection (port 9090)
+#   grafana     → Metrics dashboard (port 3001)
+#   loki        → Log aggregation
+#   promtail    → Log shipping agent
+#
+# NOTE: PIIlogger is a SEPARATE standalone project — it is NOT part of this repository.
+#       Repo: Django/piilogger/  |  Run: npm start  |  Dashboard: http://localhost:4000
+#       Set PIILOGGER_URL in backend/.env to point to wherever it is running.
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
   web:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    command: gunicorn --workers 4 --threads 4 --worker-class gthread --worker-tmp-dir /dev/shm --bind 0.0.0.0:8000 --timeout 600 backend.wsgi:application
+    command: sh ./start.sh
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health/" ]
       interval: 30s
@@ -24,36 +40,16 @@ services:
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379/1
+      - PIILOGGER_URL=${PIILOGGER_URL:-http://localhost:4000/logs}
     env_file:
-      - .env
+      - ./backend/.env
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
-      - backend
-
-  user_backend:
-    build: 
-      context: ../user_microservice
-      dockerfile: Dockerfile
-    command: gunicorn --workers 2 --bind 0.0.0.0:8001 user_backend.wsgi:application
-    ports:
-      - "8001:8001"
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB:?Set POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER:?Set POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-dev-insecure-secret-please-change}
-      - ENV=production
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - redis
-    networks:
-      - backend
+      - piicasso_net
 
   frontend:
     build:
@@ -64,7 +60,7 @@ services:
     depends_on:
       - web
     networks:
-      - backend
+      - piicasso_net
 
   db:
     image: postgres:15-alpine
@@ -80,7 +76,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - backend
+      - piicasso_net
 
   redis:
     image: redis:7-alpine
@@ -88,7 +84,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - backend
+      - piicasso_net
 
   prometheus:
     image: prom/prometheus:latest
@@ -98,7 +94,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - backend
+      - piicasso_net
 
   grafana:
     image: grafana/grafana:latest
@@ -112,7 +108,7 @@ services:
       - prometheus
       - loki
     networks:
-      - backend
+      - piicasso_net
 
   loki:
     image: grafana/loki:latest
@@ -120,20 +116,19 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     networks:
-      - backend
+      - piicasso_net
 
   promtail:
     image: grafana/promtail:latest
     volumes:
       - /var/log:/var/log
       - ./promtail/promtail-config.yml:/etc/promtail/config.yml
-      # Mount the volume where Django writes logs
       - app_logs:/app/logs
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
     networks:
-      - backend
+      - piicasso_net
 
 volumes:
   postgres_data:
@@ -145,5 +140,5 @@ volumes:
   grafana_data:
 
 networks:
-  backend:
+  piicasso_net:
     driver: bridge

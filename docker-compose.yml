@@ -1,13 +1,26 @@
 version: '3.8'
 
+# ─── PIIcasso Platform — Development Stack ───────────────────────────────────
+# Runs all PIIcasso services for local development.
+#
+# Service URLs:
+#   Backend (Django)  → http://localhost:8000
+#   Frontend (React)  → http://localhost:3000
+#   Redis             → localhost:6379
+#
+# NOTE: PIIlogger is a SEPARATE standalone project located at:
+#   c:\Users\yokes\OneDrive\Documents\Full-stack\Django\piilogger\
+#   Run it independently: cd ../piilogger && npm start  (http://localhost:4000)
+#   Set PIILOGGER_URL=http://host.docker.internal:4000/logs in backend/.env
+# ─────────────────────────────────────────────────────────────────────────────
+
 name: piicasso-platform-dev
 
 services:
-  # ========================================================
-  # 1. CORE ENGINE (Main Backend Monolith)
-  # ========================================================
+
+  # ─── 1. Django Backend ───────────────────────────────────────────────────────
   core-engine:
-    build: 
+    build:
       context: ./Piicasso/backend
       dockerfile: Dockerfile.dev
     volumes:
@@ -18,14 +31,14 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost
       - ALLOWED_HOSTS=localhost,core-engine,127.0.0.1
+    env_file:
+      - ./Piicasso/backend/.env
     networks:
       - piicasso_net
     depends_on:
       - redis
 
-  # ========================================================
-  # 2. FRONTEND (React Application)
-  # ========================================================
+  # ─── 2. React Frontend ───────────────────────────────────────────────────────
   frontend:
     build:
       context: ./Piicasso/frontend
@@ -41,11 +54,9 @@ services:
     networks:
       - piicasso_net
 
-  # ========================================================
-  # 3. ASYNC WORKERS (Celery)
-  # ========================================================
+  # ─── 3. Celery Worker ────────────────────────────────────────────────────────
   celery-worker:
-    build: 
+    build:
       context: ./Piicasso/backend
       dockerfile: Dockerfile.dev
     command: celery -A backend worker -l info
@@ -54,14 +65,14 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - ./Piicasso/backend/.env
     networks:
       - piicasso_net
     depends_on:
       - redis
 
-  # ========================================================
-  # 4. INFRASTRUCTURE (Caching Layer)
-  # ========================================================
+  # ─── 4. Redis ────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
@@ -69,20 +80,6 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - piicasso_net
-
-  # ========================================================
-  # 5. PIILOGGER (Log Monitoring)
-  # ========================================================
-  piilogger:
-    build:
-      context: ./piilogger
-    ports:
-      - "3001:3001"
-    environment:
-      - PORT=3001
-      - LOG_LEVEL=debug
     networks:
       - piicasso_net
 

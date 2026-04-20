@@ -1,71 +1,65 @@
 services:
-- type: web
-  name: piicasso
-  env: docker
-  plan: free
-  region: singapore
-  branch: main
-  rootDir: Piicasso/backend
-  dockerfilePath: Dockerfile
-  autoDeploy: true
-  envVars:
-  - key: PORT
-    value: 8000
-  - key: DEBUG
-    value: 'False'
-  - key: ENV
-    value: production
-  - key: DATABASE_URL
-    value: postgresql://postgres.xwlugcmchccxgeseisfv:Makemehappy%402005@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
-  - key: REDIS_URL
-    fromService:
-      type: redis
-      name: piicasso-redis
-      property: connectionString
-  - key: GEMINI_API_KEY
-    sync: false
-  - key: DJANGO_SECRET_KEY
-    generateValue: true
-  - key: ALLOWED_HOSTS
-    value: piicasso.onrender.com,.onrender.com,localhost
-  - key: CORS_ALLOWED_ORIGINS
-    value: https://piicasso.onrender.com,https://pii-casso.vercel.app
-  - key: GOOGLE_CLIENT_ID
-    value: 305149021469-58k7f23c96n60g6olr7aeb29a3m3ofok.apps.googleusercontent.com
-  dockerCommand: sh ./start.sh
+  # ─── Main Django Backend ─────────────────────────────────────────────────────
+  - type: web
+    name: piicasso
+    env: docker
+    plan: free
+    region: singapore
+    branch: main
+    rootDir: Piicasso/backend
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    dockerCommand: sh ./start.sh
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: DEBUG
+        value: 'False'
+      - key: ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false       # Set manually in Render dashboard — never commit credentials
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: piicasso-redis
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false       # Set manually in Render dashboard
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: piicasso.onrender.com,.onrender.com,localhost
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://piicasso.onrender.com,https://pii-casso.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        sync: false       # Set manually in Render dashboard
+      - key: PIILOGGER_URL
+        sync: false       # Set to your deployed piilogger URL, e.g. https://piilogger-service.onrender.com/logs
 
-- type: worker
-  name: celery-worker
-  env: docker
-  plan: free
-  region: singapore
-  branch: main
-  rootDir: Piicasso/backend
-  dockerfilePath: Dockerfile
-  dockerCommand: sh ./start-celery.sh
-  autoDeploy: true
-  envVars:
-  - key: DATABASE_URL
-    value: postgresql://postgres.xwlugcmchccxgeseisfv:Makemehappy%402005@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
-  - key: REDIS_URL
-    fromService:
-      type: redis
-      name: piicasso-redis
-      property: connectionString
+  # ─── Celery Worker ───────────────────────────────────────────────────────────
+  - type: worker
+    name: celery-worker
+    env: docker
+    plan: free
+    region: singapore
+    branch: main
+    rootDir: Piicasso/backend
+    dockerfilePath: Dockerfile
+    dockerCommand: sh ./start-celery.sh
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false       # Set manually in Render dashboard
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: piicasso-redis
+          property: connectionString
 
-- type: redis
-  name: piicasso-redis
-  plan: free
-  region: singapore
-  ipAllowList: []
-
-- type: web
-  name: piilogger-service
-  env: node
-  plan: free
-  region: singapore
-  branch: main
-  rootDir: piilogger
-  buildCommand: npm install
-  startCommand: node server.js
-  autoDeploy: true
+  # ─── Redis ───────────────────────────────────────────────────────────────────
+  - type: redis
+    name: piicasso-redis
+    plan: free
+    region: singapore
+    ipAllowList: []
