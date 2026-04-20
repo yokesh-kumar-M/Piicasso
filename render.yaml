@@ -18,7 +18,9 @@ services:
       - key: ENV
         value: production
       - key: DATABASE_URL
-        sync: false       # Set manually in Render dashboard — never commit credentials
+        fromDatabase:
+          name: piicasso-db
+          property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
@@ -50,7 +52,9 @@ services:
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
-        sync: false       # Set manually in Render dashboard
+        fromDatabase:
+          name: piicasso-db
+          property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
@@ -63,3 +67,11 @@ services:
     plan: free
     region: singapore
     ipAllowList: []
+
+databases:
+  # ─── Primary PostgreSQL Database ─────────────────────────────────────────────
+  - name: piicasso-db
+    plan: free
+    region: singapore
+    databaseName: piicasso
+    user: piicasso_user
