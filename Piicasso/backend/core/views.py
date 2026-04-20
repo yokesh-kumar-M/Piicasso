@@ -149,11 +149,42 @@ class GoogleLoginView(APIView):
                     clock_skew_in_seconds=60,
                 )
             except ValueError:
+                # Get the unverified claims to determine the audience
+                import jwt
+
+                try:
+                    unverified_claims = jwt.decode(
+                        token, options={"verify_signature": False}
+                    )
+                    token_audience = unverified_claims.get("aud")
+                except Exception:
+                    token_audience = None
+
+                allowed_audiences = []
+                if GOOGLE_CLIENT_ID:
+                    allowed_audiences.extend(
+                        [aud.strip() for aud in GOOGLE_CLIENT_ID.split(",")]
+                    )
+
+                # Add known audiences as fallback
+                allowed_audiences.append(
+                    "580009207244-spt94f5gp84ll2i2es1aqk78f66ulc2c.apps.googleusercontent.com"
+                )
+                allowed_audiences.append(
+                    "1036447131933-28ebm74nguik3k6bhh0kocm9tmd20u3u.apps.googleusercontent.com"
+                )
+
+                audience_to_use = (
+                    token_audience
+                    if token_audience in allowed_audiences
+                    else (GOOGLE_CLIENT_ID if GOOGLE_CLIENT_ID else None)
+                )
+
                 # Fallback to standard Google OAuth2 token check
                 payload = id_token.verify_oauth2_token(
                     token,
                     google_requests.Request(),
-                    audience=GOOGLE_CLIENT_ID if GOOGLE_CLIENT_ID else None,
+                    audience=audience_to_use,
                     clock_skew_in_seconds=60,
                 )
 
