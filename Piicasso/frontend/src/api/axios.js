@@ -84,7 +84,7 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        const refreshUrl = \`\${defaultBaseURL}user/token/refresh/\`;
+        const refreshUrl = `${defaultBaseURL}user/token/refresh/`;
 
         axios.post(refreshUrl, { refresh })
           .then(({ data }) => {
