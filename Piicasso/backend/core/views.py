@@ -21,6 +21,16 @@ GOOGLE_CLIENT_ID = getattr(settings, "GOOGLE_CLIENT_ID", None) or __import__(
 ).environ.get("GOOGLE_CLIENT_ID", "")
 
 
+class PingView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(
+            {"status": "ok", "message": "Server is awake"}, status=status.HTTP_200_OK
+        )
+
+
 class RegisterView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
