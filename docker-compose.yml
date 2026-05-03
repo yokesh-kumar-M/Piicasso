@@ -8,10 +8,6 @@ version: '3.8'
 #   Frontend (React)  → http://localhost:3000
 #   Redis             → localhost:6379
 #
-# NOTE: PIIlogger is a SEPARATE standalone project located at:
-#   c:\Users\yokes\OneDrive\Documents\Full-stack\Django\piilogger\
-#   Run it independently: cd ../piilogger && npm start  (http://localhost:4000)
-#   Set PIILOGGER_URL=http://host.docker.internal:4000/logs in backend/.env
 # ─────────────────────────────────────────────────────────────────────────────
 
 name: piicasso-platform-dev

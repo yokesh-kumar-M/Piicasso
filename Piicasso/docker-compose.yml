@@ -11,9 +11,6 @@ version: '3.8'
 #   loki        → Log aggregation
 #   promtail    → Log shipping agent
 #
-# NOTE: PIIlogger is a SEPARATE standalone project — it is NOT part of this repository.
-#       Repo: Django/piilogger/  |  Run: npm start  |  Dashboard: http://localhost:4000
-#       Set PIILOGGER_URL in backend/.env to point to wherever it is running.
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
@@ -40,7 +37,6 @@ services:
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379/1
-      - PIILOGGER_URL=${PIILOGGER_URL:-http://localhost:4000/logs}
     env_file:
       - ./backend/.env
     depends_on:
