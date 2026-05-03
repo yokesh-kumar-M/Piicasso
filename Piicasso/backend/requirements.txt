@@ -45,6 +45,9 @@ python-dotenv==1.0.1
 # Server
 gunicorn==20.1.0
 
+# Error tracking
+sentry-sdk[django]==2.20.0
+
 # Utilities
 PyYAML==6.0.2
 defusedxml==0.7.1

@@ -24,6 +24,8 @@ services:
         sync: false       # Set manually in Render dashboard
       - key: GEMINI_API_KEY
         sync: false       # Set manually in Render dashboard
+      - key: SENTRY_DSN
+        sync: false       # Set manually in Render dashboard
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS

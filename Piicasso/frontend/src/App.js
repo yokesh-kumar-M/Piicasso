@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import axios from './api/axios';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
@@ -167,6 +168,7 @@ function App() {
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ''}>
       <BrowserRouter>
         <ModeProvider>
+          <Analytics />
           <NetworkStatus />
           <ScrollToTop />
           <AppContent />

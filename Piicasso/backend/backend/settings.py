@@ -12,6 +12,19 @@ from datetime import timedelta
 
 load_dotenv()
 
+# ─── SENTRY ERROR TRACKING ──────────────────────────────────────────────────
+sentry_dsn = os.getenv("SENTRY_DSN")
+if sentry_dsn:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[sentry_sdk.integrations.django.DjangoIntegration()],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        environment=os.getenv("ENV", "development"),
+    )
+
 # ─── BASE ────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 os.makedirs(BASE_DIR / "logs", exist_ok=True)

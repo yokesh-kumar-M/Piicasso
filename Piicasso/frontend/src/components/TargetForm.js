@@ -195,6 +195,26 @@ const TargetForm = ({ onFormUpdate }) => {
                 </AnimatePresence>
             </div>
 
+            {/* Loading Overlay */}
+            <AnimatePresence>
+                {loading && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                            className={`w-12 h-12 border-2 border-t-transparent rounded-full mb-4 ${theme.accentBg}`}
+                        />
+                        <p className={`font-mono text-sm uppercase tracking-widest ${theme.accentText}`}>Analyzing PII Patterns</p>
+                        <p className="text-gray-500 text-xs font-mono mt-1">Gemini AI generating wordlist...</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Footer / Submit Area */}
             <div className={`p-3 md:p-4 border-t ${isSecurityMode ? 'border-zinc-800 bg-black/80' : 'border-white/10 bg-black/40'} shrink-0 backdrop-blur-xl flex flex-col sm:flex-row justify-between items-center gap-3`}>
                 <div className="flex items-center gap-2">
@@ -205,7 +225,7 @@ const TargetForm = ({ onFormUpdate }) => {
                 <button
                     onClick={handleSubmit}
                     disabled={loading}
-                    className={`w-full sm:w-auto px-6 py-3 rounded-md font-bold font-mono text-[10px] uppercase tracking-widest text-white transition-all flex items-center justify-center gap-2 ${theme.accentBg} ${theme.btnHover} ${theme.accentGlow}`}
+                    className={`w-full sm:w-auto px-6 py-3 rounded-md font-bold font-mono text-[10px] uppercase tracking-widest text-white transition-all flex items-center justify-center gap-2 ${theme.accentBg} ${theme.btnHover} ${theme.accentGlow} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {loading ? <Zap className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
                     {loading ? 'Processing...' : 'Run Extraction'}
