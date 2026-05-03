@@ -124,7 +124,7 @@ const KaliTerminal = () => {
 
     return (
         <div
-            className={`h-full bg-black font-terminal text-sm p-4 overflow-hidden flex flex-col border rounded shadow-[0_0_20px_rgba(0,0,0,0.8)] ${isGod ? 'border-red-600 shadow-red-900/40' : 'border-zinc-800'}`}
+            className={`responsive-terminal-height bg-black font-terminal text-sm p-3 md:p-4 overflow-hidden flex flex-col border rounded shadow-[0_0_20px_rgba(0,0,0,0.8)] ${isGod ? 'border-red-600 shadow-red-900/40' : 'border-zinc-800'}`}
             onClick={handleFocus}
         >
             {/* Header */}
@@ -180,7 +180,7 @@ const KaliTerminal = () => {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            className={`bg-transparent border-none outline-none flex-1 caret-white ${isGod ? 'text-red-100' : 'text-white'}`}
+                            className={`bg-transparent border-none outline-none flex-1 caret-white text-base md:text-sm ${isGod ? 'text-red-100' : 'text-white'}`}
                             autoComplete="off"
                             spellCheck="false"
                         />

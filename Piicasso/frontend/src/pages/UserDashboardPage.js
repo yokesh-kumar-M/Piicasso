@@ -112,11 +112,11 @@ const UserDashboardPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         
         {/* Left Column: Analysis Form */}
-        <div className="xl:col-span-7 flex flex-col gap-6">
-          <div className="relative overflow-hidden bg-[#0A0F1C]/80 backdrop-blur-2xl border border-blue-500/20 rounded-3xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group hover:border-blue-500/40 transition-colors duration-500">
+        <div className="lg:col-span-7 flex flex-col gap-6">
+          <div className="relative overflow-hidden bg-[#0A0F1C]/80 backdrop-blur-2xl border border-blue-500/20 rounded-3xl p-5 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group hover:border-blue-500/40 transition-colors duration-500">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent pointer-events-none"></div>
             
             <label className="block text-xs font-bold text-blue-400/80 mb-3 uppercase tracking-widest flex items-center gap-2">
@@ -209,7 +209,7 @@ const UserDashboardPage = () => {
                     <User className="w-5 h-5 text-blue-500" />
                     <h3 className="text-xs font-bold text-blue-300 uppercase tracking-widest">Contextual Vectors</h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                     {[
                       { key: 'full_name', label: 'Full Name', icon: User },
                       { key: 'dob', label: 'Birth Date', icon: FileText },
@@ -253,7 +253,7 @@ const UserDashboardPage = () => {
         </div>
 
         {/* Right Column: Results & Analytics */}
-        <div className="xl:col-span-5 flex flex-col gap-6">
+        <div className="lg:col-span-5 flex flex-col gap-6">
           <AnimatePresence mode="wait">
             {!result ? (
               <motion.div 

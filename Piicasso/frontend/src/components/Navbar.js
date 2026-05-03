@@ -83,6 +83,11 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location.pathname]);
+
     const navLinks = [
         { name: 'Dashboard', path: isSecurityMode ? '/security/dashboard' : '/user/dashboard' },
         ...(isSecurityMode ? [
@@ -185,7 +190,7 @@ const Navbar = () => {
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
                                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                        className={`absolute top-full -right-16 sm:right-0 mt-5 w-[320px] sm:w-[420px] rounded-xl border shadow-2xl z-50 overflow-hidden ${themeConfig.dropdownBg}`}
+                                        className={`absolute top-full right-0 sm:-right-16 mt-5 w-[calc(100vw-2rem)] sm:w-[320px] max-w-[420px] rounded-xl border shadow-2xl z-50 overflow-hidden ${themeConfig.dropdownBg}`}
                                     >
                                         <div className={`p-4 sm:p-5 border-b flex items-center justify-between ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
                                             <h3 className={`font-bold ${isSecurityMode ? 'font-display text-base sm:text-lg uppercase tracking-wide text-white' : 'text-sm sm:text-base tracking-tight text-white'}`}>
@@ -276,8 +281,8 @@ const Navbar = () => {
 
                     {/* Mobile Menu Toggle */}
                     <div className="lg:hidden ml-2">
-                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white hover:opacity-80 transition-opacity">
-                            {isMobileMenuOpen ? <X className="w-8 h-8"/> : <Menu className="w-8 h-8"/>}
+                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white hover:opacity-80 transition-opacity p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
+                            {isMobileMenuOpen ? <X className="w-7 h-7"/> : <Menu className="w-7 h-7"/>}
                         </button>
                     </div>
                 </div>
@@ -288,55 +293,65 @@ const Navbar = () => {
                 <div className="fixed inset-0 z-40" onClick={() => setShowNotifDropdown(false)} />
             )}
 
-                    {/* Mobile Menu Overlay */}
+            {/* Mobile Menu Overlay */}
             <AnimatePresence>
               {isMobileMenuOpen && (
-                  <motion.div 
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      className={`lg:hidden absolute top-full left-0 w-full px-6 pt-6 pb-24 border-t overflow-y-auto shadow-2xl ${themeConfig.dropdownBg}`}
-                      style={{ maxHeight: 'calc(100vh - 80px)' }}
-                  >
-                      <div className="flex flex-col space-y-2">
-                          {navLinks.map((link) => (
-                              <Link
-                                  key={link.name}
-                                  to={link.path}
-                                  className={`block py-5 text-xl border-b transition-all duration-300 ${isSecurityMode ? 'border-security-border font-display uppercase tracking-widest text-white hover:text-security-red' : 'border-user-border font-semibold text-gray-200 hover:text-white hover:translate-x-2'}`}
-                                  onClick={() => setIsMobileMenuOpen(false)}
-                              >
-                                  {link.name}
-                              </Link>
-                          ))}
-
-                          {/* Mobile Search/Deep Web link */}
-                          <Link
-                              to="/darkweb"
-                              className={`flex items-center gap-3 py-5 text-xl border-b transition-all duration-300 ${isSecurityMode ? 'border-security-border font-display uppercase tracking-widest text-white hover:text-security-red' : 'border-user-border font-semibold text-gray-200 hover:text-white hover:translate-x-2'}`}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                              <Search className="w-5 h-5" /> Deep Search
-                          </Link>
-
-                          <div className="pt-10 flex flex-col gap-4">
-                              {isAuthenticated ? (
-                                  <>
-                                      <Link to="/profile" className="flex items-center gap-3 py-4 text-lg font-semibold text-white hover:text-gray-300" onClick={() => setIsMobileMenuOpen(false)}>
-                                          <User className="w-5 h-5" /> Account Profile
+                  <>
+                      <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                      />
+                      <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm lg:hidden overflow-y-auto shadow-2xl ${themeConfig.dropdownBg}`}
+                      >
+                          <div className="pt-24 px-6 pb-12">
+                              <div className="flex flex-col space-y-1">
+                                  {navLinks.map((link) => (
+                                      <Link
+                                          key={link.name}
+                                          to={link.path}
+                                          className={`block py-4 px-4 text-lg rounded-lg transition-all duration-300 ${isSecurityMode ? 'text-white hover:text-security-red hover:bg-white/5' : 'text-gray-200 hover:text-white hover:bg-white/5 hover:translate-x-1'}`}
+                                          onClick={() => setIsMobileMenuOpen(false)}
+                                      >
+                                          {link.name}
                                       </Link>
-                                      <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className={`w-full py-4 text-sm font-bold tracking-wide rounded-xl mt-4 flex items-center justify-center gap-2 ${themeConfig.primaryBtn}`}>
-                                          Sign Out
-                                      </button>
-                                  </>
-                              ) : (
-                                  <Link to="/login" className={`w-full py-4 text-center text-sm font-bold tracking-wide rounded-xl mt-4 ${themeConfig.primaryBtn}`} onClick={() => setIsMobileMenuOpen(false)}>
-                                      Sign In
+                                  ))}
+
+                                  {/* Mobile Search/Deep Search link */}
+                                  <Link
+                                      to="/darkweb"
+                                      className={`flex items-center gap-3 py-4 px-4 text-lg rounded-lg transition-all duration-300 ${isSecurityMode ? 'text-white hover:text-security-red hover:bg-white/5' : 'text-gray-200 hover:text-white hover:bg-white/5 hover:translate-x-1'}`}
+                                      onClick={() => setIsMobileMenuOpen(false)}
+                                  >
+                                      <Search className="w-5 h-5" /> Deep Search
                                   </Link>
-                              )}
+
+                                  <div className="pt-6 flex flex-col gap-3">
+                                      {isAuthenticated ? (
+                                          <>
+                                              <Link to="/profile" className="flex items-center gap-3 py-4 px-4 text-lg font-semibold text-white hover:bg-white/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
+                                                  <User className="w-5 h-5" /> Account Profile
+                                              </Link>
+                                              <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className={`w-full py-4 text-sm font-bold tracking-wide rounded-xl flex items-center justify-center gap-2 ${themeConfig.primaryBtn}`}>
+                                                  Sign Out
+                                              </button>
+                                          </>
+                                      ) : (
+                                          <Link to="/login" className={`w-full py-4 text-center text-sm font-bold tracking-wide rounded-xl ${themeConfig.primaryBtn}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                              Sign In
+                                          </Link>
+                                      )}
+                                  </div>
+                              </div>
                           </div>
-                      </div>
-                  </motion.div>
+                      </motion.div>
+                  </>
               )}
             </AnimatePresence>
         </nav>

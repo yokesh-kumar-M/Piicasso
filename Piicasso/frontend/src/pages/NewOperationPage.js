@@ -30,13 +30,13 @@ const NewOperationPage = () => {
         <div className={`min-h-screen ${theme.bg} flex flex-col`}>
             <Navbar />
 
-            <div className="pt-28 px-4 md:px-12 pb-20 max-w-7xl mx-auto w-full flex-1">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full min-h-[80vh]">
+            <div className="pt-20 md:pt-28 px-4 md:px-12 pb-20 max-w-7xl mx-auto w-full flex-1">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full responsive-dashboard-height">
 
                     {/* LEFT: Configuration Panel */}
-                    <div className={`lg:col-span-1 flex flex-col p-6 lg:p-8 ${theme.card}`}>
-                        <h2 className={`text-2xl mb-8 flex items-center gap-3 ${theme.heading}`}>
-                            <Cpu className={`w-6 h-6 ${theme.accentColor}`} /> Terminal Settings
+                    <div className={`lg:col-span-1 flex flex-col p-5 md:p-6 lg:p-8 ${theme.card}`}>
+                        <h2 className={`text-xl md:text-2xl mb-6 md:mb-8 flex items-center gap-3 ${theme.heading}`}>
+                            <Cpu className={`w-5 h-5 md:w-6 md:h-6 ${theme.accentColor}`} /> Terminal Settings
                         </h2>
 
                         <div className="space-y-8 flex-1">
@@ -62,12 +62,12 @@ const NewOperationPage = () => {
                             {/* Complexity Level */}
                             <div className="space-y-3">
                                 <label className="text-xs text-gray-400 font-bold uppercase tracking-widest">Complexity Level</label>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                     {['Low', 'Med', 'High', 'Insane'].map(lvl => (
                                         <button
                                             key={lvl}
                                             onClick={() => setConfig({ ...config, complexity: lvl })}
-                                            className={`flex-1 py-2 text-sm rounded transition-all font-bold ${
+                                            className={`flex-1 min-w-[60px] py-3 text-sm rounded transition-all font-bold ${
                                                 config.complexity === lvl
                                                     ? theme.btnPrimary
                                                     : theme.btnSecondary
@@ -147,7 +147,7 @@ const NewOperationPage = () => {
                     </div>
 
                     {/* RIGHT: Kali Terminal */}
-                    <div className="lg:col-span-2 h-full min-h-[600px] flex flex-col">
+                    <div className="lg:col-span-2 h-full min-h-[300px] md:min-h-[500px] flex flex-col">
                         <KaliTerminal />
                     </div>
 

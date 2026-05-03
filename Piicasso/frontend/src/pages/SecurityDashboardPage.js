@@ -39,15 +39,15 @@ const SecurityDashboardPage = () => {
       <div className="flex-1 w-full max-w-[1800px] mx-auto pt-24 px-4 sm:px-6 lg:px-8 pb-12 flex flex-col">
         
         {/* Header Strip */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 shrink-0 mb-6 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-4">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 shrink-0 mb-4 md:mb-6 border-b border-white/10 pb-3 md:pb-4">
+          <div className="flex items-center gap-3 md:gap-4">
             <div className="relative">
               <div className="absolute inset-0 bg-security-red/20 blur-xl rounded-full"></div>
-              <ShieldAlert className="w-10 h-10 text-security-red relative z-10" />
+              <ShieldAlert className="w-8 h-8 md:w-10 md:h-10 text-security-red relative z-10" />
             </div>
             <div>
-              <h1 className="security-heading text-2xl lg:text-3xl m-0 leading-none tracking-widest text-white">TACTICAL DASHBOARD</h1>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-1">Intelligence Generation Interface</p>
+              <h1 className="security-heading text-xl md:text-2xl lg:text-3xl m-0 leading-none tracking-widest text-white">TACTICAL DASHBOARD</h1>
+              <p className="text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-1">Intelligence Generation Interface</p>
             </div>
           </div>
 
@@ -67,7 +67,7 @@ const SecurityDashboardPage = () => {
         </header>
 
         {/* Main Grid: 12 Columns */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full min-h-[800px]">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full responsive-dashboard-height">
           
           {/* Left Column: Target Input Pane (Spans 4 columns) */}
           <div className="xl:col-span-4 flex flex-col bg-[#0f0f0f] border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
@@ -81,7 +81,7 @@ const SecurityDashboardPage = () => {
               </div>
             </div>
             
-            <div className="flex-1 min-h-[600px] overflow-hidden">
+            <div className="flex-1 min-h-[300px] md:min-h-[500px] overflow-hidden">
                <TargetForm onFormUpdate={handleFormUpdate} />
             </div>
           </div>
@@ -90,7 +90,7 @@ const SecurityDashboardPage = () => {
           <div className="xl:col-span-8 flex flex-col gap-6">
             
             {/* Top Half: 2 Columns (Profile Matrix & 3D Globe) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-[400px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-[300px] md:min-h-[400px]">
               
               {/* Profile Matrix (Risk Radar) */}
               <div className="bg-[#0f0f0f] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col relative group">
@@ -134,7 +134,7 @@ const SecurityDashboardPage = () => {
             </div>
 
             {/* Bottom Half: Full Width System Logs */}
-            <div className="bg-[#050505] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[250px] shrink-0">
+            <div className="bg-[#050505] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[200px] md:h-[250px] shrink-0">
               <div className="px-4 py-3 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   <Terminal className="w-3.5 h-3.5 text-gray-400" />

@@ -52,13 +52,13 @@ const Footer = () => {
             {/* Newsletter */}
             <div className="mb-6">
               <p className="text-sm font-medium text-slate-300 mb-3">Stay updated</p>
-              <div className="flex">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-l-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-4 py-3 bg-slate-900 border border-slate-800 sm:rounded-l-lg rounded-lg sm:rounded-r-none text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                 />
-                <button className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg transition-colors">
+                <button className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white sm:rounded-r-lg rounded-lg sm:rounded-l-none transition-colors">
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
@@ -66,14 +66,14 @@ const Footer = () => {
 
             {/* Social Links */}
             <div className="flex items-center gap-3">
-              <a href="#" className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition-all">
-                <Twitter className="w-4 h-4" />
+              <a href="#" className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
-                <Github className="w-4 h-4" />
+              <a href="#" className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <Github className="w-5 h-5" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-blue-700 flex items-center justify-center text-slate-400 hover:text-white transition-all">
-                <Linkedin className="w-4 h-4" />
+              <a href="#" className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-blue-700 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <Linkedin className="w-5 h-5" />
               </a>
             </div>
           </div>

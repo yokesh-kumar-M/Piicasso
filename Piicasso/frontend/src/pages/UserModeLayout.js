@@ -44,32 +44,32 @@ const UserModeLayout = () => {
                 </div>
               </div>
 
-              <nav className="space-y-2">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium text-sm border ${
-                        active
-                          ? 'bg-blue-600/20 border-blue-500/30 text-white shadow-[0_0_20px_rgba(37,99,235,0.1)]'
-                          : 'border-transparent text-blue-200/60 hover:bg-blue-500/5 hover:border-blue-500/10 hover:text-white'
-                      }`}
-                    >
-                      <Icon className="w-[18px] h-[18px]" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
+               <nav className="space-y-2">
+                 {navItems.map((item) => {
+                   const Icon = item.icon;
+                   const active = isActive(item.path);
+                   return (
+                     <Link
+                       key={item.path}
+                       to={item.path}
+                       className={`flex items-center gap-3 px-4 py-4 rounded-xl transition-all font-medium text-sm border ${
+                         active
+                           ? 'bg-blue-600/20 border-blue-500/30 text-white shadow-[0_0_20px_rgba(37,99,235,0.1)]'
+                           : 'border-transparent text-blue-200/60 hover:bg-blue-500/5 hover:border-blue-500/10 hover:text-white'
+                       }`}
+                     >
+                       <Icon className="w-[18px] h-[18px]" />
+                       <span>{item.label}</span>
+                     </Link>
+                   );
+                 })}
+               </nav>
             </div>
           </div>
 
           {/* Main Content Area */}
           <div className="lg:col-span-3">
-            <div className="bg-[#0B162C]/80 backdrop-blur-xl border border-blue-500/10 rounded-2xl shadow-2xl shadow-blue-900/10 overflow-hidden min-h-[600px]">
+            <div className="bg-[#0B162C]/80 backdrop-blur-xl border border-blue-500/10 rounded-2xl shadow-2xl shadow-blue-900/10 overflow-hidden responsive-dashboard-height">
               <Outlet />
             </div>
           </div>

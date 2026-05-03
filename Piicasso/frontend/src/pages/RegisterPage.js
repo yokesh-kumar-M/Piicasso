@@ -187,7 +187,7 @@ const RegisterPage = () => {
           </div>
 
           <div className={`p-4 border-t text-center ${theme.footerBorder}`}>
-            <Link to="/login" className={`text-xs transition-colors flex items-center justify-center gap-2 ${theme.textMuted} hover:text-white`}>
+            <Link to="/login" className={`text-xs transition-colors flex items-center justify-center gap-2 py-3 ${theme.textMuted} hover:text-white`}>
               <Lock className="w-3 h-3" /> Already have an account? Login
             </Link>
           </div>

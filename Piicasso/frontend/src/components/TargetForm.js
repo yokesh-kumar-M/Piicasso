@@ -142,13 +142,13 @@ const TargetForm = ({ onFormUpdate }) => {
                         <button
                             key={cat.id}
                             onClick={() => setSelectedCategory(cat.id)}
-                            className={`flex-1 min-w-[80px] p-3 border-r ${isSecurityMode ? 'border-zinc-800' : 'border-white/10'} relative flex flex-col items-center justify-center gap-1.5 transition-all ${isSelected ? (isSecurityMode ? 'bg-zinc-900' : 'bg-white/10') : 'hover:bg-white/5'}`}
+                            className={`flex-1 min-w-[70px] p-2 md:p-3 border-r ${isSecurityMode ? 'border-zinc-800' : 'border-white/10'} relative flex flex-col items-center justify-center gap-1 transition-all ${isSelected ? (isSecurityMode ? 'bg-zinc-900' : 'bg-white/10') : 'hover:bg-white/5'}`}
                         >
                             {isSelected && (
                                 <motion.div layoutId="navTab" className={`absolute top-0 left-0 w-full h-0.5 ${theme.accentBg} ${theme.accentGlow}`} />
                             )}
                             <cat.icon className={`w-4 h-4 ${isSelected ? theme.accentText : 'text-gray-500'}`} />
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? 'text-white' : 'text-gray-500'}`}>{cat.label}</span>
+                            <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-wider ${isSelected ? 'text-white' : 'text-gray-500'}`}>{cat.label}</span>
                             
                             {/* Tiny progress dot indicator */}
                             <div className="w-full max-w-[30px] h-0.5 bg-black/50 mt-1 rounded-full overflow-hidden">
@@ -160,7 +160,7 @@ const TargetForm = ({ onFormUpdate }) => {
             </div>
 
             {/* Input Canvas */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 relative bg-gradient-to-b from-black/20 to-black/60">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5 relative bg-gradient-to-b from-black/20 to-black/60">
                 <AnimatePresence mode="wait">
                     {selectedCategory && (
                         <motion.div
@@ -169,7 +169,7 @@ const TargetForm = ({ onFormUpdate }) => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
-                            className="grid grid-cols-2 gap-4"
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4"
                         >
                             {FIELDS[selectedCategory].map((field) => (
                                 <div key={field.name} className="group relative">
@@ -184,7 +184,7 @@ const TargetForm = ({ onFormUpdate }) => {
                                             onFocus={(e) => e.target.select()}
                                             onChange={handleInputChange}
                                             placeholder={field.placeholder}
-                                            className={`w-full text-white text-xs font-mono placeholder-gray-700 outline-none transition-all rounded-md px-3 py-2.5 border ${theme.inputBg}`}
+                                            className={`w-full text-white text-sm md:text-xs font-mono placeholder-gray-700 outline-none transition-all rounded-md px-3 py-3 md:py-2.5 border ${theme.inputBg}`}
                                             autoComplete="off"
                                         />
                                     </div>
@@ -196,7 +196,7 @@ const TargetForm = ({ onFormUpdate }) => {
             </div>
 
             {/* Footer / Submit Area */}
-            <div className={`p-4 border-t ${isSecurityMode ? 'border-zinc-800 bg-black/80' : 'border-white/10 bg-black/40'} shrink-0 backdrop-blur-xl flex justify-between items-center`}>
+            <div className={`p-3 md:p-4 border-t ${isSecurityMode ? 'border-zinc-800 bg-black/80' : 'border-white/10 bg-black/40'} shrink-0 backdrop-blur-xl flex flex-col sm:flex-row justify-between items-center gap-3`}>
                 <div className="flex items-center gap-2">
                     <Shield className={`w-4 h-4 ${isSecurityMode ? 'text-green-500' : 'text-user-cobalt'}`} />
                     <span className="text-[10px] font-mono uppercase tracking-widest text-gray-400">Target Ready</span>
@@ -205,7 +205,7 @@ const TargetForm = ({ onFormUpdate }) => {
                 <button
                     onClick={handleSubmit}
                     disabled={loading}
-                    className={`px-6 py-2.5 rounded-md font-bold font-mono text-[10px] uppercase tracking-widest text-white transition-all flex items-center gap-2 ${theme.accentBg} ${theme.btnHover} ${theme.accentGlow}`}
+                    className={`w-full sm:w-auto px-6 py-3 rounded-md font-bold font-mono text-[10px] uppercase tracking-widest text-white transition-all flex items-center justify-center gap-2 ${theme.accentBg} ${theme.btnHover} ${theme.accentGlow}`}
                 >
                     {loading ? <Zap className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
                     {loading ? 'Processing...' : 'Run Extraction'}

@@ -105,3 +105,66 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* --- Mobile Responsiveness Utilities --- */
+@media (max-width: 768px) {
+  /* Ensure minimum touch target size (44px) */
+  button, a, input[type="submit"], input[type="button"] {
+    min-height: 44px;
+  }
+  
+  /* Prevent horizontal overflow */
+  img, video, iframe, canvas, svg {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Improve tap target spacing for buttons in rows */
+  .flex button, .flex a {
+    min-width: 44px;
+  }
+  
+  /* Ensure inputs are easily tappable */
+  input, select, textarea {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+}
+
+/* Responsive height utilities for dashboards */
+.responsive-dashboard-height {
+  min-height: calc(100vh - 6rem);
+}
+
+@media (min-width: 768px) {
+  .responsive-dashboard-height {
+    min-height: 800px;
+  }
+}
+
+/* Terminal responsive height */
+.responsive-terminal-height {
+  height: 40vh;
+}
+
+@media (min-width: 768px) {
+  .responsive-terminal-height {
+    height: 60vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-terminal-height {
+    height: 70vh;
+  }
+}
+
+/* Fix notification dropdown positioning on small screens */
+.notif-dropdown-sm {
+  right: -4rem;
+}
+
+@media (min-width: 640px) {
+  .notif-dropdown-sm {
+    right: 0;
+  }
+}

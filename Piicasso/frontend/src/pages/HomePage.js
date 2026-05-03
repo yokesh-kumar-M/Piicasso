@@ -19,24 +19,19 @@ const HomePage = () => {
     };
 
     return (
-        <div className="relative w-full h-screen overflow-hidden bg-black font-sans text-white flex flex-col md:flex-row">
+        <div className="relative w-full min-h-screen overflow-hidden bg-black font-sans text-white flex flex-col md:flex-row">
             
             {/* Fixed Logo at Top Center */}
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-                <Logo className="text-4xl md:text-5xl drop-shadow-2xl" />
+            <div className="absolute top-4 md:top-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+                <Logo className="text-3xl md:text-5xl drop-shadow-2xl" />
             </div>
 
             {/* Left Side: USER MODE (Midnight Cobalt Glass) */}
             <motion.div 
-                className="relative w-full md:w-1/2 h-1/2 md:h-full cursor-pointer flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-user-border overflow-hidden"
+                className="relative w-full md:w-1/2 h-[50vh] md:h-full cursor-pointer flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-user-border overflow-hidden"
                 onHoverStart={() => setHoveredSide('user')}
                 onHoverEnd={() => setHoveredSide(null)}
                 onClick={() => handleSelectMode('user')}
-                animate={{ 
-                    width: hoveredSide === 'user' ? '55%' : hoveredSide === 'security' ? '45%' : '50%',
-                    height: hoveredSide === 'user' && window.innerWidth < 768 ? '55%' : hoveredSide === 'security' && window.innerWidth < 768 ? '45%' : '100%'
-                }}
-                transition={{ type: 'spring', stiffness: 200, damping: 25 }}
             >
                 {/* Background with Cobalt Glass effects */}
                 <div className="absolute inset-0 bg-cobalt-gradient z-0" />
@@ -48,32 +43,32 @@ const HomePage = () => {
                     transition={{ duration: 0.5 }}
                 />
 
-                <div className="relative z-10 flex flex-col items-center text-center px-8">
+                <div className="relative z-10 flex flex-col items-center text-center px-6 md:px-8">
                     <motion.div 
-                        className="w-24 h-24 rounded-3xl bg-user-cobalt/10 border border-user-cobalt/30 flex items-center justify-center mb-8 backdrop-blur-xl shadow-[0_0_30px_rgba(59,130,246,0.2)]"
+                        className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl bg-user-cobalt/10 border border-user-cobalt/30 flex items-center justify-center mb-4 md:mb-8 backdrop-blur-xl shadow-[0_0_30px_rgba(59,130,246,0.2)]"
                         animate={{ y: hoveredSide === 'user' ? -10 : 0, boxShadow: hoveredSide === 'user' ? '0 0 50px rgba(59,130,246,0.4)' : '0 0 30px rgba(59,130,246,0.2)' }}
                     >
-                        <Shield className="w-12 h-12 text-user-cobalt" />
+                        <Shield className="w-8 h-8 md:w-12 md:h-12 text-user-cobalt" />
                     </motion.div>
-                    <h2 className="user-heading text-4xl md:text-5xl mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">
+                    <h2 className="user-heading text-3xl md:text-5xl mb-3 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">
                         User Mode
                     </h2>
-                    <div className="text-user-text-muted max-w-sm text-sm md:text-base leading-relaxed mb-10 font-medium">
-                        <motion.ul className="space-y-2 text-left inline-block"
+                    <div className="text-user-text-muted max-w-sm text-sm md:text-base leading-relaxed mb-6 md:mb-10 font-medium">
+                        <motion.ul className="space-y-1.5 md:space-y-2 text-left inline-block"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: hoveredSide === 'user' ? 1 : 0.7 }}
                         >
-                            <li className="flex items-center gap-2"><Lock className="w-4 h-4 text-user-cobalt" /> Check password health</li>
-                            <li className="flex items-center gap-2"><Shield className="w-4 h-4 text-user-cobalt" /> Monitor breaches</li>
-                            <li className="flex items-center gap-2"><Key className="w-4 h-4 text-user-cobalt" /> Improve personal security</li>
+                            <li className="flex items-center gap-2"><Lock className="w-3.5 h-3.5 md:w-4 md:h-4 text-user-cobalt" /> Check password health</li>
+                            <li className="flex items-center gap-2"><Shield className="w-3.5 h-3.5 md:w-4 md:h-4 text-user-cobalt" /> Monitor breaches</li>
+                            <li className="flex items-center gap-2"><Key className="w-3.5 h-3.5 md:w-4 md:h-4 text-user-cobalt" /> Improve personal security</li>
                         </motion.ul>
                     </div>
                     
                     <motion.button 
-                        className="flex items-center gap-3 user-btn-primary px-6 py-3 rounded-full font-bold uppercase tracking-widest text-sm"
+                        className="flex items-center gap-2 md:gap-3 user-btn-primary px-5 py-3 md:px-6 md:py-3 rounded-full font-bold uppercase tracking-widest text-xs md:text-sm"
                         animate={{ scale: hoveredSide === 'user' ? 1.05 : 1 }}
                     >
-                        Enter User Mode <ArrowRight className="w-5 h-5" />
+                        Enter User Mode <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
                     </motion.button>
                 </div>
 
@@ -95,15 +90,10 @@ const HomePage = () => {
 
             {/* Right Side: SECURITY MODE (Tactical Dark/Red) */}
             <motion.div 
-                className="relative w-full md:w-1/2 h-1/2 md:h-full cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
+                className="relative w-full md:w-1/2 h-[50vh] md:h-full cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
                 onHoverStart={() => setHoveredSide('security')}
                 onHoverEnd={() => setHoveredSide(null)}
                 onClick={() => handleSelectMode('security')}
-                animate={{ 
-                    width: hoveredSide === 'security' ? '55%' : hoveredSide === 'user' ? '45%' : '50%',
-                    height: hoveredSide === 'security' && window.innerWidth < 768 ? '55%' : hoveredSide === 'user' && window.innerWidth < 768 ? '45%' : '100%'
-                }}
-                transition={{ type: 'spring', stiffness: 200, damping: 25 }}
             >
                 {/* Background with Tactical Red/Black effects */}
                 <div className="absolute inset-0 bg-tactical-gradient z-0" />

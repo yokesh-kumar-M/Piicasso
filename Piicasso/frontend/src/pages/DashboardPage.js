@@ -238,7 +238,7 @@ const DashboardPage = () => {
         </div>
 
         {/* 3. Search + filters + view toggle (Sticky Control Bar) */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className={`sticky top-20 z-40 flex flex-col sm:flex-row justify-between items-end sm:items-center gap-4 mb-8 p-4 rounded-2xl bg-black/40 backdrop-blur-2xl border ${theme.border} shadow-[0_10px_40px_rgba(0,0,0,0.4)]`}>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className={`sticky top-16 md:top-20 z-40 flex flex-col sm:flex-row justify-between items-end sm:items-center gap-3 md:gap-4 mb-6 md:mb-8 p-3 md:p-4 rounded-2xl bg-black/40 backdrop-blur-2xl border ${theme.border} shadow-[0_10px_40px_rgba(0,0,0,0.4)]`}>
           <div className="relative w-full sm:w-[400px] flex-1 group">
             <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${isSecurityMode ? 'text-security-red/50 group-focus-within:text-security-red' : 'text-user-cobalt/50 group-focus-within:text-user-cobalt'}`} />
             <input
@@ -250,11 +250,11 @@ const DashboardPage = () => {
             />
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <div className={`flex items-center rounded-xl border p-1 ${theme.border} bg-black/60 shadow-inner`}>
+          <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
+            <div className={`flex items-center rounded-xl border p-1 ${theme.border} bg-black/60 shadow-inner w-full sm:w-auto`}>
               <button
                 onClick={() => setView('grid')}
-                className={`p-2 rounded-lg transition-all flex items-center gap-2 ${
+                className={`flex-1 sm:flex-initial p-2 rounded-lg transition-all flex items-center justify-center gap-2 ${
                   view === 'grid' ? `bg-white/10 text-white shadow-sm ring-1 ring-white/20` : `${theme.iconMuted} hover:bg-white/5`
                 }`}
               >
@@ -263,7 +263,7 @@ const DashboardPage = () => {
               </button>
               <button
                 onClick={() => setView('list')}
-                className={`p-2 rounded-lg transition-all flex items-center gap-2 ${
+                className={`flex-1 sm:flex-initial p-2 rounded-lg transition-all flex items-center justify-center gap-2 ${
                   view === 'list' ? `bg-white/10 text-white shadow-sm ring-1 ring-white/20` : `${theme.iconMuted} hover:bg-white/5`
                 }`}
               >
@@ -512,13 +512,13 @@ const DashboardPage = () => {
 
         {/* 6. Pagination Footer (Breathing Space) */}
         {totalPages > 1 && !loading && (
-          <div className={`mt-12 pt-8 border-t ${theme.border} flex flex-col md:flex-row items-center justify-between gap-4`}>
+          <div className={`mt-8 md:mt-12 pt-6 md:pt-8 border-t ${theme.border} flex flex-col md:flex-row items-center justify-between gap-4`}>
             
             <div className={`text-xs font-mono uppercase tracking-widest ${theme.textMuted} order-2 md:order-1`}>
               Showing page {currentPage} of {totalPages}
             </div>
 
-            <div className="flex items-center gap-1.5 order-1 md:order-2 bg-black/20 p-1.5 rounded-lg border border-white/5">
+            <div className="flex items-center gap-1.5 order-1 md:order-2 bg-black/20 p-1.5 rounded-lg border border-white/5 overflow-x-auto max-w-full">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}

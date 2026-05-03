@@ -187,7 +187,7 @@ const SuperAdminPage = () => {
                 {/* Mobile sidebar toggle */}
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className={`lg:hidden fixed bottom-6 left-6 z-50 ${theme.accentBg} text-white p-3 rounded-full shadow-lg transition-colors`}
+                    className={`lg:hidden fixed bottom-6 left-6 z-50 ${theme.accentBg} text-white p-3 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-full shadow-lg transition-colors`}
                 >
                     <ShieldAlert className="w-5 h-5" />
                 </button>
@@ -350,7 +350,7 @@ const SuperAdminPage = () => {
                             </h3>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Activity Log */}
-                                <div className={`${theme.card} !p-0 h-[600px] flex flex-col overflow-hidden`}>
+                                <div className={`${theme.card} !p-0 h-[400px] md:h-[600px] flex flex-col overflow-hidden`}>
                                     <div className={`${theme.tableHeader} p-4 border-b ${theme.borderMuted} text-xs font-bold uppercase tracking-widest flex justify-between items-center`}>
                                         <span>Terminal Stream ({data.activities.length} records)</span>
                                         <div className="flex gap-2">
