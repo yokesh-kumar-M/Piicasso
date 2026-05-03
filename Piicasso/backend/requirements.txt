@@ -28,6 +28,7 @@ cryptography>=43.0.0,<44
 
 # AI / LLM (Google Gemini)
 google-auth==2.37.0
+google-generativeai==0.8.3
 
 # HTTP clients
 requests==2.32.3

@@ -1,7 +1,7 @@
 services:
   # ─── Main Django Backend ─────────────────────────────────────────────────────
   - type: web
-    name: piicasso
+    name: core-engine
     env: docker
     plan: free
     region: singapore
@@ -9,6 +9,7 @@ services:
     rootDir: Piicasso/backend
     dockerfilePath: Dockerfile
     autoDeploy: true
+    healthCheckPath: /api/health/
     dockerCommand: sh ./start.sh
     envVars:
       - key: PORT
@@ -31,13 +32,15 @@ services:
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: piicasso.onrender.com,.onrender.com,localhost
+        value: core-engine-woeg.onrender.com,.onrender.com,localhost
       - key: CORS_ALLOWED_ORIGINS
-        value: https://piicasso.onrender.com,https://pii-casso.vercel.app
+        value: https://core-engine-woeg.onrender.com,https://pii-casso.vercel.app
       - key: GOOGLE_CLIENT_ID
         sync: false       # Set manually in Render dashboard
-      - key: PIILOGGER_URL
-        sync: false       # Set to your deployed piilogger URL, e.g. https://piilogger-service.onrender.com/logs
+      - key: ACCESS_TOKEN_MINUTES
+        value: '15'
+      - key: REFRESH_TOKEN_DAYS
+        value: '1'
 
   # ─── Celery Worker ───────────────────────────────────────────────────────────
   - type: worker

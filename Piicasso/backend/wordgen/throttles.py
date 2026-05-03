@@ -15,6 +15,9 @@ class RegisterRateThrottle(AnonRateThrottle):
 class PasswordResetRateThrottle(AnonRateThrottle):
     scope = 'password_reset'
 
+class TerminalRateThrottle(UserRateThrottle):
+    scope = 'terminal'
+
 import sys
 if 'test' in sys.argv:
-    PiiSubmitRateThrottle.rate = None
+    PIISubmitRateThrottle.rate = None

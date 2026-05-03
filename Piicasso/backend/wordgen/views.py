@@ -36,6 +36,7 @@ from .serializers import Piiserializer, SystemLogSerializer
 from .report_generator import generate_report_pdf
 from analytics.models import UserActivity
 from backend.throttles import PiiSubmitRateThrottle
+from .throttles import TerminalRateThrottle
 
 logger = logging.getLogger('wordgen')
 
@@ -715,6 +716,7 @@ class SimulatedTerminalView(APIView):
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    throttle_classes = [TerminalRateThrottle]
 
     # Whitelist of allowed simulated commands
     ALLOWED_COMMANDS = frozenset(['hydra', 'nmap', 'help', 'clear', 'whoami', 'status'])

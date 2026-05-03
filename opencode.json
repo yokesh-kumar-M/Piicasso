@@ -9,6 +9,15 @@
         "mcp"
       ],
       "enabled": false
+    },
+    "ruflo": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "ruflo@latest"
+      ],
+      "enabled": true
     }
   }
 }

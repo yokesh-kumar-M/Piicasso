@@ -300,6 +300,7 @@ REST_FRAMEWORK = {
         "otp_verify": "5/hour",
         "password_reset": "3/hour",
         "register": "5/hour",
+        "terminal": "10/minute",
     },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
@@ -478,23 +479,12 @@ else:
 
 # Eager execution for testing
 import sys
-if 'test' in sys.argv:
+
+if "test" in sys.argv:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_STORE_EAGER_RESULT = True
-
-if 'test' in sys.argv:
-    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
-
-if 'test' in sys.argv:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels.layers.InMemoryChannelLayer'
-        }
-    }
-
-if 'test' in sys.argv:
-    CELERY_BROKER_URL = 'memory://'
-    CELERY_RESULT_BACKEND = 'cache+memory://'
-
-if 'test' in sys.argv:
-    REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = []
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+    REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
