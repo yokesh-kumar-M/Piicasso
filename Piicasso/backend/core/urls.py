@@ -1,10 +1,10 @@
 from django.urls import path
-from .views import (
-    RegisterView,
+from .views import PingView
+from wordgen.auth_views import (
     MyTokenObtainPairView,
     GoogleLoginView,
-    PingView,
 )
+from wordgen.views import RegisterView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [

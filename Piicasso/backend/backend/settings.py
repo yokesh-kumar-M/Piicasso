@@ -5,7 +5,6 @@ Security-hardened, scalable, and production-ready configuration.
 """
 
 import os
-import logging.config
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
@@ -176,22 +175,34 @@ DATABASES = {
 
 # ─── CACHING ─────────────────────────────────────────────────────────────────
 if ENV == "production":
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1"),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "SOCKET_CONNECT_TIMEOUT": 5,
-                "SOCKET_TIMEOUT": 5,
-                "RETRY_ON_TIMEOUT": True,
-            },
-            "KEY_PREFIX": "piicasso",
-            "TIMEOUT": 3600,
+    redis_url = os.getenv("REDIS_URL", "")
+    if redis_url:
+        CACHES = {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": redis_url,
+                "OPTIONS": {
+                    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                    "SOCKET_CONNECT_TIMEOUT": 5,
+                    "SOCKET_TIMEOUT": 5,
+                    "RETRY_ON_TIMEOUT": True,
+                },
+                "KEY_PREFIX": "piicasso",
+                "TIMEOUT": 3600,
+            }
         }
-    }
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-    SESSION_CACHE_ALIAS = "default"
+        SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+        SESSION_CACHE_ALIAS = "default"
+    else:
+        # Fallback to local memory cache if Redis not available
+        CACHES = {
+            "default": {
+                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                "KEY_PREFIX": "piicasso",
+                "TIMEOUT": 3600,
+            }
+        }
+        SESSION_ENGINE = "django.contrib.sessions.backends.db"
 else:
     CACHES = {
         "default": {
@@ -443,15 +454,25 @@ ADMIN_SITE_TITLE = "PIIcasso Admin"
 ADMIN_INDEX_TITLE = "System Administration"
 
 # CELERY CONFIGURATION
-_redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-CELERY_BROKER_URL = os.getenv(
-    "CELERY_BROKER_URL",
-    f"{_redis_url}/0" if not _redis_url.endswith(("/0", "/1", "/2")) else _redis_url,
-)
-CELERY_RESULT_BACKEND = os.getenv(
-    "CELERY_RESULT_BACKEND",
-    f"{_redis_url}/1" if not _redis_url.endswith(("/0", "/1", "/2")) else _redis_url,
-)
+_redis_url = os.getenv("REDIS_URL", "")
+if _redis_url:
+    CELERY_BROKER_URL = os.getenv(
+        "CELERY_BROKER_URL",
+        f"{_redis_url}/0"
+        if not _redis_url.endswith(("/0", "/1", "/2"))
+        else _redis_url,
+    )
+    CELERY_RESULT_BACKEND = os.getenv(
+        "CELERY_RESULT_BACKEND",
+        f"{_redis_url}/1"
+        if not _redis_url.endswith(("/0", "/1", "/2"))
+        else _redis_url,
+    )
+else:
+    # Use disabled broker if Redis not available
+    CELERY_BROKER_URL = "disabled://"
+    CELERY_RESULT_BACKEND = "disabled://"
+
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -459,14 +480,21 @@ CELERY_TIMEZONE = TIME_ZONE
 
 # CHANNELS / WEBSOCKET CONFIGURATION
 if ENV == "production":
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379/2")],
+    redis_url = os.getenv("REDIS_URL", "")
+    if redis_url:
+        CHANNEL_LAYERS = {
+            "default": {
+                "BACKEND": "channels_redis.core.RedisChannelLayer",
+                "CONFIG": {
+                    "hosts": [redis_url],
+                },
             },
-        },
-    }
+        }
+    else:
+        # Fallback to in-memory if Redis not configured
+        CHANNEL_LAYERS = {
+            "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
+        }
 else:
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 

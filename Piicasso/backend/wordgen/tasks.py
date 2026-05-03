@@ -1,6 +1,4 @@
-import json
 import logging
-import hashlib
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from celery import shared_task
@@ -12,6 +10,7 @@ from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
 
 @shared_task
 def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id=None):
@@ -29,34 +28,38 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
             {
                 "type": "generation_progress",
                 "status": "Analyzing PII Data",
-                "progress": 20
-            }
+                "progress": 20,
+            },
         )
 
-        prompt = build_prompt(pii_data, )
-        
+        prompt = build_prompt(
+            pii_data,
+        )
+
         async_to_sync(channel_layer.group_send)(
             group_name,
             {
                 "type": "generation_progress",
                 "status": "Querying Gemini AI Engine...",
-                "progress": 50
-            }
+                "progress": 50,
+            },
         )
 
         wordlist_raw = call_gemini_api(prompt, pii_data=pii_data)
-        
+
         async_to_sync(channel_layer.group_send)(
             group_name,
             {
                 "type": "generation_progress",
                 "status": "Compiling and Filtering Wordlist...",
-                "progress": 80
-            }
+                "progress": 80,
+            },
         )
 
         rockyou_passwords = get_rockyou_wordlist()
-        ai_wordlist = [line.strip() for line in wordlist_raw.splitlines() if line.strip()]
+        ai_wordlist = [
+            line.strip() for line in wordlist_raw.splitlines() if line.strip()
+        ]
 
         seen = set()
         wordlist = []
@@ -64,7 +67,7 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
             if pwd not in seen:
                 wordlist.append(pwd)
                 seen.add(pwd)
-                
+
         # For simplicity, combine unique logic identical to views.py
         for pwd in rockyou_passwords:
             if pwd not in seen:
@@ -72,7 +75,9 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
                 seen.add(pwd)
 
         if not wordlist:
-            raise ValueError("The generated wordlist is empty. Ensure valid PII was provided.")
+            raise ValueError(
+                "The generated wordlist is empty. Ensure valid PII was provided."
+            )
 
         wordlist_text = "\n".join(wordlist)
 
@@ -86,7 +91,6 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
                 user=user,
                 pii_data=pii_data,
                 wordlist=wordlist_text,
-                
             )
 
         # 2. Complete status
@@ -97,20 +101,20 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
                 "status": "Generation Complete",
                 "progress": 100,
                 "wordlist_count": len(wordlist),
-                "cache_key": cache_key
-            }
+                "cache_key": cache_key,
+            },
         )
 
         return {"cache_key": cache_key, "count": len(wordlist)}
 
     except Exception as e:
-        logger.error(f"Wordlist generation failed: {e}")
+        logger.error(f"Wordlist generation failed: {e}", exc_info=True)
         async_to_sync(channel_layer.group_send)(
             group_name,
             {
                 "type": "generation_error",
                 "status": "Failed",
-                "error": str(e)
-            }
+                "error": "Generation failed. Please try again.",
+            },
         )
-        return {"error": str(e)}
+        return {"error": "Generation failed. Please try again."}

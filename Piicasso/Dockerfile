@@ -24,4 +24,5 @@ RUN mkdir -p /app/static && python manage.py collectstatic --noinput
 
 # Run application with load-balanced parallel worker processes
 # Reduced workers/threads to 2/2 for Render Free Tier (512MB RAM) safety
-CMD ["sh", "-c", "python manage.py migrate --fake-initial --noinput && gunicorn --workers 2 --threads 2 --bind 0.0.0.0:8000 backend.wsgi:application"]
+# Use start.sh which handles Redis availability gracefully
+CMD ["sh", "-c", "./start.sh"]

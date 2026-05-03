@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "https://piicasso.onrender.com/api/$1"
+            "destination": "https://core-engine-woeg.onrender.com/api/$1"
         },
         {
             "source": "/(.*)",
