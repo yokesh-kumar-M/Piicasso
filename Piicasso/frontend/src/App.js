@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import axios from './api/axios';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
@@ -57,6 +57,9 @@ const ApiDocsPage = React.lazy(() => import('./pages/ApiDocsPage'));
 function AppContent() {
   useHelpBeacon();
   const { mode } = useContext(ModeContext);
+  const location = useLocation();
+  const hideFooterPaths = ['/login', '/register', '/forgot-password'];
+  const shouldShowFooter = !hideFooterPaths.includes(location.pathname);
 
   // Apply theme class to body globally
   useEffect(() => {
@@ -155,9 +158,11 @@ function AppContent() {
             </div>
           )}
         </CinematicTransition>
-        <div className="shrink-0 w-full">
-          <Footer />
-        </div>
+        {shouldShowFooter && (
+          <div className="shrink-0 w-full">
+            <Footer />
+          </div>
+        )}
       </div>
     </>
   );
