@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const defaultBaseURL = process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/';
+      const defaultBaseURL = process.env.REACT_APP_API_URL || 'https://core-engine-woeg.onrender.com/api/';
       
       const refreshUrl = `${defaultBaseURL}user/token/refresh/`; 
          

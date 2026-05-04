@@ -87,7 +87,7 @@ const SavedPage = () => {
     };
 
     const getApiBase = () => {
-        return (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/').replace(/\/$/, '');
+        return (process.env.REACT_APP_API_URL || '/api/').replace(/\/$/, '');
     };
 
     const downloadWithSignedToken = async (fileType, id) => {

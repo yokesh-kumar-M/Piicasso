@@ -134,7 +134,7 @@ const ResultPage = () => {
                   <button
                     onClick={async () => {
                       try {
-                        const baseUrl = (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api').replace(/\/$/, '');
+                        const baseUrl = (process.env.REACT_APP_API_URL || '/api').replace(/\/$/, '');
                         const res = await axiosInstance.post('download-token/', {
                           file_type: 'report',
                           record_id: historyId,

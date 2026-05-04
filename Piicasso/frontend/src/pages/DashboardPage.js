@@ -101,7 +101,8 @@ const DashboardPage = () => {
   };
 
   const getApiBase = () => {
-    return (process.env.REACT_APP_API_URL || 'https://piicasso.onrender.com/api/').replace(/\/$/, '');
+    const base = process.env.REACT_APP_API_URL || '/api/';
+    return base.replace(/\/$/, '');
   };
 
   const downloadWithSignedToken = async (fileType, id) => {
