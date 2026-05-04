@@ -99,15 +99,16 @@ const UserDashboardPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-transparent max-w-[1200px] mx-auto p-4 sm:p-8 font-sans">
+    <div className="w-full min-h-screen flex flex-col bg-[#020617] font-sans">
+      <div className="flex-1 max-w-[1200px] mx-auto p-4 sm:p-8 pt-24">
       
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600 tracking-tight flex items-center gap-4 mb-3">
+        <h1 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 tracking-tight flex items-center gap-4 mb-3">
           <Lock className="w-10 h-10 text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]" />
           Shield Center
         </h1>
-        <p className="text-blue-200/60 font-medium text-sm md:text-base max-w-2xl leading-relaxed">
+        <p className="text-blue-200/50 text-sm md:text-base max-w-2xl leading-relaxed">
           Enterprise-grade password evaluation. Detect compromised credentials and receive tailored recommendations to fortify your digital perimeter.
         </p>
       </div>
@@ -116,10 +117,10 @@ const UserDashboardPage = () => {
         
         {/* Left Column: Analysis Form */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          <div className="relative overflow-hidden bg-[#0A0F1C]/80 backdrop-blur-2xl border border-blue-500/20 rounded-3xl p-5 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group hover:border-blue-500/40 transition-colors duration-500">
+          <div className="relative overflow-hidden usr-card p-5 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent pointer-events-none"></div>
             
-            <label className="block text-xs font-bold text-blue-400/80 mb-3 uppercase tracking-widest flex items-center gap-2">
+            <label className="block text-xs font-semibold text-blue-400/80 mb-3 uppercase tracking-widest flex items-center gap-2">
               <Shield className="w-4 h-4" /> Target Credential
             </label>
             
@@ -128,37 +129,37 @@ const UserDashboardPage = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#05080f] text-white px-6 py-5 rounded-2xl border border-blue-900/50 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all pr-14 font-mono text-xl shadow-inner placeholder-blue-900/50"
+                className="w-full bg-[#0a0f1c] text-white px-5 py-4 rounded-xl border border-blue-900/40 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all pr-14 font-mono text-lg shadow-inner placeholder-blue-900/40"
                 placeholder="Enter password..."
                 onKeyPress={(e) => e.key === 'Enter' && handleAnalyze()}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-blue-400 hover:text-white transition-colors bg-[#05080f] p-1"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-400 hover:text-white transition-colors bg-[#0a0f1c] p-1 rounded"
               >
-                {showPassword ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
 
             <AnimatePresence>
               {password && (
                 <motion.div initial={{opacity:0, height:0}} animate={{opacity:1, height:'auto'}} exit={{opacity:0, height:0}} className="mb-6 overflow-hidden">
-                  <div className="bg-[#05080f]/50 p-5 rounded-2xl border border-blue-900/30">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">
+                  <div className="bg-[#0a0f1c]/60 p-4 rounded-xl border border-blue-900/20">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-[10px] font-semibold text-blue-300 uppercase tracking-widest">
                         Entropy Estimate
                       </span>
-                      <span className="text-sm font-black px-3 py-1 rounded-full shadow-sm" style={{ backgroundColor: `${getStrengthColor(localStrengthScore)}15`, color: getStrengthColor(localStrengthScore), border: `1px solid ${getStrengthColor(localStrengthScore)}30` }}>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${getStrengthColor(localStrengthScore)}15`, color: getStrengthColor(localStrengthScore), border: `1px solid ${getStrengthColor(localStrengthScore)}30` }}>
                         {localStrengthScore}%
                       </span>
                     </div>
-                    <div className="w-full h-2.5 bg-[#0A0F1C] rounded-full overflow-hidden border border-black/50 shadow-inner">
+                    <div className="w-full h-2 bg-[#0a0f1c] rounded-full overflow-hidden border border-black/30">
                       <div 
                         className="h-full rounded-full transition-all duration-700 ease-out relative"
                         style={{ width: `${localStrengthScore}%`, backgroundColor: getStrengthColor(localStrengthScore) }}
                       >
-                        <div className="absolute inset-0 bg-white/20"></div>
+                        <div className="absolute inset-0 bg-white/15"></div>
                       </div>
                     </div>
                   </div>
@@ -173,18 +174,18 @@ const UserDashboardPage = () => {
               </motion.div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+            <div className="flex flex-col sm:flex-row gap-3 relative z-10">
               <button
                 onClick={handleAnalyze}
                 disabled={loading || !password}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 px-6 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-bold tracking-wide shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] active:scale-[0.98]"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3.5 px-5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold tracking-wide shadow-[0_0_20px_rgba(59,130,246,0.25)] transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-[0.98]"
               >
                 {loading ? <><RefreshCw className="w-5 h-5 animate-spin" /> Processing...</> : 'Initialize Scan'}
               </button>
 
               <button
                 onClick={() => setPiiExpanded(!piiExpanded)}
-                className="bg-[#05080f] hover:bg-[#0a0f1c] text-blue-300 hover:text-white font-semibold py-4 px-6 rounded-2xl border border-blue-900/50 flex items-center justify-center gap-2 transition-all shadow-sm group"
+                className="bg-[#0a0f1c] hover:bg-[#0f1525] text-blue-300 hover:text-white font-medium py-3.5 px-5 rounded-xl border border-blue-900/40 flex items-center justify-center gap-2 transition-all group"
               >
                 {piiExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Context <span className="hidden sm:inline">(Optional)</span>
@@ -192,7 +193,7 @@ const UserDashboardPage = () => {
               
               <button
                 onClick={() => setGeneratorExpanded(!generatorExpanded)}
-                className="bg-[#05080f] hover:bg-[#0a0f1c] text-blue-300 hover:text-white font-semibold py-4 px-6 rounded-2xl border border-blue-900/50 flex items-center justify-center gap-2 transition-all shadow-sm group"
+                className="bg-[#0a0f1c] hover:bg-[#0f1525] text-blue-300 hover:text-white font-medium py-3.5 px-5 rounded-xl border border-blue-900/40 flex items-center justify-center gap-2 transition-all group"
               >
                 {generatorExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Generate
@@ -204,10 +205,10 @@ const UserDashboardPage = () => {
           <AnimatePresence>
             {piiExpanded && (
               <motion.div initial={{opacity:0, height:0}} animate={{opacity:1, height:'auto'}} exit={{opacity:0, height:0}} className="overflow-hidden">
-                <div className="bg-[#0A0F1C]/80 backdrop-blur-2xl p-8 rounded-3xl border border-blue-500/20 shadow-inner">
-                  <div className="flex items-center gap-3 mb-6 border-b border-blue-900/30 pb-4">
+                <div className="usr-card p-6 sm:p-8 mt-6">
+                  <div className="flex items-center gap-3 mb-6 border-b border-blue-900/20 pb-4">
                     <User className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-xs font-bold text-blue-300 uppercase tracking-widest">Contextual Vectors</h3>
+                    <h3 className="text-xs font-semibold text-blue-300 uppercase tracking-widest">Contextual Vectors</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                     {[
@@ -221,11 +222,11 @@ const UserDashboardPage = () => {
                       const Icon = field.icon;
                       return (
                         <div key={field.key} className="space-y-2 group">
-                          <label className="text-[10px] font-bold text-blue-500/60 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-blue-400 transition-colors">
+                          <label className="text-[10px] font-semibold text-blue-500/60 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-blue-400 transition-colors">
                             <Icon className="w-3.5 h-3.5" /> {field.label}
                           </label>
                           <input 
-                            className="w-full bg-[#05080f] text-white px-4 py-3 rounded-xl border border-blue-900/30 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all text-sm font-mono placeholder-blue-900/30" 
+                            className="w-full bg-[#0a0f1c] text-white px-4 py-3 rounded-xl border border-blue-900/20 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all text-sm font-mono placeholder-blue-900/30" 
                             placeholder={`...`}
                             value={piiData[field.key]} 
                             onChange={e => setPiiData({...piiData, [field.key]: e.target.value})} 
@@ -240,7 +241,7 @@ const UserDashboardPage = () => {
 
             {generatorExpanded && (
               <motion.div initial={{opacity:0, height:0}} animate={{opacity:1, height:'auto'}} exit={{opacity:0, height:0}} className="overflow-hidden">
-                <div className="bg-[#0A0F1C]/80 backdrop-blur-2xl p-8 rounded-3xl border border-blue-500/20 shadow-inner">
+                <div className="usr-card p-6 sm:p-8 mt-6">
                   <PasswordGenerator onSelect={(pwd) => {
                     setPassword(pwd);
                     setGeneratorExpanded(false);
@@ -259,12 +260,12 @@ const UserDashboardPage = () => {
               <motion.div 
                 key="empty"
                 initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
-                className="flex-1 bg-[#0A0F1C]/30 backdrop-blur-md border border-blue-900/20 rounded-3xl p-8 flex flex-col items-center justify-center text-center min-h-[400px] border-dashed"
+                className="flex-1 usr-card border-dashed p-8 flex flex-col items-center justify-center text-center min-h-[400px]"
               >
                 <div className="w-20 h-20 rounded-full bg-blue-900/20 flex items-center justify-center mb-6">
                   <Lock className="w-10 h-10 text-blue-500/30" />
                 </div>
-                <h3 className="text-lg font-bold text-blue-300 mb-2">Awaiting Target Data</h3>
+                <h3 className="text-lg font-semibold text-blue-300 mb-2">Awaiting Target Data</h3>
                 <p className="text-sm text-blue-200/40 max-w-sm">
                   Enter a credential to initiate the security scan. Our engine cross-references known breach databases and structural entropy.
                 </p>
@@ -276,7 +277,7 @@ const UserDashboardPage = () => {
                 className="flex-1 flex flex-col gap-6"
               >
                 {/* Primary Status Card */}
-                <div className="bg-[#0A0F1C]/80 backdrop-blur-2xl border border-blue-500/20 rounded-3xl p-8 flex flex-col items-center text-center relative overflow-hidden">
+                <div className="usr-card p-8 flex flex-col items-center text-center relative overflow-hidden">
                   <div className={`absolute top-0 left-0 w-full h-1 ${
                     result.breach_count > 0 ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,1)]' :
                     result.strength_score < 50 ? 'bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,1)]' :
@@ -293,10 +294,10 @@ const UserDashboardPage = () => {
                      <CheckCircle className="w-10 h-10 text-emerald-500" />}
                   </div>
                   
-                  <h2 className="text-3xl font-black text-white tracking-tight uppercase mb-3">
+                  <h2 className="text-3xl font-bold text-white tracking-tight uppercase mb-3">
                     {result.vulnerability_level || 'Evaluated'}
                   </h2>
-                  <p className="text-blue-200/60 text-sm font-medium max-w-sm">
+                  <p className="text-blue-200/50 text-sm max-w-sm">
                     {result.breach_count > 0 
                       ? 'This password has appeared in known data breaches and is highly unsafe.' 
                       : result.strength_score < 50 
@@ -307,24 +308,24 @@ const UserDashboardPage = () => {
 
                 {/* Score & Breaches */}
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-[#0A0F1C]/80 backdrop-blur-2xl border border-blue-500/20 rounded-3xl p-6 relative overflow-hidden group">
+                  <div className="usr-card p-6 relative overflow-hidden group">
                     <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
                       <Shield className="w-32 h-32 text-blue-500" />
                     </div>
-                    <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-4">Calculated Score</div>
+                    <div className="text-[10px] font-semibold text-blue-400 uppercase tracking-widest mb-4">Calculated Score</div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-5xl font-black text-white tracking-tighter">{result.strength_score}</span>
-                      <span className="text-blue-500/50 font-bold mb-1">/100</span>
+                      <span className="text-5xl font-bold text-white tracking-tighter">{result.strength_score}</span>
+                      <span className="text-blue-500/50 font-semibold mb-1">/100</span>
                     </div>
                   </div>
 
-                  <div className="bg-[#0A0F1C]/80 backdrop-blur-2xl border border-blue-500/20 rounded-3xl p-6 relative overflow-hidden group">
+                  <div className="usr-card p-6 relative overflow-hidden group">
                     <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:opacity-10 transition-opacity">
                       <GlobeIcon className="w-32 h-32 text-blue-500" />
                     </div>
-                    <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-4">Breach Detections</div>
+                    <div className="text-[10px] font-semibold text-blue-400 uppercase tracking-widest mb-4">Breach Detections</div>
                     <div className="flex items-baseline gap-2">
-                      <span className={`text-5xl font-black tracking-tighter ${result.breach_count > 0 ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]'}`}>
+                      <span className={`text-5xl font-bold tracking-tighter ${result.breach_count > 0 ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]'}`}>
                         {result.breach_count > 0 ? result.breach_count.toLocaleString() : '0'}
                       </span>
                     </div>
@@ -333,14 +334,14 @@ const UserDashboardPage = () => {
 
                 {/* Intelligence Brief */}
                 {result.feedback && result.feedback.length > 0 && (
-                  <div className="bg-[#0A0F1C]/80 backdrop-blur-2xl border border-blue-500/20 rounded-3xl p-8">
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-5 flex items-center gap-2 border-b border-blue-900/30 pb-3">
+                  <div className="usr-card p-6 sm:p-8">
+                    <span className="text-xs font-semibold text-blue-400 uppercase tracking-widest mb-5 flex items-center gap-2 border-b border-blue-900/20 pb-3">
                       <AlertCircle className="w-4 h-4" /> Intelligence Brief
                     </span>
                     <ul className="space-y-4">
                       {result.feedback.map((f, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm text-blue-200/80 font-medium">
-                          <div className="mt-1 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
+                        <li key={i} className="flex items-start gap-3 text-sm text-blue-200/70">
+                          <div className="mt-1 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></div>
                           <span className="leading-relaxed">{f.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                         </li>
                       ))}
@@ -353,6 +354,7 @@ const UserDashboardPage = () => {
           </AnimatePresence>
         </div>
 
+      </div>
       </div>
     </div>
   );

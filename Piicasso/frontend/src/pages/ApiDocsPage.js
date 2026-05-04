@@ -4,12 +4,77 @@ import { Link } from 'react-router-dom';
 import { 
   Book, Code, Key, Shield, Zap, Database, 
   Copy, Check, ChevronRight, Terminal, Globe,
-  Box, FileText, Users, Lock, Play, ExternalLink
+  Box, FileText, Users, Lock, Play, ExternalLink,
+  Wifi
 } from 'lucide-react';
+
+// ─── Design tokens ───────────────────────────────────────────────────────
+const C = {
+  bg: '#050507',
+  surface: '#0C0C10',
+  surface2: '#141418',
+  surface3: '#1A1A20',
+  border: 'rgba(255,255,255,0.06)',
+  text: '#F2F2F2',
+  muted: 'rgba(255,255,255,0.35)',
+  dim: 'rgba(255,255,255,0.15)',
+  red: '#E11D48',
+  redDim: 'rgba(225,29,72,0.12)',
+  redBorder: 'rgba(225,29,72,0.25)',
+  blue: '#3B82F6',
+  blueDim: 'rgba(59,130,246,0.08)',
+  blueBorder: 'rgba(59,130,246,0.2)',
+  green: '#10B981',
+  amber: '#F59E0B',
+  purple: '#7C3AED',
+};
+
+const S = {
+  display: { fontFamily: "'Space Grotesk', sans-serif" },
+  mono: { fontFamily: "'JetBrains Mono', monospace" },
+};
+
+const CodeBlock = ({ code, id, copiedId, onCopy }) => (
+  <div className="terminal-block overflow-hidden">
+    <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.04] terminal-dots" style={{ ...S.mono, fontSize: 11, color: C.dim }}>
+      <span>example</span>
+      <button
+        onClick={() => onCopy(code, id)}
+        className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs transition-all ${
+          copiedId === id
+            ? 'text-green-400 bg-green-500/10'
+            : 'text-white/30 hover:text-white/60 hover:bg-white/5'
+        }`}
+      >
+        {copiedId === id ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy</>}
+      </button>
+    </div>
+    <pre className="p-4 text-sm overflow-x-auto" style={{ ...S.mono, color: C.muted, lineHeight: 1.7 }}>
+      <code>{code}</code>
+    </pre>
+  </div>
+);
+
+const MethodBadge = ({ method }) => {
+  const isGet = method === 'GET';
+  const isPost = method === 'POST';
+  const borderColor = isGet ? 'border-green-500/40' : isPost ? 'border-red-500/40' : 'border-amber-500/40';
+  const textColor = isGet ? 'text-green-400' : isPost ? 'text-red-400' : 'text-amber-400';
+  const bgColor = isGet ? 'bg-green-500/10' : isPost ? 'bg-red-500/10' : 'bg-amber-500/10';
+  return (
+    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider border ${bgColor} ${textColor} ${borderColor}`} style={S.mono}>
+      {method}
+    </span>
+  );
+};
 
 const ApiDocsPage = () => {
   const [copiedId, setCopiedId] = useState(null);
   const [activeSection, setActiveSection] = useState('quickstart');
+  const [accentMode, setAccentMode] = useState('red'); // 'red' or 'blue'
+  const accent = accentMode === 'red' ? C.red : C.blue;
+  const accentDim = accentMode === 'red' ? C.redDim : C.blueDim;
+  const accentBorder = accentMode === 'red' ? C.redBorder : C.blueBorder;
 
   const copyToClipboard = (text, id) => {
     navigator.clipboard.writeText(text);
@@ -53,11 +118,11 @@ const result = await client.redact({
 console.log(result.redactedText);
 // Output: "[NAME]'s SSN is [SSN]"`,
 
-    curl: `curl -X POST https://api.piicasso.io/v1/redact \\
+    curl: `curl -X POST https://core-engine-woeg.onrender.com/api/v1/redact \\
   -H "Authorization: Bearer your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "text": "John Smith's SSN is 123-45-6789",
+    "text": "John Smith\\'s SSN is 123-45-6789",
     "mode": "strict"
   }'`,
   };
@@ -136,7 +201,7 @@ console.log(result.redactedText);
   const sdks = [
     {
       name: 'Python',
-      icon: '🐍',
+      icon: <Terminal className="w-5 h-5" />,
       description: 'Our most popular SDK with full feature support',
       install: 'pip install piicasso',
       docs: '/docs/python',
@@ -144,7 +209,7 @@ console.log(result.redactedText);
     },
     {
       name: 'Node.js',
-      icon: '📦',
+      icon: <Code className="w-5 h-5" />,
       description: 'TypeScript-first SDK for modern JavaScript apps',
       install: 'npm install @piicasso/sdk',
       docs: '/docs/node',
@@ -152,7 +217,7 @@ console.log(result.redactedText);
     },
     {
       name: 'Go',
-      icon: '🔷',
+      icon: <Database className="w-5 h-5" />,
       description: 'High-performance SDK for Go applications',
       install: 'go get github.com/piicasso/piicasso-go',
       docs: '/docs/go',
@@ -160,7 +225,7 @@ console.log(result.redactedText);
     },
     {
       name: 'Java',
-      icon: '☕',
+      icon: <Box className="w-5 h-5" />,
       description: 'Enterprise-grade SDK for Java applications',
       install: 'mvn dependency:add com.piicasso:piicasso-java',
       docs: '/docs/java',
@@ -178,41 +243,67 @@ console.log(result.redactedText);
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div style={{ minHeight: '100vh', background: C.bg, color: C.text, ...S.display }}>
       {/* Header */}
-      <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-800">
-        <div className="container mx-auto px-6 lg:px-16 py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl"
-          >
+      <div style={{
+        background: `linear-gradient(to bottom, ${C.surface}, ${C.bg})`,
+        borderBottom: `1px solid ${C.border}`,
+      }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 24px 48px' }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 700 }}>
+            {/* Mode toggle */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-600/20 rounded-lg">
-                <Code className="w-6 h-6 text-blue-400" />
+              <div className="p-2 rounded-lg" style={{ background: accentDim }}>
+                <Code className="w-5 h-5" style={{ color: accent }} />
               </div>
-              <span className="px-3 py-1 bg-blue-600/20 text-blue-400 text-sm font-semibold rounded-full">
-                Developer Preview
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ background: accentDim, color: accent }}>
+                API v1.0
               </span>
+              {/* Accent mode toggle */}
+              <button
+                onClick={() => setAccentMode(a => a === 'red' ? 'blue' : 'red')}
+                className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all"
+                style={{
+                  border: `1px solid ${accentBorder}`,
+                  background: accentDim,
+                  color: accent,
+                }}
+              >
+                <div className="w-2 h-2 rounded-full" style={{ background: accent }} />
+                {accentMode === 'red' ? 'SEC' : 'USR'}
+              </button>
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+
+            <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16, color: C.text }}>
               API Documentation
             </h1>
-            <p className="text-xl text-slate-400 mb-8">
-              Build privacy-first applications with our powerful, developer-friendly API. 
-              Process millions of documents with sub-5ms latency.
+            <p style={{ fontSize: 17, color: C.muted, marginBottom: 32, lineHeight: 1.7 }}>
+              Build privacy-first applications with our developer-friendly API. Process documents with sub-5ms latency.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3">
               <Link
                 to="/register"
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                className="flex items-center gap-2 px-6 py-3 font-semibold rounded-lg transition-all"
+                style={{
+                  background: accent,
+                  color: '#fff',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
               >
                 Get API Key
                 <ChevronRight className="w-4 h-4" />
               </Link>
               <a
                 href="#"
-                className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg transition-colors border border-slate-700"
+                className="flex items-center gap-2 px-6 py-3 font-semibold rounded-lg transition-all border"
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  borderColor: C.border,
+                  color: C.text,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
               >
                 View on GitHub
                 <ExternalLink className="w-4 h-4" />
@@ -223,21 +314,28 @@ console.log(result.redactedText);
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 lg:px-16 py-12">
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 24px' }}>
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar Navigation */}
+          {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <nav className="space-y-1">
+            <div style={{ position: 'sticky', top: 24 }}>
+              <nav className="space-y-0.5">
                 {sections.map((section) => (
                   <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
-                      activeSection === section.id
-                        ? 'bg-blue-600/20 text-blue-400 font-semibold'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                    }`}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm transition-all"
+                    style={{
+                      background: activeSection === section.id ? accentDim : 'transparent',
+                      color: activeSection === section.id ? accent : C.muted,
+                      fontWeight: activeSection === section.id ? 600 : 400,
+                    }}
+                    onMouseEnter={e => {
+                      if (activeSection !== section.id) e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                    }}
+                    onMouseLeave={e => {
+                      if (activeSection !== section.id) e.currentTarget.style.background = 'transparent';
+                    }}
                   >
                     {section.icon}
                     {section.label}
@@ -245,22 +343,32 @@ console.log(result.redactedText);
                 ))}
               </nav>
 
-              {/* API Stats */}
-              <div className="mt-8 p-6 bg-slate-900/50 rounded-xl border border-slate-800">
-                <h3 className="font-semibold text-white mb-4">API Stats</h3>
+              {/* Live status + API Stats */}
+              <div style={{
+                marginTop: 32,
+                padding: 24,
+                background: C.surface,
+                borderRadius: 12,
+                border: `1px solid ${C.border}`,
+              }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Wifi className="w-3 h-3 text-green-400 animate-pulse" />
+                  <span className="text-xs font-bold tracking-wider uppercase text-green-400" style={S.mono}>Online</span>
+                </div>
                 <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Uptime</span>
-                    <span className="text-green-400 font-semibold">99.99%</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Avg Latency</span>
-                    <span className="text-blue-400 font-semibold">4.2ms</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Rate Limit</span>
-                    <span className="text-purple-400 font-semibold">1000/min</span>
-                  </div>
+                  {[
+                    { label: 'Uptime', value: '99.99%', color: '#10B981' },
+                    { label: 'Avg Latency', value: '4.2ms', color: accent },
+                    { label: 'Rate Limit', value: '1000/min', color: C.purple },
+                  ].map(s => (
+                    <div key={s.label} className="flex justify-between text-sm">
+                      <span style={{ color: C.muted }}>{s.label}</span>
+                      <span style={{ color: s.color, fontWeight: 600, ...S.mono }}>{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-[10px] mt-3 pt-3 border-t" style={{ color: C.dim, ...S.mono, borderColor: C.border }}>
+                  ⌘K for search
                 </div>
               </div>
             </div>
@@ -268,128 +376,78 @@ console.log(result.redactedText);
 
           {/* Main Content Area */}
           <div className="lg:col-span-3 space-y-12">
-            {/* Quick Start Section */}
             {activeSection === 'quickstart' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-8"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-4">Quick Start</h2>
-                  <p className="text-slate-400">
-                    Get up and running with PIIcasso API in under 5 minutes. Choose your preferred language below.
-                  </p>
+                  <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Quick Start</h2>
+                  <p style={{ color: C.muted, lineHeight: 1.7 }}>Get up and running with PIIcasso API in under 5 minutes.</p>
                 </div>
 
-                {/* Code Tabs */}
-                <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                  <div className="flex border-b border-slate-800">
-                    {Object.keys(codeSnippets).map((lang, index) => (
-                      <button
-                        key={lang}
-                        className={`px-6 py-3 text-sm font-medium transition-colors ${
-                          index === 0 ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {lang.charAt(0).toUpperCase() + lang.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="p-6">
-                    <pre className="text-sm font-mono text-slate-300 overflow-x-auto">
-                      <code>{codeSnippets.python}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(codeSnippets.python, 'python')}
-                      className="mt-4 flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
-                    >
-                      {copiedId === 'python' ? (
-                        <>
-                          <Check className="w-4 h-4 text-green-400" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          Copy code
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
+                <CodeBlock code={codeSnippets.python} id="python" copiedId={copiedId} onCopy={copyToClipboard} />
 
-                {/* Quick Stats */}
                 <div className="grid md:grid-cols-3 gap-4">
                   {[
                     { icon: <Zap className="w-5 h-5" />, value: '<5ms', label: 'Avg Response Time' },
                     { icon: <Shield className="w-5 h-5" />, value: '52', label: 'Languages Supported' },
                     { icon: <Database className="w-5 h-5" />, value: '99.99%', label: 'API Uptime' },
-                  ].map((stat, index) => (
-                    <div key={index} className="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
-                      <div className="text-blue-400 mb-2">{stat.icon}</div>
-                      <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                      <div className="text-sm text-slate-400">{stat.label}</div>
+                  ].map((stat) => (
+                    <div key={stat.label} style={{
+                      padding: 24,
+                      background: C.surface,
+                      borderRadius: 12,
+                      border: `1px solid ${C.border}`,
+                    }}>
+                      <div style={{ color: accent, marginBottom: 8 }}>{stat.icon}</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, marginBottom: 4 }}>{stat.value}</div>
+                      <div style={{ fontSize: 13, color: C.muted }}>{stat.label}</div>
                     </div>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* Authentication Section */}
             {activeSection === 'authentication' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-8"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-4">Authentication</h2>
-                  <p className="text-slate-400">
-                    All API requests require authentication using an API key. Include your API key in the Authorization header.
-                  </p>
+                  <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Authentication</h2>
+                  <p style={{ color: C.muted, lineHeight: 1.7 }}>All API requests require authentication using an API key.</p>
                 </div>
 
-                {/* Auth Method */}
-                <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
+                <div style={{ padding: 24, background: C.surface, borderRadius: 12, border: `1px solid ${C.border}` }}>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-green-600/20 rounded-lg">
-                      <Key className="w-5 h-5 text-green-400" />
+                    <div className="p-2 rounded-lg" style={{ background: accentDim }}>
+                      <Key className="w-5 h-5" style={{ color: accent }} />
                     </div>
-                    <h3 className="text-lg font-semibold">Bearer Token Authentication</h3>
+                    <h3 style={{ fontSize: 17, fontWeight: 600 }}>Bearer Token Authentication</h3>
                   </div>
-                  <div className="bg-slate-950 rounded-lg p-4 font-mono text-sm">
-                    <span className="text-slate-500">Authorization: Bearer </span>
-                    <span className="text-green-400">your_api_key_here</span>
+                  <div className="terminal-block px-4 py-3 text-sm" style={S.mono}>
+                    <span style={{ color: C.dim }}>Authorization: Bearer </span>
+                    <span style={{ color: accent }}>your_api_key_here</span>
                   </div>
                 </div>
 
-                {/* Getting Your API Key */}
-                <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
-                  <h3 className="text-lg font-semibold mb-4">Getting Your API Key</h3>
-                  <ol className="space-y-4 text-slate-400">
-                    <li className="flex gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-bold">1</span>
-                      <span>Sign up for a PIIcasso account at <Link to="/register" className="text-blue-400 hover:underline">piicasso.io/register</Link></span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-bold">2</span>
-                      <span>Navigate to the Dashboard → API Keys section</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center font-bold">3</span>
-                      <span>Click "Create New API Key" and copy your key</span>
-                    </li>
+                <div style={{ padding: 24, background: C.surface, borderRadius: 12, border: `1px solid ${C.border}` }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 16 }}>Getting Your API Key</h3>
+                  <ol className="space-y-4">
+                    {[
+                      <span>Sign up for a PIIcasso account at <Link to="/register" style={{ color: accent }}>piicasso.io/register</Link></span>,
+                      'Navigate to the Dashboard → API Keys section',
+                      'Click "Create New API Key" and copy your key',
+                    ].map((step, i) => (
+                      <li key={i} className="flex gap-3" style={{ color: C.muted }}>
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold" style={{ background: accent, color: '#fff' }}>{i + 1}</span>
+                        <span className="text-sm">{step}</span>
+                      </li>
+                    ))}
                   </ol>
                 </div>
 
-                {/* Security Tips */}
-                <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p-6">
+                <div style={{ padding: 24, borderRadius: 12, border: '1px solid rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.05)' }}>
                   <div className="flex items-start gap-3">
-                    <Shield className="w-5 h-5 text-amber-400 mt-0.5" />
+                    <Shield className="w-5 h-5 mt-0.5" style={{ color: C.amber }} />
                     <div>
-                      <h4 className="font-semibold text-amber-400 mb-2">Security Best Practices</h4>
-                      <ul className="space-y-2 text-sm text-amber-200/80">
+                      <h4 style={{ fontWeight: 600, color: C.amber, marginBottom: 8 }}>Security Best Practices</h4>
+                      <ul className="space-y-1.5 text-sm" style={{ color: 'rgba(245,158,11,0.7)' }}>
                         <li>• Never expose your API key in client-side code</li>
                         <li>• Use environment variables to store API keys</li>
                         <li>• Rotate your API keys regularly</li>
@@ -401,74 +459,57 @@ console.log(result.redactedText);
               </motion.div>
             )}
 
-            {/* Endpoints Section */}
             {activeSection === 'endpoints' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-8"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-4">API Endpoints</h2>
-                  <p className="text-slate-400">
-                    Explore our comprehensive REST API for all PII processing operations.
-                  </p>
+                  <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>API Endpoints</h2>
+                  <p style={{ color: C.muted, lineHeight: 1.7 }}>Explore our comprehensive REST API for all PII processing operations.</p>
                 </div>
 
-                {/* Base URL */}
-                <div className="bg-slate-900 rounded-xl border border-slate-800 p-4 font-mono text-sm">
-                  <span className="text-slate-500">Base URL: </span>
-                  <span className="text-blue-400">https://api.piicasso.io</span>
+                <div className="terminal-block px-4 py-3 text-sm" style={S.mono}>
+                  <span style={{ color: C.dim }}>Base URL: </span>
+                  <span style={{ color: accent }}>https://core-engine-woeg.onrender.com/api</span>
                 </div>
 
-                {/* Endpoints List */}
                 <div className="space-y-6">
-                  {endpoints.map((endpoint, index) => (
-                    <div key={index} className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                      <div className="p-6 border-b border-slate-800">
-                        <div className="flex items-center gap-4 mb-2">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                            endpoint.method === 'GET' ? 'bg-green-600/20 text-green-400' : 'bg-blue-600/20 text-blue-400'
-                          }`}>
-                            {endpoint.method}
-                          </span>
-                          <code className="text-white font-mono">{endpoint.path}</code>
-                          <span className="px-2 py-0.5 bg-slate-800 rounded text-xs text-slate-400">
-                            {endpoint.category}
-                          </span>
+                  {endpoints.map((endpoint) => (
+                    <div key={endpoint.path} style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
+                      <div style={{ padding: 24, borderBottom: `1px solid ${C.border}` }}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <MethodBadge method={endpoint.method} />
+                          <code style={{ ...S.mono, color: C.text, fontSize: 14 }}>{endpoint.path}</code>
+                          <span className="px-2 py-0.5 rounded text-xs" style={{ background: C.surface2, color: C.muted }}>{endpoint.category}</span>
                         </div>
-                        <p className="text-slate-400">{endpoint.description}</p>
+                        <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.6 }}>{endpoint.description}</p>
                       </div>
-                      
-                      {/* Parameters */}
+
                       {endpoint.parameters.length > 0 && (
-                        <div className="p-6 border-b border-slate-800">
-                          <h4 className="text-sm font-semibold text-slate-300 mb-3">Parameters</h4>
+                        <div style={{ padding: 24, borderBottom: `1px solid ${C.border}` }}>
+                          <h4 className="text-xs font-semibold uppercase mb-3" style={{ color: C.muted, letterSpacing: '0.05em' }}>Parameters</h4>
                           <div className="space-y-2">
-                            {endpoint.parameters.map((param, pIndex) => (
-                              <div key={pIndex} className="flex items-start gap-4 text-sm">
-                                <code className="text-blue-400 min-w-[120px]">{param.name}</code>
-                                <span className="text-purple-400">{param.type}</span>
-                                {param.required && <span className="text-red-400">required</span>}
-                                <span className="text-slate-400">{param.description}</span>
+                            {endpoint.parameters.map((param, i) => (
+                              <div key={i} className="flex items-start gap-4 text-sm">
+                                <code style={{ ...S.mono, color: accent, minWidth: 120 }}>{param.name}</code>
+                                <span style={{ color: C.purple }}>{param.type}</span>
+                                {param.required && <span style={{ color: C.red }}>required</span>}
+                                <span style={{ color: C.muted }}>{param.description}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {/* Example */}
-                      <div className="p-6 bg-slate-950/50">
+                      <div style={{ padding: 24, background: C.surface2 }}>
                         <div className="grid md:grid-cols-2 gap-4">
                           <div>
-                            <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2">Request</h4>
-                            <pre className="text-xs font-mono text-slate-300 bg-slate-950 rounded-lg p-3 overflow-x-auto">
+                            <h4 className="text-[10px] font-semibold uppercase mb-2" style={{ color: C.dim, letterSpacing: '0.05em' }}>Request</h4>
+                            <pre className="text-xs rounded-lg p-3 overflow-x-auto" style={{ ...S.mono, color: C.muted, background: '#0a0a0e' }}>
                               {JSON.stringify(endpoint.example.request, null, 2)}
                             </pre>
                           </div>
                           <div>
-                            <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2">Response</h4>
-                            <pre className="text-xs font-mono text-slate-300 bg-slate-950 rounded-lg p-3 overflow-x-auto">
+                            <h4 className="text-[10px] font-semibold uppercase mb-2" style={{ color: C.dim, letterSpacing: '0.05em' }}>Response</h4>
+                            <pre className="text-xs rounded-lg p-3 overflow-x-auto" style={{ ...S.mono, color: C.muted, background: '#0a0a0e' }}>
                               {JSON.stringify(endpoint.example.response, null, 2)}
                             </pre>
                           </div>
@@ -480,168 +521,124 @@ console.log(result.redactedText);
               </motion.div>
             )}
 
-            {/* SDKs Section */}
             {activeSection === 'sdks' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-8"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-4">SDKs & Libraries</h2>
-                  <p className="text-slate-400">
-                    Official SDKs for popular programming languages. Each SDK provides full API coverage with idiomatic interfaces.
-                  </p>
+                  <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>SDKs & Libraries</h2>
+                  <p style={{ color: C.muted, lineHeight: 1.7 }}>Official SDKs for popular programming languages. Each SDK provides full API coverage.</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  {sdks.map((sdk, index) => (
+                  {sdks.map((sdk) => (
                     <div
-                      key={index}
-                      className={`p-6 rounded-xl border transition-all ${
-                        sdk.popular 
-                          ? 'bg-gradient-to-br from-blue-900/30 to-purple-900/30 border-blue-800/50' 
-                          : 'bg-slate-900 border-slate-800'
-                      }`}
+                      key={sdk.name}
+                      className="transition-all"
+                      style={{
+                        padding: 24,
+                        borderRadius: 12,
+                        border: sdk.popular ? `1px solid ${accentBorder}` : `1px solid ${C.border}`,
+                        background: sdk.popular ? `linear-gradient(135deg, ${accentDim}, rgba(255,255,255,0.01))` : C.surface,
+                      }}
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">{sdk.icon}</span>
+                          <div style={{ color: accent }}>{sdk.icon}</div>
                           <div>
-                            <h3 className="font-semibold text-white">{sdk.name}</h3>
-                            {sdk.popular && (
-                              <span className="text-xs text-blue-400">Most Popular</span>
-                            )}
+                            <h3 style={{ fontWeight: 600, color: C.text }}>{sdk.name}</h3>
+                            {sdk.popular && <span className="text-xs" style={{ color: accent }}>Most Popular</span>}
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm text-slate-400 mb-4">{sdk.description}</p>
-                      <div className="bg-slate-950 rounded-lg p-3 font-mono text-xs text-slate-300 mb-4">
-                        {sdk.install}
-                      </div>
-                      <a
-                        href={sdk.docs}
-                        className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                      >
+                      <p className="text-sm mb-4" style={{ color: C.muted }}>{sdk.description}</p>
+                      <div className="rounded-lg px-3 py-2 text-xs mb-4 terminal-block" style={S.mono}>{sdk.install}</div>
+                      <Link to={sdk.docs} className="text-sm flex items-center gap-1" style={{ color: accent }}>
                         View Documentation <ChevronRight className="w-4 h-4" />
-                      </a>
+                      </Link>
                     </div>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* Examples Section */}
             {activeSection === 'examples' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-8"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-4">Code Examples</h2>
-                  <p className="text-slate-400">
-                    Real-world examples showing common use cases and integrations.
-                  </p>
+                  <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Code Examples</h2>
+                  <p style={{ color: C.muted, lineHeight: 1.7 }}>Real-world examples showing common use cases.</p>
                 </div>
 
-                {/* Example Cards */}
                 {[
                   {
                     title: 'Healthcare Patient Records',
                     description: 'Automatically redact PHI from medical records for research sharing.',
-                    code: `result = client.redact(
-    text="Patient John Doe, MRN 12345, 
-          SSN 123-45-6789 treated for...",
-    mode="strict",
-    entities=["NAME", "SSN", "MRN"]
-)`,
+                    code: `result = client.redact(\n    text="Patient John Doe, MRN 12345,\n          SSN 123-45-6789 treated for...",\n    mode="strict",\n    entities=["NAME", "SSN", "MRN"]\n)`,
                     industry: 'Healthcare',
                     icon: <Users className="w-5 h-5" />
                   },
                   {
                     title: 'Financial Documents',
                     description: 'Process loan applications by redacting sensitive financial identifiers.',
-                    code: `result = client.synthesize(
-    text="Account #1234567890, 
-          Routing 021000021...",
-    preserve_format=True
-)`,
+                    code: `result = client.synthesize(\n    text="Account #1234567890,\n          Routing 021000021...",\n    preserve_format=True\n)`,
                     industry: 'Finance',
                     icon: <Database className="w-5 h-5" />
                   },
                   {
                     title: 'Customer Support Logs',
                     description: 'Anonymize support tickets before storing for analytics.',
-                    code: `result = client.redact(
-    text="Customer called from 555-123-4567
-          about order #98765...",
-    mode="synthetic"
-)`,
+                    code: `result = client.redact(\n    text="Customer called from 555-123-4567\n          about order #98765...",\n    mode="synthetic"\n)`,
                     industry: 'SaaS',
                     icon: <Box className="w-5 h-5" />
                   },
-                ].map((example, index) => (
-                  <div key={index} className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                    <div className="p-6 border-b border-slate-800">
+                ].map((example) => (
+                  <div key={example.title} style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
+                    <div style={{ padding: 24, borderBottom: `1px solid ${C.border}` }}>
                       <div className="flex items-center gap-3 mb-2">
-                        {example.icon}
-                        <span className="px-2 py-0.5 bg-slate-800 rounded text-xs text-slate-400">
-                          {example.industry}
-                        </span>
+                        <div style={{ color: accent }}>{example.icon}</div>
+                        <span className="px-2 py-0.5 rounded text-xs" style={{ background: C.surface2, color: C.muted }}>{example.industry}</span>
                       </div>
-                      <h3 className="text-lg font-semibold text-white mb-1">{example.title}</h3>
-                      <p className="text-sm text-slate-400">{example.description}</p>
+                      <h3 style={{ fontSize: 17, fontWeight: 600, color: C.text, marginBottom: 4 }}>{example.title}</h3>
+                      <p className="text-sm" style={{ color: C.muted }}>{example.description}</p>
                     </div>
-                    <div className="p-6 bg-slate-950/50">
-                      <pre className="text-sm font-mono text-slate-300 overflow-x-auto">
-                        <code>{example.code}</code>
-                      </pre>
+                    <div style={{ padding: 24 }}>
+                      <pre className="text-sm overflow-x-auto" style={{ ...S.mono, color: C.muted, lineHeight: 1.7 }}>{example.code}</pre>
                     </div>
                   </div>
                 ))}
               </motion.div>
             )}
 
-            {/* Error Handling Section */}
             {activeSection === 'errors' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-8"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-4">Error Handling</h2>
-                  <p className="text-slate-400">
-                    The API uses standard HTTP response codes to indicate success or failure of requests.
-                  </p>
+                  <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Error Handling</h2>
+                  <p style={{ color: C.muted, lineHeight: 1.7 }}>The API uses standard HTTP response codes to indicate success or failure.</p>
                 </div>
 
-                <div className="space-y-4">
-                  {errorCodes.map((error, index) => (
+                <div className="space-y-3">
+                  {errorCodes.map((error) => (
                     <div
-                      key={index}
-                      className="flex items-center gap-4 p-4 bg-slate-900 rounded-xl border border-slate-800"
+                      key={error.code}
+                      className="flex items-center gap-4 p-4 rounded-xl"
+                      style={{ background: C.surface, border: `1px solid ${C.border}` }}
                     >
-                      <span className={`px-3 py-1 rounded-lg text-sm font-bold ${
-                        error.severity === 'error' 
-                          ? 'bg-red-600/20 text-red-400' 
-                          : 'bg-amber-600/20 text-amber-400'
-                      }`}>
+                      <span className={`px-2.5 py-1 rounded-lg text-sm font-bold border ${
+                        error.severity === 'error'
+                          ? 'bg-red-500/10 text-red-400 border-red-500/30'
+                          : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                      }`} style={S.mono}>
                         {error.code}
                       </span>
                       <div>
-                        <h4 className="font-semibold text-white">{error.name}</h4>
-                        <p className="text-sm text-slate-400">{error.description}</p>
+                        <h4 style={{ fontWeight: 600, color: C.text }}>{error.name}</h4>
+                        <p className="text-sm" style={{ color: C.muted }}>{error.description}</p>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Error Response Format */}
-                <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
-                  <h3 className="text-lg font-semibold mb-4">Error Response Format</h3>
-                  <pre className="text-sm font-mono text-slate-300 bg-slate-950 rounded-lg p-4">
+                <div style={{ padding: 24, background: C.surface, borderRadius: 12, border: `1px solid ${C.border}` }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 12 }}>Error Response Format</h3>
+                  <pre className="text-sm rounded-lg p-4" style={{ ...S.mono, color: C.muted, background: '#0a0a0e' }}>
 {`{
   "error": {
     "code": "invalid_api_key",
@@ -658,28 +655,30 @@ console.log(result.redactedText);
       </div>
 
       {/* CTA Footer */}
-      <div className="bg-gradient-to-t from-slate-900 to-slate-950 border-t border-slate-800">
-        <div className="container mx-auto px-6 lg:px-16 py-16">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">Ready to Build?</h2>
-            <p className="text-slate-400 mb-8">
-              Start processing PII today with our generous free tier. No credit card required.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link
-                to="/register"
-                className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
-              >
-                Get Started Free
-                <Play className="w-5 h-5" />
-              </Link>
-              <a
-                href="#"
-                className="flex items-center gap-2 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg transition-colors border border-slate-700"
-              >
-                Contact Sales
-              </a>
-            </div>
+      <div style={{ background: `linear-gradient(to top, ${C.surface}, ${C.bg})`, borderTop: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', padding: '64px 24px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 16 }}>Ready to Build?</h2>
+          <p className="mb-8" style={{ color: C.muted, lineHeight: 1.7 }}>Start processing PII today with our generous free tier. No credit card required.</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              to="/register"
+              className="flex items-center gap-2 px-8 py-4 font-bold rounded-lg transition-all"
+              style={{ background: accent, color: '#fff' }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              Get Started Free
+              <Play className="w-5 h-5" />
+            </Link>
+            <a
+              href="#"
+              className="flex items-center gap-2 px-8 py-4 font-semibold rounded-lg transition-all border"
+              style={{ background: 'rgba(255,255,255,0.02)', borderColor: C.border, color: C.text }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+            >
+              Contact Sales
+            </a>
           </div>
         </div>
       </div>

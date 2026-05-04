@@ -33,7 +33,7 @@ const SecurityDashboardPage = () => {
   const totalCompletenessScore = useMemo(() => Math.round((Object.values(metrics).reduce((a, b) => a + b, 0) / 60) * 100) || 0, [metrics]);
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-[#0a0a0a] text-security-text font-sans">
+    <div className="w-full min-h-screen flex flex-col bg-[#050505] text-security-text font-sans">
       <Navbar />
       
       <div className="flex-1 w-full max-w-[1800px] mx-auto pt-24 px-4 sm:px-6 lg:px-8 pb-12 flex flex-col">
@@ -46,7 +46,7 @@ const SecurityDashboardPage = () => {
               <ShieldAlert className="w-8 h-8 md:w-10 md:h-10 text-security-red relative z-10" />
             </div>
             <div>
-              <h1 className="security-heading text-xl md:text-2xl lg:text-3xl m-0 leading-none tracking-widest text-white">TACTICAL DASHBOARD</h1>
+              <h1 className="font-display font-bold text-xl md:text-2xl lg:text-3xl m-0 leading-none tracking-[0.15em] uppercase text-white">TACTICAL DASHBOARD</h1>
               <p className="text-[9px] md:text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-1">Intelligence Generation Interface</p>
             </div>
           </div>
@@ -70,7 +70,7 @@ const SecurityDashboardPage = () => {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full responsive-dashboard-height">
           
           {/* Left Column: Target Input Pane (Spans 4 columns) */}
-          <div className="xl:col-span-4 flex flex-col bg-[#0f0f0f] border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
+          <div className="xl:col-span-4 flex flex-col sec-card overflow-hidden shadow-2xl relative">
             <div className="px-5 py-4 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 text-white">
                 <Crosshair className="w-4 h-4 text-security-red" />
@@ -93,7 +93,7 @@ const SecurityDashboardPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-[300px] md:min-h-[400px]">
               
               {/* Profile Matrix (Risk Radar) */}
-              <div className="bg-[#0f0f0f] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col relative group">
+              <div className="sec-card overflow-hidden shadow-2xl flex flex-col relative group">
                 <div className="px-4 py-3 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
                     <Activity className="w-3.5 h-3.5 text-security-red" />
@@ -107,7 +107,7 @@ const SecurityDashboardPage = () => {
               </div>
 
               {/* 3D Globe (Geospatial Tracking) */}
-              <div className="bg-[#0f0f0f] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
+              <div className="sec-card overflow-hidden shadow-2xl flex flex-col relative">
                 <div className="px-4 py-3 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0 z-20">
                   <div className="flex items-center gap-2">
                     <Wifi className="w-3.5 h-3.5 text-security-red" />
@@ -134,7 +134,7 @@ const SecurityDashboardPage = () => {
             </div>
 
             {/* Bottom Half: Full Width System Logs */}
-            <div className="bg-[#050505] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[200px] md:h-[250px] shrink-0">
+            <div className="sec-card overflow-hidden shadow-2xl flex flex-col h-[200px] md:h-[250px] shrink-0">
               <div className="px-4 py-3 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   <Terminal className="w-3.5 h-3.5 text-gray-400" />
