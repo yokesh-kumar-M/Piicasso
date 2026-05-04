@@ -35,6 +35,10 @@ const LoginPage = () => {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    // Guard against auto-triggered calls with empty/invalid credentials
+    if (!credentialResponse?.credential || credentialResponse.credential.split('.').length < 3) {
+      return;
+    }
     setLoading(true);
     setError('');
     try {
