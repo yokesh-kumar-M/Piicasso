@@ -21,10 +21,24 @@ const HomePage = () => {
     return (
         <div className="relative w-full min-h-screen overflow-hidden bg-black font-sans text-white flex flex-col md:flex-row">
             
-            {/* Fixed Logo at Top Center */}
+            {/* Fixed Logo at Top Center — larger */}
             <div className="absolute top-4 md:top-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-                <Logo className="text-3xl md:text-5xl drop-shadow-2xl" />
+                <Logo className="text-4xl md:text-6xl drop-shadow-2xl" />
             </div>
+
+            {/* Glowing center divider */}
+            <div
+                className="hidden md:block absolute left-1/2 top-0 bottom-0 z-40 -translate-x-1/2 w-[2px]"
+                style={{
+                    background: hoveredSide
+                        ? `linear-gradient(to bottom, ${hoveredSide === 'user' ? 'rgba(59,130,246,0.6)' : 'rgba(225,29,72,0.6)'}, transparent 30%, transparent 70%, ${hoveredSide === 'user' ? 'rgba(59,130,246,0.6)' : 'rgba(225,29,72,0.6)'})`
+                        : 'rgba(255,255,255,0.06)',
+                    boxShadow: hoveredSide
+                        ? `0 0 16px ${hoveredSide === 'user' ? 'rgba(59,130,246,0.5)' : 'rgba(225,29,72,0.5)'}`
+                        : 'none',
+                    transition: 'background 0.3s, box-shadow 0.3s',
+                }}
+            />
 
             {/* Left Side: USER MODE (Midnight Cobalt Glass) */}
             <motion.div 
@@ -40,7 +54,7 @@ const HomePage = () => {
                 <motion.div 
                     className="absolute top-1/4 left-1/4 w-64 h-64 bg-user-cobalt/20 rounded-full blur-[100px] pointer-events-none"
                     animate={{ scale: hoveredSide === 'user' ? 1.5 : 1, opacity: hoveredSide === 'user' ? 0.4 : 0.2 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.3 }}
                 />
 
                 <div className="relative z-10 flex flex-col items-center text-center px-6 md:px-8">
@@ -78,13 +92,20 @@ const HomePage = () => {
                     animate={{ opacity: hoveredSide === 'user' ? 1 : 0.5, y: hoveredSide === 'user' ? -5 : 0 }}
                 >
                     <div className="flex -space-x-2">
-                        <div className="w-8 h-8 rounded-full bg-user-cobalt/20 border border-user-cobalt/50 flex items-center justify-center"><Key className="w-4 h-4 text-user-cobalt" /></div>
+                        <div className="w-8 h-8 rounded-full bg-user-cobalt/20 border border-user-cobalt/50 flex items-center justify-center group/shield"><Key className="w-4 h-4 text-user-cobalt" /></div>
                         <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-400/50 flex items-center justify-center"><Lock className="w-4 h-4 text-green-400" /></div>
                     </div>
                     <div className="text-left">
                         <div className="text-[10px] text-blue-300 uppercase tracking-wider font-bold">System Status</div>
                         <div className="text-xs font-mono text-white">Protected</div>
                     </div>
+                    <motion.div
+                        className="ml-2 text-user-cobalt"
+                        animate={{ rotate: hoveredSide === 'user' ? 360 : 0 }}
+                        transition={{ duration: 0.6, ease: 'easeInOut' }}
+                    >
+                        <Shield className="w-4 h-4" />
+                    </motion.div>
                 </motion.div>
             </motion.div>
 
@@ -103,7 +124,7 @@ const HomePage = () => {
                 <motion.div 
                     className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-security-red/10 rounded-full blur-[120px] pointer-events-none"
                     animate={{ scale: hoveredSide === 'security' ? 1.5 : 1, opacity: hoveredSide === 'security' ? 0.4 : 0.1 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.3 }}
                 />
 
                 <div className="relative z-10 flex flex-col items-center text-center px-8">
@@ -151,16 +172,22 @@ const HomePage = () => {
                         <span className="text-white">SECURE</span>
                     </div>
                     <div className="w-full h-1 bg-red-900/50 mt-1 overflow-hidden">
-                        <motion.div 
-                            className="h-full bg-security-red" 
-                            initial={{ width: "0%" }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                        />
+                    <motion.div 
+                        className="h-full bg-security-red" 
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                    />
                     </div>
                 </motion.div>
             </motion.div>
             
+            {/* Keyboard hint at bottom */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                <span className="font-mono text-[10px] tracking-wider text-white/20">
+                    ← User &nbsp;|&nbsp; Security →
+                </span>
+            </div>
         </div>
     );
 };

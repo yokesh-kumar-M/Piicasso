@@ -287,8 +287,10 @@ export default function LandingPage() {
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
           backgroundSize: '64px 64px',
         }} />
-        {/* Red blob */}
+        {/* Red blob — top right */}
         <div style={{ position: 'absolute', top: -100, right: -100, width: 600, height: 600, background: 'radial-gradient(circle, rgba(255,23,68,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        {/* Blue blob — bottom left */}
+        <div style={{ position: 'absolute', bottom: -150, left: -150, width: 600, height: 600, background: 'radial-gradient(circle, rgba(41,121,255,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
         {/* Scanline */}
         <div style={{ position: 'absolute', left: 0, right: 0, height: 2, background: 'rgba(255,23,68,0.04)', animation: 'pi-scan 4s linear infinite', pointerEvents: 'none' }} />
 
@@ -370,7 +372,13 @@ export default function LandingPage() {
       </div>
 
       {/* ═══════════════════════════════════ SPLIT: TWO MODES ═════════════════ */}
-      <section className="pi-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: `1px solid ${C.border}` }}>
+      <section className="pi-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: `1px solid ${C.border}`, position: 'relative' }}>
+        {/* Glowing center divider */}
+        <div style={{
+          position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, zIndex: 2,
+          background: C.border, transform: 'translateX(-50%)',
+        }} />
+
         {/* Security */}
         <FadeIn delay={0} style={{ padding: '80px 48px', background: 'rgba(255,23,68,0.02)', borderRight: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden', transition: 'all 0.3s' }}>
           <div style={{ position: 'absolute', top: 40, right: -20, ...S.display, fontSize: 120, fontWeight: 900, color: C.dim, opacity: 0.06, pointerEvents: 'none', lineHeight: 1 }}>SEC</div>
@@ -417,6 +425,13 @@ export default function LandingPage() {
           </div>
         </FadeIn>
       </section>
+
+      {/* Mode split keyboard hint */}
+      <div style={{ textAlign: 'center', padding: '12px 0', borderTop: `1px solid ${C.border}`, background: C.surface }}>
+        <span style={{ ...S.mono, fontSize: 11, color: C.dim, letterSpacing: '0.05em' }}>
+          ← User <span style={{ color: C.border }}>|</span> Security →
+        </span>
+      </div>
 
       {/* ═══════════════════════════════════ HOW IT WORKS ═════════════════════ */}
       <section className="pi-section" style={{ padding: '96px 48px', maxWidth: 900, margin: '0 auto' }}>

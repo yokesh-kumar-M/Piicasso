@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
 @layer base {
   :root {
@@ -25,19 +25,40 @@
     box-sizing: border-box;
   }
   
-  /* The global body switches dynamically via ModeManager context but defaults to Tactical Dark */
+  /* The global body switches dynamically via ModeManager context but defaults to Tactical DARK */
   body {
-    @apply font-sans antialiased overflow-x-hidden transition-colors duration-700 bg-security-bg text-security-text;
+    @apply font-sans antialiased overflow-x-hidden transition-colors duration-700;
+    background: #050507;
+    color: #F2F2F2;
   }
   
   /* --- Security Mode (Tactical Dark/Red) --- */
   .theme-security {
-    @apply bg-security-bg text-security-text font-sans min-h-screen selection:bg-security-red/30 selection:text-white;
+    @apply font-sans min-h-screen selection:bg-security-red/30 selection:text-white;
+    background: #050505;
+    color: #F8FAFC;
   }
   
   /* --- User Mode (Midnight Cobalt Glass) --- */
   .theme-user {
-    @apply bg-cobalt-gradient text-user-text font-sans min-h-screen selection:bg-user-cobalt/30 selection:text-white;
+    @apply font-sans min-h-screen selection:bg-user-cobalt/30 selection:text-white;
+    background: #020617;
+    color: #F1F5F9;
+  }
+
+  /* Page-level background grid overlay */
+  .theme-security::before,
+  .theme-user::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.04;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -104,6 +125,95 @@
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* --- New Shared CSS Utilities (Design System) --- */
+
+/* Glow animations */
+@keyframes sec-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(225, 29, 72, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(225, 29, 72, 0.6); }
+}
+@keyframes usr-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+}
+@keyframes scan-line {
+  0% { top: -2px; }
+  100% { top: 100%; }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Security card variant — sharp, tactical */
+.sec-card {
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+.sec-card:hover {
+  border-color: rgba(225, 29, 72, 0.3);
+}
+
+/* User card variant — rounded, glassmorphism */
+.usr-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  transition: border-color 0.2s;
+}
+.usr-card:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Terminal block — code/results display */
+.terminal-block {
+  background: #0a0a0e;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.terminal-dots::before {
+  content: '● ● ●';
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 10px;
+  letter-spacing: 4px;
+}
+
+/* Mode-specific scrollbar thumbs */
+.theme-security ::-webkit-scrollbar-thumb { background: rgba(225, 29, 72, 0.4); }
+.theme-user ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); }
+
+/* Scanline overlay helper */
+.scanline-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.scanline-overlay::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 23, 68, 0.03);
+  animation: scan-line 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Marquee strip animation */
+.marquee-track {
+  animation: marquee 30s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
 }
 
 /* --- Mobile Responsiveness Utilities --- */

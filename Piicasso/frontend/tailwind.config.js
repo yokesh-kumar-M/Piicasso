@@ -19,8 +19,9 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['Inter', 'Outfit', 'sans-serif'],
-        mono: ['Fira Code', 'JetBrains Mono', 'monospace'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
         display: ['Oswald', 'Bebas Neue', 'sans-serif'],
+        heading: ['Space Grotesk', 'Inter', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -7,16 +7,30 @@ const Logo = ({ className }) => {
   const isSecurityMode = mode === 'security';
 
   return (
-    <Link to="/" className={`font-logo uppercase no-underline select-none flex items-baseline ${className}`}>
+    <Link
+      to="/"
+      className={`select-none flex items-baseline ${className}`}
+      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+    >
       <span
         className="font-black tracking-tighter text-white"
         style={{ fontSize: '1.2em' }}
       >
-        PII
+        P
       </span>
       <span
-        className={`font-medium tracking-[0.1em] ml-0.5 transition-colors duration-500 ${isSecurityMode ? 'text-security-red drop-shadow-[0_0_8px_rgba(229,9,20,0.5)]' : 'text-user-cobalt drop-shadow-[0_0_8px_rgba(37,99,235,0.5)]'}`}
-        style={{ fontSize: '0.9em' }}
+        className={`font-black tracking-tighter transition-colors duration-500 ${
+          isSecurityMode
+            ? 'text-security-red drop-shadow-[0_0_8px_rgba(225,29,72,0.5)]'
+            : 'text-user-cobalt drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+        }`}
+        style={{ fontSize: '1.2em' }}
+      >
+        II
+      </span>
+      <span
+        className="font-black tracking-tighter text-white"
+        style={{ fontSize: '1.2em' }}
       >
         CASSO
       </span>

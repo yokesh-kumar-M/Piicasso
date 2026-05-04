@@ -37,6 +37,23 @@ const RegisterPage = () => {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  // Password strength calculation
+  const getPasswordStrength = (pw) => {
+    if (!pw) return { score: 0, label: '', color: '' };
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (score <= 1) return { score, label: 'WEAK', color: 'bg-red-500' };
+    if (score <= 2) return { score, label: 'FAIR', color: 'bg-amber-500' };
+    if (score <= 3) return { score, label: 'STRONG', color: 'bg-green-500' };
+    return { score, label: 'FORTRESS', color: 'bg-emerald-400' };
+  };
+
+  const strength = getPasswordStrength(form.password);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -126,12 +143,17 @@ const RegisterPage = () => {
             )}
 
             {success && (
-              <div className={`mb-6 p-3 rounded flex items-center gap-3 text-sm ${theme.successBg}`}>
-                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className={`mb-6 p-4 rounded flex flex-col items-center gap-2 text-center ${theme.successBg}`}
+              >
+                <CheckCircle className="w-8 h-8 flex-shrink-0 text-green-400" />
                 <div>
-                  <strong>SUCCESS:</strong> Account created. Redirecting...
+                  <strong className="text-base">{isSecurityMode ? 'ACCESS GRANTED' : 'Account Created'}</strong>
+                  <p className="text-xs mt-1 opacity-80">{isSecurityMode ? 'Credentials provisioned. Redirecting...' : 'Welcome! Redirecting to login...'}</p>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {!success && (
@@ -173,6 +195,22 @@ const RegisterPage = () => {
                     className={`w-full pl-10 pr-4 py-3 text-sm rounded border ring-1 ring-transparent outline-none transition-colors ${theme.inputBg}`}
                     required
                   />
+                  <div className="text-[10px] text-right mt-1 font-mono" style={{ color: form.password ? (strength.score <= 1 ? '#ef4444' : strength.score <= 2 ? '#f59e0b' : '#10b981') : 'inherit' }}>
+                    {form.password ? `${form.password.length} chars · ${strength.label}` : ''}
+                  </div>
+                  {/* Strength bar */}
+                  {form.password && (
+                    <div className="mt-2 flex gap-1">
+                      {[1, 2, 3, 4].map(i => (
+                        <div
+                          key={i}
+                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                            i <= strength.score ? strength.color : isSecurityMode ? 'bg-zinc-800' : 'bg-white/10'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -180,7 +218,10 @@ const RegisterPage = () => {
                   disabled={loading}
                   className={`w-full py-3 mt-4 rounded font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-wait ${theme.btnPrimary}`}
                 >
-                  {loading ? 'Registering...' : 'Sign Up'}
+                  {loading
+                    ? (isSecurityMode ? 'Provisioning Account...' : 'Creating Account...')
+                    : 'Sign Up'
+                  }
                 </button>
               </form>
             )}

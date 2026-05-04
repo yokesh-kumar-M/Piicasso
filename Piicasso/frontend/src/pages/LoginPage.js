@@ -96,15 +96,27 @@ const LoginPage = () => {
           {/* Header */}
           <div className={`p-6 border-b flex justify-between items-center ${theme.headerBorder}`}>
             <div>
+              {isSecurityMode && (
+                <div className="text-[10px] font-bold tracking-[0.2em] text-security-red uppercase mb-1" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                  Secure Login
+                </div>
+              )}
               <h1 className="text-2xl font-bold tracking-widest text-white flex items-center gap-2">
                 <ShieldCheck className={`${theme.iconColor} w-6 h-6`} />
-                Secure <span className={theme.iconColor}>Login</span>
+                {isSecurityMode ? 'AUTHENTICATE' : <><span>Login</span><span className={theme.iconColor}>.</span></>}
               </h1>
               <p className={`text-xs mt-1 tracking-widest ${theme.textMuted}`}>Welcome back</p>
             </div>
-            <div className={`w-12 h-12 rounded-full border flex items-center justify-center animate-pulse ${theme.iconBg}`}>
-              <Fingerprint className={`w-6 h-6 ${error ? 'text-red-500' : isSecurityMode ? 'text-green-500/50' : 'text-emerald-400'}`} />
-            </div>
+            <motion.div
+              className={`w-12 h-12 rounded-full border flex items-center justify-center ${theme.iconBg}`}
+              animate={{
+                scale: error ? [1, 1.15, 1] : [1, 1.08, 1],
+                borderColor: error ? 'rgba(239,68,68,0.6)' : isSecurityMode ? 'rgba(34,197,94,0.5)' : 'rgba(16,185,129,0.5)',
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Fingerprint className={`w-6 h-6 ${error ? 'text-red-500' : isSecurityMode ? 'text-green-500/60' : 'text-emerald-400/60'}`} />
+            </motion.div>
           </div>
 
           <div className="p-8">
@@ -172,10 +184,10 @@ const LoginPage = () => {
               >
                 {loading ? (
                   <>
-                    <ScanLine className="w-5 h-5 animate-spin" /> Verifying...
+                    <ScanLine className="w-5 h-5 animate-spin" /> {isSecurityMode ? 'Verifying credentials...' : 'Signing in...'}
                   </>
                 ) : (
-                  'Login'
+                  isSecurityMode ? 'AUTHENTICATE' : 'Login'
                 )}
               </button>
             </form>
@@ -214,8 +226,8 @@ const LoginPage = () => {
           )}
         </div>
 
-        <div className={`mt-8 text-center text-[10px] tracking-widest ${theme.textMuted}`}>
-          PIIcasso v2.5.1
+        <div className={`mt-8 text-center text-[10px] tracking-widest ${theme.textMuted} font-mono`}>
+          {isSecurityMode ? '[● SYS_ONLINE]  [v2.5.1]' : 'PIIcasso v2.5.1'}
         </div>
       </motion.div>
     </div>
