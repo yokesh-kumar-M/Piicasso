@@ -20,10 +20,8 @@ from analytics.models import UserActivity
 User = get_user_model()
 logger = logging.getLogger("wordgen")
 
-# Google OAuth Client ID — must be set in environment for production (1.4 fix)
-GOOGLE_CLIENT_ID = getattr(settings, "GOOGLE_CLIENT_ID", None) or __import__(
-    "os"
-).environ.get("GOOGLE_CLIENT_ID", "")
+# Google OAuth Client ID — centrally configured in settings.py with production fallback
+GOOGLE_CLIENT_ID = getattr(settings, "GOOGLE_CLIENT_ID", "")
 
 
 def safe_float(val, default=999.0):
@@ -116,9 +114,7 @@ class GoogleLoginView(APIView):
             from google.auth.transport import requests as google_requests
 
             # First try as a Firebase token (which is what the frontend uses)
-            firebase_project_id = getattr(
-                settings, "FIREBASE_PROJECT_ID", "piicasso-d923a"
-            )
+            firebase_project_id = getattr(settings, "FIREBASE_PROJECT_ID", "piicasso-d923a")
             try:
                 payload = id_token.verify_firebase_token(
                     token,

@@ -278,14 +278,21 @@ SIMPLE_JWT = {
 }
 
 # ─── CORS ────────────────────────────────────────────────────────────────────
+# Production origins are always included even if the env var is not set.
+_default_cors = "http://localhost:3000,http://127.0.0.1:3000,https://pii-casso.vercel.app,https://piicasso-new.vercel.app"
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
-    for origin in os.getenv(
-        "CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
-    ).split(",")
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_cors).split(",")
     if origin.strip()
 ]
 CORS_ALLOW_ALL_ORIGINS = False
+
+# ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────────
+GOOGLE_CLIENT_ID = os.getenv(
+    "GOOGLE_CLIENT_ID",
+    "580009207244-spt94f5gp84ll2i2es1aqk78f66ulc2c.apps.googleusercontent.com",
+)
+FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "piicasso-d923a")
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     "accept",
