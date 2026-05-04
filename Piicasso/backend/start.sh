@@ -10,4 +10,4 @@ celery -A backend worker -l info &
 
 # Start Gunicorn
 echo "Starting Gunicorn server..."
-exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 2 --worker-class gthread backend.wsgi:application
+exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --threads 2 --worker-class gthread backend.wsgi:application
