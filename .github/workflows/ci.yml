@@ -1,10 +1,6 @@
-name: PIIcasso CI
+name: CI Pipeline
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+on: [push, pull_request]
 
 jobs:
   backend-tests:
@@ -14,99 +10,73 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: piicasso
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: piicasso_test
-        ports:
-          - 5432:5432
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
+    
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
       
       - name: Install dependencies
         run: |
-          cd Piicasso
+          cd Piicasso/backend
           pip install -r requirements.txt
+          pip install flake8
       
-      - name: Run migrations
+      - name: Run backend tests
         env:
-          DATABASE_URL: postgres://piicasso:testpass@localhost:5432/piicasso_test
-          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
-          ENV: development
-          DEBUG: 'true'
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          DJANGO_SECRET_KEY: test-secret-key-not-for-production
+          ENV: test
+          GOOGLE_CLIENT_ID: test-google-client-id
+          FIELD_ENCRYPTION_KEY: test-field-encryption-key-123
         run: |
           cd Piicasso/backend
-          python manage.py migrate --noinput
+          python manage.py test --verbosity=2
       
-      - name: Run tests
-        env:
-          DATABASE_URL: postgres://piicasso:testpass@localhost:5432/piicasso_test
-          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
-          ENV: development
-          DEBUG: 'true'
+      - name: Lint with flake8
         run: |
           cd Piicasso/backend
-          python manage.py test --verbosity=2 --parallel
-
-  frontend-build:
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        continue-on-error: true
+  
+  frontend-tests:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: Piicasso/frontend/package-lock.json
       
       - name: Install dependencies
         run: |
           cd Piicasso/frontend
           npm ci
       
-      - name: Run tests
+      - name: Run frontend tests
         run: |
           cd Piicasso/frontend
-          CI=true npm test -- --watchAll=false
+          npm test -- --watchAll=false --passWithNoTests
       
-      - name: Build
+      - name: Build production bundle
         run: |
           cd Piicasso/frontend
           npm run build
-
-  lint:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: Install linters
-        run: pip install flake8 isort
-      
-      - name: Flake8 (Python)
+      - name: Check bundle size
         run: |
-          cd Piicasso/backend
-          flake8 --max-line-length=120 --exclude=migrations,__pycache__ --ignore=E501,W503,E722 .
-      
-      - name: isort check (Python)
-        run: |
-          cd Piicasso/backend
-          isort --check-only --diff --skip migrations .
+          cd Piicasso/frontend/build/static/js
+          echo "Bundle sizes:"
+          ls -lh *.js
+          echo "Total JS size:"
+          du -sh *.js

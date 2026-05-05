@@ -1,0 +1,55 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Every 10 minutes
+  workflow_dispatch:  # Manual trigger for testing
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Ping Render Backend
+        run: |
+          echo "Pinging Render backend..."
+          curl -f -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            -H "User-Agent: PIcasso-KeepAlive" \
+            "https://core-engine-woeg.onrender.com/api/schema/" \
+            && echo "✓ Render backend is alive" \
+            || (echo "✗ Render backend ping failed" && exit 1)
+        continue-on-error: true
+        
+      - name: Ping Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          echo "Pinging Supabase..."
+          curl -f -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "User-Agent: PIcasso-KeepAlive" \
+            "$SUPABASE_URL/rest/v1/" \
+            && echo "✓ Supabase is alive" \
+            || (echo "✗ Supabase ping failed" && exit 1)
+        continue-on-error: true
+        
+      - name: Ping Vercel Frontend
+        run: |
+          echo "Pinging Vercel frontend..."
+          curl -f -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            -H "User-Agent: PIcasso-KeepAlive" \
+            "https://pii-casso.vercel.app/" \
+            && echo "✓ Vercel frontend is alive" \
+            || (echo "✗ Vercel frontend ping failed" && exit 1)
+        continue-on-error: true
+        
+      - name: Summary
+        if: always()
+        run: |
+          echo "Keep-alive check completed at $(date)"
+          echo "Next check in 10 minutes"

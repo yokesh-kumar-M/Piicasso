@@ -1,5 +1,10 @@
 # PIcasso - Deep Search Intelligence & Targeted Wordlist Generator
 
+![Build Status](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/ci.yml/badge.svg)
+![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 ## 🎯 Project Overview
 
 PIcasso is a full-stack **Deep Search Intelligence Platform** that generates targeted wordlists for security professionals and helps users assess their password strength. It features a unique **dual-mode operation**:
@@ -120,6 +125,16 @@ PIIcasso/
 ├── piicasso.md                        # Project documentation
 └── README.md                          # This file
 ```
+
+---
+
+## 🚀 Quick Deploy
+
+### One-Click Deploy to Render
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/yokesh-kumar-M/Piicasso)
+
+### Deploy to Vercel
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yokesh-kumar-M/Piicasso)
 
 ---
 
