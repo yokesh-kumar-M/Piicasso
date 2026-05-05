@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense, useCallback } from 'react';
+import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import TargetForm from '../components/TargetForm';
 import RiskRadar from '../components/RiskRadar';
