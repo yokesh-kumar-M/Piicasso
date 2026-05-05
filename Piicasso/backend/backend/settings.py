@@ -1,7 +1,18 @@
 """
-PIIcasso — Enterprise-Grade Django Settings
+PIcasso — Enterprise-Grade Django Settings
 =============================================
 Security-hardened, scalable, and production-ready configuration.
+
+Required Production Environment Variables:
+- DEBUG=False
+- ENV=production
+- DJANGO_SECRET_KEY=<strong, unique key>
+- FIELD_ENCRYPTION_KEY=<Fernet key from cryptography>
+- GOOGLE_CLIENT_ID=<from Google OAuth>
+- GEMINI_API_KEY=<from Google AI Studio>
+- DATABASE_URL=<PostgreSQL connection string>
+- REDIS_URL=<optional, for caching>
+- SENTRY_DSN=<from Sentry project>
 """
 
 import os
