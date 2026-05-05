@@ -11,15 +11,17 @@ const ResultPage = () => {
   const isSecurityMode = mode === 'security';
 
   const theme = {
-    bg: 'bg-transparent', // Body handles background
+    bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
     accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    card: isSecurityMode ? 'security-card group' : 'user-glass-panel group',
+    accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
+    card: isSecurityMode ? 'sec-card' : 'usr-card',
     topBar: isSecurityMode ? 'bg-security-surface border-b border-security-border' : 'bg-white/5 backdrop-blur-xl border-b border-user-border',
     btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
     btnSecondary: isSecurityMode ? 'bg-black border border-security-border hover:border-security-red/50 text-gray-300' : 'bg-white/5 border border-user-border hover:border-user-cobalt/50 text-user-text',
     tableHeader: isSecurityMode ? 'bg-black border-b border-security-border text-gray-500' : 'bg-white/10 border-b border-user-border text-user-text/70',
     tableRowHover: isSecurityMode ? 'hover:bg-white/5' : 'hover:bg-white/10',
     heading: isSecurityMode ? 'security-heading' : 'user-heading',
+    textPrimary: isSecurityMode ? 'text-gray-300' : 'text-white',
   };
 
   const [historyId, setHistoryId] = useState(null);
@@ -41,6 +43,26 @@ const ResultPage = () => {
     setLoading(false);
   }, []);
 
+  // wordlist entries are [{password, score}]; guard against legacy plain strings
+  const getPassword = (w) => (typeof w === 'object' && w !== null) ? w.password : w;
+  const getScore = (w) => (typeof w === 'object' && w !== null) ? w.score : null;
+
+  const scoreColor = (s) => {
+    if (s >= 70) return isSecurityMode ? 'text-red-500 bg-red-500/10' : 'text-red-400 bg-red-400/10';
+    if (s >= 40) return 'text-orange-400 bg-orange-400/10';
+    if (s >= 20) return 'text-yellow-400 bg-yellow-400/10';
+    return isSecurityMode ? 'text-gray-600 bg-white/5' : 'text-user-text/40 bg-white/5';
+  };
+
+  // Quality = average score of top-20 entries (all if fewer than 20)
+  const qualityPct = wordlist.length > 0
+    ? Math.round(
+        wordlist.slice(0, Math.min(20, wordlist.length))
+          .reduce((sum, w) => sum + (getScore(w) ?? 50), 0)
+        / Math.min(20, wordlist.length)
+      )
+    : 0;
+
   const handleInjectToTerminal = () => {
     const filename = `wordlist_${historyId || 'gen'}.txt`;
     sessionStorage.setItem('terminal_inject_filename', filename);
@@ -49,7 +71,8 @@ const ResultPage = () => {
   };
 
   const handleDownloadTxt = () => {
-    const blob = new Blob([wordlist.join('\n')], { type: 'text/plain' });
+    const text = wordlist.map(getPassword).join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -100,11 +123,14 @@ const ResultPage = () => {
               </div>
               <div className={`mt-8 pt-6 border-t ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
                 <div className="flex justify-between text-xs font-mono mb-2 uppercase tracking-widest">
-                  <span className={isSecurityMode ? 'text-gray-500' : 'text-user-text/60'}>Quality</span>
-                  <span className={isSecurityMode ? 'text-white' : 'text-white font-bold'}>99.8%</span>
+                  <span className={isSecurityMode ? 'text-gray-500' : 'text-user-text/60'}>Avg Score (top 20)</span>
+                  <span className={isSecurityMode ? 'text-white' : 'text-white font-bold'}>{qualityPct}/100</span>
                 </div>
                 <div className={`w-full h-1.5 rounded-full overflow-hidden ${isSecurityMode ? 'bg-black border border-security-border/50' : 'bg-white/10'}`}>
-                  <div className={`w-[99%] h-full ${theme.accentBg || (isSecurityMode ? 'bg-security-red shadow-[0_0_10px_rgba(225,29,72,0.8)]' : 'bg-user-cobalt shadow-[0_0_10px_rgba(59,130,246,0.8)]')}`}></div>
+                  <div
+                    className={`h-full ${theme.accentBg} ${isSecurityMode ? 'shadow-[0_0_10px_rgba(225,29,72,0.8)]' : 'shadow-[0_0_10px_rgba(59,130,246,0.8)]'}`}
+                    style={{ width: `${qualityPct}%` }}
+                  ></div>
                 </div>
               </div>
             </div>
@@ -171,19 +197,33 @@ const ResultPage = () => {
               <table className={`w-full text-left text-sm font-mono ${isSecurityMode ? 'text-gray-400' : 'text-user-text/90'}`}>
                 <thead className={`text-xs sticky top-0 ${theme.tableHeader}`}>
                   <tr>
-                    <th className={`p-4 w-16 text-center border-r ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>#</th>
+                    <th className={`p-4 w-12 text-center border-r ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>#</th>
                     <th className="p-4 uppercase tracking-wider">Generated Words</th>
-                    <th className="p-4 text-right uppercase tracking-wider">Length</th>
+                    <th className="p-4 text-right uppercase tracking-wider">Score</th>
+                    <th className="p-4 text-right uppercase tracking-wider">Len</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isSecurityMode ? 'divide-security-border' : 'divide-user-border'}`}>
-                  {wordlist.map((pwd, i) => (
-                    <tr key={i} className={`transition-colors ${theme.tableRowHover}`}>
-                      <td className={`p-4 text-center border-r ${isSecurityMode ? 'text-gray-600 border-security-border' : 'text-user-text/40 border-user-border'}`}>{i + 1}</td>
-                      <td className={`p-4 select-all ${isSecurityMode ? 'text-gray-300' : 'text-white font-medium'}`}>{pwd}</td>
-                      <td className={`p-4 text-right ${isSecurityMode ? 'text-gray-600' : 'text-user-text/50'}`}>{pwd.length} chars</td>
-                    </tr>
-                  ))}
+                  {wordlist.map((entry, i) => {
+                    const pwd = getPassword(entry);
+                    const score = getScore(entry);
+                    return (
+                      <tr key={i} className={`transition-colors ${theme.tableRowHover}`}>
+                        <td className={`p-4 text-center border-r ${isSecurityMode ? 'text-gray-600 border-security-border' : 'text-user-text/40 border-user-border'}`}>{i + 1}</td>
+                        <td className={`p-4 select-all ${isSecurityMode ? 'text-gray-300' : 'text-white font-medium'}`}>{pwd}</td>
+                        <td className="p-4 text-right">
+                          {score !== null ? (
+                            <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${scoreColor(score)}`}>
+                              {score}
+                            </span>
+                          ) : (
+                            <span className={isSecurityMode ? 'text-gray-700' : 'text-user-text/30'}>—</span>
+                          )}
+                        </td>
+                        <td className={`p-4 text-right ${isSecurityMode ? 'text-gray-600' : 'text-user-text/50'}`}>{pwd.length}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

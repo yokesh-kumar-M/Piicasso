@@ -1,13 +1,14 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+
+from .fields import EncryptedJSONField
 
 User = get_user_model()
 
 class GenerationHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
-    pii_data = models.JSONField()
+    pii_data = EncryptedJSONField()  # Fernet-encrypted at rest; never stored as plaintext
     wordlist = models.JSONField()
     wordlist_count = models.PositiveIntegerField(default=0, db_index=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True, db_index=True)

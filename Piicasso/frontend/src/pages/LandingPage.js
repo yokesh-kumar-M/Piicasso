@@ -1,572 +1,771 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { ModeContext } from '../context/ModeContext';
+import MarketingNav from '../components/design/MarketingNav';
+import Footer from '../components/design/Footer';
+import Reveal from '../components/design/Reveal';
+import Section from '../components/design/Section';
+import { detectEntities, redactText, scorePassword, generateWordlist } from '../lib/piiEngine';
 
-// ─── Color tokens ────────────────────────────────────────────────────────────
-const C = {
-  bg: '#050507', surface: '#0C0C10', border: 'rgba(255,255,255,0.06)',
-  text: '#F2F2F2', muted: 'rgba(255,255,255,0.35)', dim: 'rgba(255,255,255,0.15)',
-  red: '#FF1744', redDim: 'rgba(255,23,68,0.12)', redBorder: 'rgba(255,23,68,0.25)',
-  blue: '#2979FF', blueDim: 'rgba(41,121,255,0.08)', blueBorder: 'rgba(41,121,255,0.2)',
-  green: '#00E676',
-};
+/* ─── RedactToken helper ─────────────────────────────────────── */
+function RedactToken({ children, label }) {
+  return (
+    <span style={{ position: 'relative', display: 'inline' }}>
+      <span className="redact">{children}</span>
+      <sup style={{
+        fontFamily: 'var(--font-mono)', fontSize: 9,
+        color: 'var(--accent-400)', marginLeft: 2, verticalAlign: 'super'
+      }}>{label}</sup>
+    </span>
+  );
+}
 
-// ─── Shared styles ───────────────────────────────────────────────────────────
-const S = {
-  page: { minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'Space Grotesk', 'Inter', sans-serif", overflowX: 'hidden' },
-  display: { fontFamily: "'Space Grotesk', sans-serif" },
-  mono: { fontFamily: "'JetBrains Mono', monospace" },
-};
-
-// ─── SVG icons (no emoji, no lucide) ─────────────────────────────────────────
-const Icon = {
-  Shield: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-  Brain: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a4 4 0 0 1 4 4c0 .74-.2 1.44-.57 2.04A4 4 0 0 1 18 12a4 4 0 0 1-2 3.46V18a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.54A4 4 0 0 1 6 12a4 4 0 0 1 2.57-3.96A4 4 0 0 1 8 6a4 4 0 0 1 4-4z"/><path d="M12 2v20"/></svg>,
-  Download: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-  Alert: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
-  Users: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-  Globe: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-  Terminal: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>,
-  Arrow: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
-  Check: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>,
-};
-
-// ─── Typewriter Terminal ─────────────────────────────────────────────────────
-function Typewriter({ lines, delay = 18, loop = true, className = '' }) {
-  const [displayed, setDisplayed] = useState([]);
-  const [lineIdx, setLineIdx] = useState(0);
-  const [charIdx, setCharIdx] = useState(0);
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    if (lineIdx >= lines.length) {
-      if (loop) {
-        const t = setTimeout(() => { setDisplayed([]); setLineIdx(0); setCharIdx(0); setDone(false); }, 3000);
-        return () => clearTimeout(t);
+/* ─── colorize helper for ApiSnippet ────────────────────────── */
+function colorize(code) {
+  const KW  = /\b(import|from|const|let|await|if|throw|new|return|async|function)\b/g;
+  const STR = /"[^"]*"|'[^']*'|`[^`]*`/g;
+  const COM = /\/\/[^\n]*/g;
+  const NUM = /\b\d+\b/g;
+  let nodes = [{ t: code }];
+  const apply = (re, color) => {
+    const next = [];
+    for (const n of nodes) {
+      if (n.c) { next.push(n); continue; }
+      let last = 0; let m;
+      const txt = n.t;
+      const r = new RegExp(re.source, re.flags);
+      while ((m = r.exec(txt)) !== null) {
+        if (m.index > last) next.push({ t: txt.slice(last, m.index) });
+        next.push({ t: m[0], c: color });
+        last = m.index + m[0].length;
       }
-      setDone(true);
-      return;
+      if (last < txt.length) next.push({ t: txt.slice(last) });
     }
-    const current = lines[lineIdx];
-    if (charIdx <= current.text.length) {
-      const t = setTimeout(() => {
-        setDisplayed(prev => { const n = [...prev]; n[lineIdx] = current.text.slice(0, charIdx); return n; });
-        setCharIdx(c => c + 1);
-      }, charIdx === 0 ? 350 : delay);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => { setLineIdx(l => l + 1); setCharIdx(0); }, 180);
-    return () => clearTimeout(t);
-  }, [lineIdx, charIdx, lines, delay, loop]);
-
-  return (
-    <div className={className} style={{ ...S.mono, fontSize: 13, lineHeight: 1.8 }}>
-      {displayed.map((line, i) => (
-        <div key={i} style={{ color: lines[i]?.color || C.text, whiteSpace: 'pre' }}>
-          {line}{i === lineIdx && !done ? <span style={{ animation: 'pi-blink 1s infinite', color: C.red }}>▌</span> : ''}
-        </div>
-      ))}
-    </div>
+    nodes = next;
+  };
+  apply(COM, 'var(--fg-3)');
+  apply(STR, 'var(--accent-400)');
+  apply(KW,  'var(--usr-400, #7aa2f7)');
+  apply(NUM, 'var(--good)');
+  return nodes.map((n, i) =>
+    n.c ? <span key={i} style={{ color: n.c }}>{n.t}</span> : <span key={i}>{n.t}</span>
   );
 }
 
-// ─── Scroll-triggered fade-in ────────────────────────────────────────────────
-function FadeIn({ children, delay = 0, style = {} }) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
+/* ─── HeroDemo ───────────────────────────────────────────────── */
+function HeroDemo() {
+  const samples = [
+    "From: alex.chen@northwind.io  •  555-410-9882  •  DOB 03/14/1991\nSubject: account recovery — last 4 of SSN ending 4421\nNote: shipping to 1247 Mission St, San Francisco, 94103",
+    "User Maria Lopez — phone (415) 555-0192 — card 4242 4242 4242 4242\nLast login from 192.168.42.7 at 02:14 UTC. Address: 88 Spear Street.",
+    "Hi Dr. Jordan Lee, your appointment 09/22/2025 — confirmation jordan.lee@hospital.org\nID 123-45-6789. Pickup at 4501 Wilshire Blvd, ZIP 90010."
+  ];
+  const [idx, setIdx] = useState(0);
+  const [shown, setShown] = useState('');
+  const [scanning, setScanning] = useState(true);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.15 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+    setShown('');
+    setScanning(true);
+    const target = samples[idx];
+    let i = 0;
+    const t = setInterval(() => {
+      i += 2;
+      setShown(target.slice(0, i));
+      if (i >= target.length) {
+        clearInterval(t);
+        setTimeout(() => setScanning(false), 400);
+        setTimeout(() => setIdx(x => (x + 1) % samples.length), 5400);
+      }
+    }, 14);
+    return () => clearInterval(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx]);
 
-  return (
-    <div ref={ref} style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? 'translateY(0)' : 'translateY(24px)',
-      transition: `opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`,
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
-}
-
-// ─── Interactive Demo Terminal ───────────────────────────────────────────────
-function InteractiveDemo({ onAuth }) {
-  const [input, setInput] = useState('');
-  const [output, setOutput] = useState([]);
-  const [running, setRunning] = useState(false);
-  const inputRef = useRef(null);
-
-  const generateMock = (name) => {
-    const n = name.trim();
-    if (!n) return [];
-    const parts = n.toLowerCase().split(' ');
-    const first = parts[0] || 'user';
-    const last = parts[1] || '';
-    const initials = first[0] + (last ? last[0] : '');
-    const years = ['1990', '1985', '2024', '01', '99', '2000'];
-    const specials = ['!', '@', '#', '$'];
-    const bases = [
-      first.toLowerCase(), `${first}${last}`, `${first}_${last}`,
-      `${initials}${years[0]}`, `${first}.${last}`, `${first}${specials[0]}${years[1]}`,
-      `${last}${years[2]}`, `${first}Admin${years[3]}`, `${initials}_${years[4]}`,
-      `${first}${specials[1]}${years[5]}`, `${last}${specials[2]}${years[0]}`,
-      `${first}${last}${specials[3]}${years[1]}`,
-    ];
-    return bases.slice(0, 8).map((w, i) => ({ text: `  ${String(i + 1).padStart(3, '0')}. ${w}`, color: C.muted }));
-  };
-
-  const handleSubmit = () => {
-    if (!input.trim() || running) return;
-    setRunning(true);
-    setOutput([
-      { text: `$ piicasso --target "${input}"`, color: C.red },
-      { text: '⟳ Analyzing target profile...', color: C.muted },
-    ]);
-
-    setTimeout(() => {
-      const mock = generateMock(input);
-      setOutput(prev => [
-        ...prev,
-        { text: `✓ Generated ${mock.length} password hypotheses`, color: C.green },
-        ...mock,
-        { text: '', color: C.text },
-        { text: 'Create a free account to see real Gemini AI results →', color: C.red },
-      ]);
-      setRunning(false);
-    }, 1200);
-  };
+  const entities = useMemo(() => detectEntities(shown), [shown]);
+  const segments = useMemo(() => redactText(shown, entities), [shown, entities]);
 
   return (
     <div style={{
-      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden',
-      maxWidth: 720, margin: '0 auto', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+      maxWidth: 980, margin: '0 auto',
+      borderRadius: 16,
+      background: 'var(--ink-2)',
+      border: '1px solid var(--ink-5)',
+      boxShadow: '0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset',
+      overflow: 'hidden'
     }}>
-      <div style={{ padding: '10px 16px', background: '#0a0a0e', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 12 }}>
-        {[['#FF5F56'], ['#FFBD2E'], ['#27C93F']].map((c, i) => <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: c[0] }} />)}
-        <span style={{ ...S.mono, fontSize: 11, color: C.dim }}>interactive demo</span>
-      </div>
-      <div style={{ padding: '20px 24px' }}>
-        <div style={{ ...S.mono, fontSize: 13, color: C.muted, marginBottom: 12 }}>Enter a name to see mock wordlist generation:</div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-          <span style={{ ...S.mono, color: C.red, fontSize: 14, lineHeight: '40px' }}>$</span>
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            placeholder="John Smith"
-            disabled={running}
-            style={{
-              flex: 1, background: 'transparent', border: 'none', outline: 'none',
-              ...S.mono, fontSize: 14, color: C.text, caretColor: C.red,
-            }}
-          />
-          <button
-            onClick={handleSubmit}
-            disabled={running || !input.trim()}
-            style={{
-              padding: '8px 20px', background: running ? 'transparent' : C.red,
-              border: `1px solid ${C.red}`, borderRadius: 6,
-              ...S.mono, fontSize: 12, color: running ? C.muted : '#fff',
-              cursor: running || !input.trim() ? 'default' : 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            {running ? '...' : 'Generate'}
-          </button>
+      {/* Window chrome */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        padding: '12px 16px',
+        borderBottom: '1px solid var(--ink-4)',
+        background: 'var(--ink-1)'
+      }}>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {['#ff5f56', '#ffbd2e', '#27c93f'].map(c =>
+            <span key={c} style={{ width: 10, height: 10, borderRadius: 5, background: c, opacity: 0.55 }} />
+          )}
         </div>
-        {output.length > 0 && (
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
-            {output.map((line, i) => (
-              <div key={i} style={{ color: line.color, ...S.mono, fontSize: 13, lineHeight: 1.7 }}>
-                {line.text}
+        <div style={{
+          marginLeft: 16,
+          fontFamily: 'var(--font-mono)', fontSize: 11,
+          color: 'var(--fg-3)', letterSpacing: '0.04em'
+        }}>
+          piicasso.ingest <span style={{ color: 'var(--fg-4)' }}>—</span> live stream
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span className="dot pulse" style={{ background: scanning ? 'var(--accent-500)' : 'var(--good)' }} />
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 11,
+            color: scanning ? 'var(--accent-500)' : 'var(--good)'
+          }}>
+            {scanning ? 'scanning…' : `${entities.length} entities classified`}
+          </span>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', minHeight: 280 }} className="hero-demo-grid">
+        {/* Left: redacted stream */}
+        <div style={{
+          padding: '24px 28px',
+          fontFamily: 'var(--font-mono)', fontSize: 14,
+          lineHeight: 1.7, whiteSpace: 'pre-wrap',
+          color: 'var(--fg-1)',
+          borderRight: '1px solid var(--ink-4)'
+        }}>
+          {segments.map((s, i) =>
+            s.kind === 'redact'
+              ? <RedactToken key={i} label={s.label}>{s.text}</RedactToken>
+              : <span key={i}>{s.text}</span>
+          )}
+          <span style={{
+            display: 'inline-block', width: 8, height: 16,
+            background: 'var(--accent-500)', verticalAlign: 'text-bottom',
+            marginLeft: 2, animation: 'cursor-blink 1s infinite'
+          }} />
+        </div>
+
+        {/* Right: entity list */}
+        <div style={{ padding: '24px 28px', background: 'var(--ink-1)' }}>
+          <div className="eyebrow" style={{ marginBottom: 16 }}>Classified entities</div>
+          <div style={{ display: 'grid', gap: 8, maxHeight: 240, overflow: 'hidden' }}>
+            {entities.length === 0 && (
+              <div style={{ color: 'var(--fg-3)', fontSize: 13 }}>Awaiting input…</div>
+            )}
+            {entities.map((e, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '8px 12px',
+                background: 'var(--ink-2)',
+                border: '1px solid var(--ink-4)',
+                borderRadius: 6,
+                fontFamily: 'var(--font-mono)', fontSize: 12
+              }}>
+                <span style={{ color: 'var(--fg-2)' }}>{e.label.toUpperCase()}</span>
+                <span style={{ color: 'var(--accent-500)' }}>●</span>
               </div>
             ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Main Landing Page ───────────────────────────────────────────────────────
-export default function LandingPage() {
+/* ─── Hero ───────────────────────────────────────────────────── */
+function Hero() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useContext(AuthContext);
-  const [scrolled, setScrolled] = useState(false);
+  return (
+    <section style={{ position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--ink-4)' }}>
+      <div className="grid-bg" style={{
+        position: 'absolute', inset: 0, opacity: 0.4,
+        maskImage: 'radial-gradient(ellipse at 50% 30%, black 30%, transparent 75%)',
+        WebkitMaskImage: 'radial-gradient(ellipse at 50% 30%, black 30%, transparent 75%)'
+      }} />
+      <div style={{
+        position: 'absolute', top: -200, left: '50%', transform: 'translateX(-50%)',
+        width: 800, height: 800, borderRadius: '50%',
+        background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 60%)',
+        pointerEvents: 'none'
+      }} />
+      <div style={{
+        maxWidth: 'var(--max-w)', margin: '0 auto',
+        padding: '80px var(--gutter) 120px',
+        position: 'relative', textAlign: 'center'
+      }}>
+        <h1 className="h-display fade-up" style={{
+          fontSize: 'clamp(48px, 8vw, 104px)',
+          margin: '0 auto', maxWidth: 1100,
+          letterSpacing: '-0.045em', fontWeight: 500
+        }}>
+          Your password <br />
+          <span style={{
+            fontFamily: 'var(--font-serif)', fontStyle: 'italic',
+            fontWeight: 400, color: 'var(--accent-500)'
+          }}>
+            isn't yours
+          </span>
+          {' '}anymore.
+        </h1>
 
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', h, { passive: true });
-    return () => window.removeEventListener('scroll', h);
-  }, []);
+        <p className="fade-up" style={{
+          color: 'var(--fg-2)', fontSize: 19,
+          maxWidth: 620, margin: '28px auto 0',
+          lineHeight: 1.5, animationDelay: '.1s'
+        }}>
+          PIIcasso turns leaked Personally Identifiable Information into the
+          wordlist that will crack you — so you can fix it before someone else does.
+        </p>
 
-  const go = (path) => navigate(path);
+        <div className="fade-up" style={{
+          display: 'flex', justifyContent: 'center', gap: 12,
+          marginTop: 36, flexWrap: 'wrap', animationDelay: '.15s'
+        }}>
+          <button
+            onClick={() => navigate('/register')}
+            className="btn btn-accent"
+            style={{ padding: '14px 22px', fontSize: 14 }}
+          >
+            Test your password free <span style={{ opacity: 0.6 }}>→</span>
+          </button>
+          <button
+            onClick={() => navigate('/api')}
+            className="btn btn-ghost"
+            style={{ padding: '14px 22px', fontSize: 14 }}
+          >
+            <span style={{ fontFamily: 'var(--font-mono)', opacity: 0.6 }}>$</span> Read the docs
+          </button>
+        </div>
 
-  // ── Terminal lines ──
-  const termLines = [
-    { text: '$ piicasso --target "John Smith" --mode intel', color: C.red },
-    { text: '⟳ Querying Gemini AI engine...', color: C.muted },
-    { text: '⟳ Cross-referencing RockYou 14M...', color: C.muted },
-    { text: '✓ 847 password hypotheses generated', color: C.green },
-    { text: '✓ Top: jsmith1987, johnny@work, js_admin!', color: C.green },
-    { text: '$ export --format pdf --report threat.pdf', color: C.red },
+        <div className="fade-up" style={{ marginTop: 80, animationDelay: '.25s' }}>
+          <HeroDemo />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── LogoWall ───────────────────────────────────────────────── */
+function LogoWall() {
+  const logos = ['NORTHWIND', 'AXIOM', 'HELIX', 'MERIDIAN', 'BLACKBIRD', 'QUANTA', 'STRATUM', 'CYPHERON'];
+  return (
+    <Section style={{ padding: '48px var(--gutter)' }}>
+      <div className="eyebrow" style={{ textAlign: 'center', marginBottom: 28 }}>
+        Trusted by security teams shipping in production
+      </div>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)',
+        gap: 24, opacity: 0.7
+      }} className="logo-wall-grid">
+        {logos.map(l => (
+          <div key={l} style={{
+            fontFamily: 'var(--font-mono)', fontSize: 12,
+            letterSpacing: '0.18em', textAlign: 'center',
+            color: 'var(--fg-2)', padding: '12px 0',
+            borderTop: '1px solid var(--ink-4)',
+            borderBottom: '1px solid var(--ink-4)'
+          }}>{l}</div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ─── ModePanel ──────────────────────────────────────────────── */
+function ModePanel({ tone, eyebrow, title, desc, stat, statLabel, cta, onCta, accentVar }) {
+  return (
+    <div style={{
+      padding: '48px 40px 40px',
+      background: tone === 'security' ? 'var(--ink-1)' : 'var(--ink-2)',
+      borderRight: tone === 'security' ? '1px solid var(--ink-4)' : 'none',
+      position: 'relative', overflow: 'hidden'
+    }}>
+      <div style={{
+        position: 'absolute', top: -60, right: -60,
+        width: 240, height: 240, borderRadius: '50%',
+        background: `radial-gradient(circle, color-mix(in oklab, var(${accentVar}) 30%, transparent) 0%, transparent 70%)`,
+        pointerEvents: 'none'
+      }} />
+      <div className="eyebrow" style={{ color: `var(${accentVar})`, marginBottom: 16 }}>● {eyebrow}</div>
+      <h3 className="h-display" style={{ fontSize: 36, marginBottom: 16 }}>{title}</h3>
+      <p style={{ color: 'var(--fg-2)', maxWidth: 420, marginBottom: 32 }}>{desc}</p>
+      <div style={{
+        display: 'flex', alignItems: 'baseline', gap: 12,
+        paddingBottom: 24, borderBottom: '1px solid var(--ink-4)'
+      }}>
+        <div style={{
+          fontFamily: 'var(--font-sans)', fontSize: 64,
+          fontWeight: 500, letterSpacing: '-0.04em',
+          color: `var(${accentVar})`, lineHeight: 1
+        }}>{stat}</div>
+        <div style={{ color: 'var(--fg-2)', fontSize: 13, maxWidth: 160 }}>{statLabel}</div>
+      </div>
+      <button
+        onClick={onCta}
+        style={{
+          marginTop: 24, padding: '12px 18px',
+          background: `var(${accentVar})`,
+          color: 'var(--ink-0)', border: 'none',
+          borderRadius: 8, fontSize: 13, fontWeight: 600,
+          cursor: 'pointer', transition: 'opacity .15s'
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+      >
+        {cta} →
+      </button>
+    </div>
+  );
+}
+
+/* ─── SplitModes ─────────────────────────────────────────────── */
+function SplitModes() {
+  const navigate = useNavigate();
+  const { switchMode } = useContext(ModeContext);
+  return (
+    <Section>
+      <div className="eyebrow" style={{ marginBottom: 16 }}>One platform, two perspectives</div>
+      <h2 className="h-display" style={{ fontSize: 'clamp(36px, 5vw, 56px)', maxWidth: 720, marginBottom: 40 }}>
+        Same password.<br />
+        <span style={{ color: 'var(--fg-3)' }}>Two very different conclusions.</span>
+      </h2>
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr 1fr',
+        border: '1px solid var(--ink-4)', borderRadius: 16, overflow: 'hidden'
+      }} className="split-modes-grid">
+        <ModePanel
+          tone="security"
+          eyebrow="Security mode"
+          title="See like an attacker."
+          desc="Profile a target. Generate a hyper-personal wordlist. Run it through your engine. Watch which credentials fall first."
+          stat="9.4s"
+          statLabel="median time to crack with profile"
+          cta="Open Mission Control"
+          onCta={() => { switchMode('security'); navigate('/login'); }}
+          accentVar="--sec-500"
+        />
+        <ModePanel
+          tone="user"
+          eyebrow="User mode"
+          title="Defend like a target."
+          desc="See your password through the eyes of someone who just bought your data on the dark web. No jargon. Just a number, and what to fix."
+          stat="0–100"
+          statLabel="resilience score, in plain English"
+          cta="Check my password"
+          onCta={() => { switchMode('user'); navigate('/login'); }}
+          accentVar="--usr-500"
+        />
+      </div>
+    </Section>
+  );
+}
+
+/* ─── FeatureGrid ────────────────────────────────────────────── */
+function FeatureGrid() {
+  const features = [
+    { eb: '01', t: 'Profile-aware mutation', d: 'Combine names, dates, places, pets, employers, ZIPs into millions of plausible candidates ranked by likelihood.' },
+    { eb: '02', t: 'Threat intel visualization', d: 'A 3D Mission Control surface that lights up the relationships between leaked records and weak credentials.' },
+    { eb: '03', t: 'Policy enforcement at scale', d: 'Drop our SDK into auth flows. Reject passwords that contain the user\'s own PII before they ever ship.' },
+    { eb: '04', t: 'Air-gapped & on-prem', d: 'Run the engine entirely inside your VPC. Nothing leaves. Nothing phones home.' },
+    { eb: '05', t: 'Streaming detection', d: 'Sub-millisecond classification across 14 entity types. PCRE-clean. Unicode-safe.' },
+    { eb: '06', t: 'Open audit trail', d: 'Every detection, every redaction, every rejected password — cryptographically signed and exportable.' },
   ];
+  return (
+    <Section>
+      <div className="eyebrow" style={{ marginBottom: 16 }}>The full stack</div>
+      <h2 className="h-display" style={{ fontSize: 'clamp(36px, 5vw, 56px)', maxWidth: 720, marginBottom: 56 }}>
+        Built like infrastructure.<br />
+        <span style={{ color: 'var(--fg-3)' }}>Used like a paintbrush.</span>
+      </h2>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+        border: '1px solid var(--ink-4)', borderRadius: 12, overflow: 'hidden'
+      }} className="feature-grid">
+        {features.map((f, i) => (
+          <div
+            key={f.t}
+            style={{
+              padding: '32px 28px',
+              borderRight: (i + 1) % 3 !== 0 ? '1px solid var(--ink-4)' : 'none',
+              borderBottom: i < 3 ? '1px solid var(--ink-4)' : 'none',
+              background: 'var(--ink-1)',
+              transition: 'background .2s, transform .3s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-2)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--ink-1)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent-500)', marginBottom: 12 }}>// {f.eb}</div>
+            <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 10, letterSpacing: '-0.01em' }}>{f.t}</div>
+            <div style={{ color: 'var(--fg-2)', fontSize: 14, lineHeight: 1.55 }}>{f.d}</div>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
 
-  // ── Marquee items ──
-  const marquee = ['Gemini AI', 'RockYou 14M', 'PDF Reports', 'HIBP Integration', 'Redis Queue', 'REST API', 'JWT Auth', 'Rate Limiting'];
+/* ─── LiveDemo ───────────────────────────────────────────────── */
+function LiveDemo() {
+  const [profile, setProfile] = useState({ name: 'Alex Chen', year: '1991', pet: 'mochi', city: 'boston' });
+  const [pw, setPw] = useState('Alex1991!');
+  const result = useMemo(() => scorePassword(pw, profile), [pw, profile]);
+  const wordlist = useMemo(() => generateWordlist(profile, 12), [profile]);
+  const cracked = wordlist.includes(pw) || wordlist.some(w => pw.toLowerCase().startsWith(w.toLowerCase()));
+
+  const inputStyle = {
+    width: '100%', padding: '10px 12px',
+    background: 'var(--ink-3)', border: '1px solid var(--ink-5)',
+    borderRadius: 6, color: 'var(--fg-0)', outline: 'none',
+    fontFamily: 'var(--font-mono)', fontSize: 13, boxSizing: 'border-box'
+  };
 
   return (
-    <div style={S.page}>
+    <Section>
+      <div className="eyebrow" style={{ marginBottom: 16 }}>Try it</div>
+      <h2 className="h-display" style={{ fontSize: 'clamp(36px, 5vw, 56px)', maxWidth: 800, marginBottom: 16 }}>
+        Type a password. Watch us guess it.
+      </h2>
+      <p style={{ color: 'var(--fg-2)', fontSize: 17, maxWidth: 620, marginBottom: 48 }}>
+        Edit the profile. Edit the password. Our engine generates a tailored wordlist in real time —
+        and tells you exactly why it would (or wouldn't) crack you.
+      </p>
+
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr 1.4fr',
+        background: 'var(--ink-1)', border: '1px solid var(--ink-4)',
+        borderRadius: 16, overflow: 'hidden'
+      }} className="live-demo-grid">
+        {/* Left: profile editor */}
+        <div style={{ padding: 32, borderRight: '1px solid var(--ink-4)' }}>
+          <div className="eyebrow" style={{ marginBottom: 16 }}>Target profile</div>
+          <div style={{ display: 'grid', gap: 14 }}>
+            {[['name', 'Full name'], ['year', 'Birth year'], ['pet', "Pet's name"], ['city', 'City']].map(([k, label]) => (
+              <label key={k} style={{ display: 'block' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-3)', marginBottom: 6 }}>{label}</div>
+                <input
+                  value={profile[k]}
+                  onChange={e => setProfile({ ...profile, [k]: e.target.value })}
+                  style={inputStyle}
+                />
+              </label>
+            ))}
+          </div>
+          <hr className="hairline" style={{ margin: '24px 0' }} />
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Test password</div>
+          <input
+            value={pw}
+            onChange={e => setPw(e.target.value)}
+            style={{
+              ...inputStyle, padding: '12px 14px', fontSize: 16,
+              background: 'var(--ink-0)',
+              border: `1px solid ${cracked ? 'var(--accent-500)' : 'var(--ink-5)'}`,
+              borderRadius: 8,
+              boxShadow: cracked ? '0 0 0 3px var(--accent-glow)' : 'none',
+              transition: 'all .2s'
+            }}
+          />
+        </div>
+
+        {/* Right: score + wordlist */}
+        <div style={{ padding: 32, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <div className="eyebrow">Resilience score</div>
+            <div style={{
+              padding: '4px 10px', borderRadius: 999,
+              background: cracked ? 'var(--accent-500)' : 'var(--ink-3)',
+              color: cracked ? 'var(--ink-0)' : 'var(--fg-1)',
+              fontFamily: 'var(--font-mono)', fontSize: 11
+            }}>
+              {cracked ? 'FOUND IN WORDLIST' : 'NOT IN WORDLIST'}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
+            <div style={{
+              fontFamily: 'var(--font-sans)', fontSize: 88, lineHeight: 1,
+              fontWeight: 500, letterSpacing: '-0.05em',
+              color: result.score < 45 ? 'var(--accent-500)' : result.score < 70 ? 'var(--warn)' : 'var(--good)'
+            }}>{result.score}</div>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 500 }}>{result.rating}</div>
+              <div style={{ color: 'var(--fg-2)', fontSize: 13, fontFamily: 'var(--font-mono)' }}>
+                {result.entropy} bits · cracks in{' '}
+                <span style={{ color: cracked ? 'var(--accent-500)' : 'var(--fg-0)' }}>
+                  {cracked ? '<1s with profile' : result.time}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ height: 8, background: 'var(--ink-3)', borderRadius: 4, margin: '20px 0 28px', overflow: 'hidden' }}>
+            <div style={{
+              width: `${result.score}%`, height: '100%',
+              background: result.score < 45 ? 'var(--accent-500)' : result.score < 70 ? 'var(--warn)' : 'var(--good)',
+              transition: 'width .25s ease'
+            }} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Why</div>
+              <div style={{ display: 'grid', gap: 6 }}>
+                {result.reasons.length === 0 && <div style={{ color: 'var(--fg-3)', fontSize: 13 }}>No PII or pattern matches. Nice.</div>}
+                {result.reasons.map((r, i) => (
+                  <div key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--fg-1)' }}>
+                    <span style={{ color: 'var(--accent-500)' }}>✕ </span>{r.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Generated wordlist</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {wordlist.map((w, i) => (
+                  <span key={i} style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 11,
+                    padding: '3px 7px',
+                    background: w === pw ? 'var(--accent-500)' : 'var(--ink-3)',
+                    color: w === pw ? 'var(--ink-0)' : 'var(--fg-2)',
+                    borderRadius: 3, border: '1px solid var(--ink-5)'
+                  }}>{w}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/* ─── ApiSnippet ─────────────────────────────────────────────── */
+function ApiSnippet() {
+  const [copied, setCopied] = useState(false);
+  const code = `import { piicasso } from "@piicasso/sdk";
+
+// Reject passwords made from the user's own leaked PII
+const result = await piicasso.policy.evaluate({
+  password: "Alex1991!",
+  profile: {
+    name: "Alex Chen",
+    dob: "1991-03-14",
+    email: "alex@northwind.io"
+  }
+});
+
+if (result.crackable) {
+  throw new Error(result.reasons[0]);
+  // → "Contains 'Alex' (name) + year suffix '1991'"
+}`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <Section>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 64, alignItems: 'center' }} className="api-snippet-grid">
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 16 }}>Drop-in policy</div>
+          <h2 className="h-display" style={{ fontSize: 'clamp(32px, 4vw, 48px)', marginBottom: 16 }}>
+            Six lines of code.<br />One fewer breach.
+          </h2>
+          <p style={{ color: 'var(--fg-2)', fontSize: 16, marginBottom: 24 }}>
+            Plug into your sign-up flow. We'll reject passwords made of the user's own
+            leaked information before they ever hit your hash function.
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <span className="badge font-mono">npm i @piicasso/sdk</span>
+            <span className="badge font-mono">python · go · ruby</span>
+          </div>
+        </div>
+
+        <div style={{
+          background: 'var(--ink-1)', border: '1px solid var(--ink-4)',
+          borderRadius: 12, overflow: 'hidden',
+          fontFamily: 'var(--font-mono)', fontSize: 13
+        }}>
+          <div style={{
+            padding: '10px 16px', borderBottom: '1px solid var(--ink-4)',
+            color: 'var(--fg-3)', fontSize: 11,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+          }}>
+            <span>policy.ts</span>
+            <button
+              onClick={handleCopy}
+              style={{
+                fontFamily: 'var(--font-mono)', fontSize: 10,
+                color: copied ? 'var(--good)' : 'var(--fg-3)',
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '2px 6px', borderRadius: 4,
+                transition: 'color .2s'
+              }}
+            >
+              {copied ? 'copied!' : 'copy'}
+            </button>
+          </div>
+          <pre style={{ margin: 0, padding: '20px 24px', color: 'var(--fg-1)', lineHeight: 1.6, overflow: 'auto', fontSize: 13 }}>
+            <code>{colorize(code)}</code>
+          </pre>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/* ─── Stats ──────────────────────────────────────────────────── */
+function Stats() {
+  const stats = [
+    ['2.4B',    'leaked records indexed'],
+    ['14',      'PII entity types classified'],
+    ['<3ms',    'median classification latency'],
+    ['99.97%',  'policy uptime, last 90 days'],
+  ];
+  return (
+    <Section style={{ padding: '60px var(--gutter)' }}>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+        background: 'var(--ink-1)', border: '1px solid var(--ink-4)',
+        borderRadius: 12, padding: '40px 32px'
+      }} className="stats-grid">
+        {stats.map(([n, l], i) => (
+          <div key={i} style={{
+            borderRight: i < 3 ? '1px solid var(--ink-4)' : 'none',
+            padding: '0 24px'
+          }}>
+            <div style={{
+              fontFamily: 'var(--font-sans)', fontSize: 48,
+              fontWeight: 500, letterSpacing: '-0.04em', lineHeight: 1
+            }}>{n}</div>
+            <div style={{ color: 'var(--fg-2)', fontSize: 13, marginTop: 8 }}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ─── Testimonials ───────────────────────────────────────────── */
+function Testimonials() {
+  const items = [
+    { quote: 'We replaced three different tools — leak monitoring, password policy, and a homegrown wordlist generator — with PIIcasso in an afternoon.', who: 'Priya Raman', role: 'Head of Security, Helix' },
+    { quote: 'The mutation engine found credentials that twelve months of internal red-teaming missed. Embarrassing. Useful.', who: 'Marcus Webb', role: 'Principal Red Team, Northwind' },
+    { quote: "I'm not technical and I finally understand why my password is bad. The score speaks for itself.", who: 'Sam K.', role: 'Marketing director, on User mode' },
+  ];
+  return (
+    <Section>
+      <div className="eyebrow" style={{ marginBottom: 16 }}>Field reports</div>
+      <h2 className="h-display" style={{ fontSize: 'clamp(32px, 4vw, 48px)', marginBottom: 48, maxWidth: 700 }}>
+        From the people who actually break things for a living.
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }} className="testimonials-grid">
+        {items.map((t, i) => (
+          <div key={i} style={{
+            padding: 32, background: 'var(--ink-1)',
+            border: '1px solid var(--ink-4)', borderRadius: 12,
+            display: 'flex', flexDirection: 'column'
+          }}>
+            <div style={{
+              fontFamily: 'var(--font-serif)', fontSize: 22,
+              lineHeight: 1.35, fontStyle: 'italic',
+              marginBottom: 24, color: 'var(--fg-0)'
+            }}>
+              "{t.quote}"
+            </div>
+            <div style={{ marginTop: 'auto' }}>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{t.who}</div>
+              <div style={{ color: 'var(--fg-3)', fontSize: 12, fontFamily: 'var(--font-mono)' }}>{t.role}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ─── CtaBlock ───────────────────────────────────────────────── */
+function CtaBlock() {
+  const navigate = useNavigate();
+  return (
+    <Section style={{ padding: '120px var(--gutter)' }}>
+      <div style={{
+        position: 'relative', overflow: 'hidden',
+        padding: '80px 48px', borderRadius: 24,
+        background: 'linear-gradient(160deg, var(--ink-1) 0%, var(--ink-2) 100%)',
+        border: '1px solid var(--ink-4)', textAlign: 'center'
+      }}>
+        <div style={{
+          position: 'absolute', top: '-50%', left: '50%', transform: 'translateX(-50%)',
+          width: 600, height: 600, borderRadius: '50%',
+          background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 60%)',
+          pointerEvents: 'none'
+        }} />
+        <div className="eyebrow" style={{ marginBottom: 20, position: 'relative' }}>● The work</div>
+        <h2 className="h-display" style={{
+          fontSize: 'clamp(36px, 6vw, 64px)', maxWidth: 800,
+          margin: '0 auto', position: 'relative'
+        }}>
+          Find out what an attacker already knows.
+        </h2>
+        <p style={{
+          color: 'var(--fg-2)', fontSize: 17, maxWidth: 540,
+          margin: '20px auto 36px', position: 'relative'
+        }}>
+          Free for individuals. Generous for teams. On-prem for the paranoid.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/register')} className="btn btn-accent" style={{ padding: '14px 22px', fontSize: 14 }}>
+            Start free — no card
+          </button>
+          <button onClick={() => navigate('/#contact')} className="btn btn-ghost" style={{ padding: '14px 22px', fontSize: 14 }}>
+            Book a demo
+          </button>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/* ─── LandingPage (default export) ──────────────────────────── */
+export default function LandingPage() {
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--ink-0)', color: 'var(--fg-0)' }}>
       <style>{`
-        @keyframes pi-blink { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes pi-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.3)} }
-        @keyframes pi-scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        @keyframes pi-scan { 0%{top:-2px} 100%{top:100%} }
-        @keyframes pi-gradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-        .pi-nav-link:hover { color: ${C.text} !important; }
-        .pi-btn:hover { transform: translateY(-2px); }
-        .pi-btn-red:hover { background: #d50032 !important; box-shadow: 0 8px 32px rgba(255,23,68,0.35); }
-        .pi-btn-ghost:hover { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.15) !important; }
-        .pi-card:hover { background: rgba(255,255,255,0.03) !important; border-color: rgba(255,255,255,0.1) !important; }
-        .pi-mode-security:hover { background: rgba(255,23,68,0.08) !important; }
-        .pi-mode-user:hover { background: rgba(41,121,255,0.08) !important; }
-        @media (max-width: 900px) {
-          .pi-hero-grid { grid-template-columns: 1fr !important; }
-          .pi-hero-right { display: none !important; }
-          .pi-split { grid-template-columns: 1fr !important; }
-          .pi-bento { grid-template-columns: 1fr !important; }
-          .pi-bento-big { grid-row: auto !important; }
-          .pi-hide-sm { display: none !important; }
-          .pi-section { padding-left: 20px !important; padding-right: 20px !important; }
+        @keyframes cursor-blink { 50% { opacity: 0; } }
+        @media (max-width: 768px) {
+          .hero-demo-grid { grid-template-columns: 1fr !important; }
+          .hero-demo-grid > *:first-child { border-right: none !important; border-bottom: 1px solid var(--ink-4); }
+          .logo-wall-grid { grid-template-columns: repeat(4, 1fr) !important; }
+          .split-modes-grid { grid-template-columns: 1fr !important; }
+          .split-modes-grid > *:first-child { border-right: none !important; border-bottom: 1px solid var(--ink-4); }
+          .feature-grid { grid-template-columns: 1fr !important; }
+          .feature-grid > * { border-right: none !important; }
+          .live-demo-grid { grid-template-columns: 1fr !important; }
+          .live-demo-grid > *:first-child { border-right: none !important; border-bottom: 1px solid var(--ink-4); }
+          .api-snippet-grid { grid-template-columns: 1fr !important; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .stats-grid > * { border-right: none !important; border-bottom: 1px solid var(--ink-4); padding: 16px 0 !important; }
+          .testimonials-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .logo-wall-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .stats-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
-      {/* ═══════════════════════════════════════════ NAVBAR ════════════════════ */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 48px', height: 60,
-        background: scrolled ? 'rgba(5,5,7,0.9)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(24px)' : 'none',
-        borderBottom: scrolled ? `1px solid ${C.border}` : '1px solid transparent',
-        transition: 'all 0.3s ease',
-      }}>
-        <div style={{ ...S.display, fontSize: 20, fontWeight: 900, letterSpacing: '-0.04em', cursor: 'pointer' }} onClick={() => go('/')}>
-          P<span style={{ color: C.red }}>II</span>CASSO
-        </div>
-        <div className="pi-hide-sm" style={{ display: 'flex', gap: 32 }}>
-          {['Docs', 'Features'].map(l => (
-            <span key={l} className="pi-nav-link" style={{ fontSize: 13, color: C.muted, cursor: 'pointer', transition: 'color 0.15s', fontWeight: 500 }}
-              onClick={() => l === 'Docs' ? go('/api') : null}>{l}</span>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {isAuthenticated ? (
-            <button className="pi-btn pi-btn-red" style={{ padding: '7px 18px', background: C.red, border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', transition: 'all 0.15s' }} onClick={() => go('/dashboard')}>Dashboard</button>
-          ) : (
-            <>
-              <button className="pi-btn pi-btn-ghost" style={{ padding: '7px 18px', background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 13, fontWeight: 500, color: C.text, cursor: 'pointer', transition: 'all 0.15s' }} onClick={() => go('/login')}>Sign In</button>
-              <button className="pi-btn pi-btn-red" style={{ padding: '7px 18px', background: C.red, border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', transition: 'all 0.15s' }} onClick={() => go('/register')}>Get Access →</button>
-            </>
-          )}
-        </div>
-      </nav>
-
-      {/* ═══════════════════════════════════════════ HERO ═════════════════════ */}
-      <section style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 440px', alignItems: 'center', padding: '100px 48px 80px', position: 'relative', overflow: 'hidden' }}>
-        {/* Background grid */}
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.04,
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
-          backgroundSize: '64px 64px',
-        }} />
-        {/* Red blob — top right */}
-        <div style={{ position: 'absolute', top: -100, right: -100, width: 600, height: 600, background: 'radial-gradient(circle, rgba(255,23,68,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        {/* Blue blob — bottom left */}
-        <div style={{ position: 'absolute', bottom: -150, left: -150, width: 600, height: 600, background: 'radial-gradient(circle, rgba(41,121,255,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        {/* Scanline */}
-        <div style={{ position: 'absolute', left: 0, right: 0, height: 2, background: 'rgba(255,23,68,0.04)', animation: 'pi-scan 4s linear infinite', pointerEvents: 'none' }} />
-
-        {/* LEFT: Copy */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <FadeIn delay={0}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 100, border: `1px solid ${C.redBorder}`, background: C.redDim, fontSize: 11, fontWeight: 700, color: C.red, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 32 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.red, animation: 'pi-pulse 2s infinite' }} />
-              Red Team Tool
-            </div>
-          </FadeIn>
-
-          <h1 style={{ ...S.display, fontSize: 'clamp(48px, 6.5vw, 88px)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.04em', marginBottom: 24 }}>
-            <FadeIn delay={0.15}>Your target's name</FadeIn>
-            <br />
-            <FadeIn delay={0.25}>is their</FadeIn>
-            <span style={{ color: C.red }}> password.</span>
-          </h1>
-
-          <FadeIn delay={0.4}>
-            <p style={{ fontSize: 18, color: C.muted, maxWidth: 460, lineHeight: 1.65, marginBottom: 40, fontWeight: 400 }}>
-              PIIcasso turns personal data into precision wordlists using Gemini AI + RockYou patterns. Built for authorized penetration testing.
-            </p>
-          </FadeIn>
-
-          <FadeIn delay={0.5}>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
-              <button className="pi-btn pi-btn-red" style={{ padding: '14px 32px', background: C.red, border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 8 }}
-                onClick={() => go(isAuthenticated ? '/dashboard' : '/register')}>
-                Start Free <Icon.Arrow />
-              </button>
-              <button className="pi-btn pi-btn-ghost" style={{ padding: '14px 32px', background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14, fontWeight: 500, color: C.muted, cursor: 'pointer', transition: 'all 0.15s' }}
-                onClick={() => go('/api')}>
-                Docs
-              </button>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.6}>
-            <p style={{ fontSize: 12, color: C.dim, maxWidth: 320, lineHeight: 1.6 }}>
-              ✦ For authorized penetration testing and CTF use only.
-            </p>
-          </FadeIn>
-        </div>
-
-        {/* RIGHT: Terminal + floating badge */}
-        <div className="pi-hero-right" style={{ position: 'relative', zIndex: 1, paddingLeft: 40 }}>
-          <div style={{ background: '#0a0a0e', border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,23,68,0.08)' }}>
-            <div style={{ padding: '10px 16px', background: '#0d0d11', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 12 }}>
-              {['#FF5F56', '#FFBD2E', '#27C93F'].map((c, i) => <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />)}
-              <span style={{ ...S.mono, fontSize: 11, color: C.dim }}>piicasso — security mode</span>
-            </div>
-            <div style={{ padding: '20px 24px', minHeight: 180 }}>
-              <Typewriter lines={termLines} />
-            </div>
-          </div>
-          {/* Floating badge */}
-          <div style={{
-            position: 'absolute', bottom: -20, right: -20,
-            background: C.red, borderRadius: 8, padding: '10px 18px',
-            ...S.mono, fontSize: 13, fontWeight: 700, color: '#fff',
-            boxShadow: '0 8px 32px rgba(255,23,68,0.4)',
-            animation: 'pi-blink 3s infinite',
-          }}>
-            847 words
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════ SOCIAL PROOF MARQUEE ═════════════ */}
-      <div style={{ borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: '16px 0', overflow: 'hidden', position: 'relative' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 120, background: `linear-gradient(to right, ${C.bg}, transparent)`, zIndex: 1 }} />
-        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 120, background: `linear-gradient(to left, ${C.bg}, transparent)`, zIndex: 1 }} />
-        <div style={{ display: 'flex', gap: 48, animation: 'pi-scroll 30s linear infinite', width: 'max-content' }}>
-          {[...marquee, ...marquee, ...marquee, ...marquee].map((item, i) => (
-            <span key={i} style={{ ...S.mono, fontSize: 12, color: C.dim, whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>{item}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════ SPLIT: TWO MODES ═════════════════ */}
-      <section className="pi-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: `1px solid ${C.border}`, position: 'relative' }}>
-        {/* Glowing center divider */}
-        <div style={{
-          position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, zIndex: 2,
-          background: C.border, transform: 'translateX(-50%)',
-        }} />
-
-        {/* Security */}
-        <FadeIn delay={0} style={{ padding: '80px 48px', background: 'rgba(255,23,68,0.02)', borderRight: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden', transition: 'all 0.3s' }}>
-          <div style={{ position: 'absolute', top: 40, right: -20, ...S.display, fontSize: 120, fontWeight: 900, color: C.dim, opacity: 0.06, pointerEvents: 'none', lineHeight: 1 }}>SEC</div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ ...S.mono, fontSize: 11, color: C.red, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8, fontWeight: 600 }}>Security Mode</div>
-            <h2 style={{ ...S.display, fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 16 }}>For red teamers.</h2>
-            <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 32, maxWidth: 360 }}>
-              Enter target PII. Gemini generates precision wordlists cross-referenced with RockYou. Export as .txt or PDF threat report.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
-              {['AI wordlist generation', 'RockYou 14M cross-reference', 'PDF threat reports', 'Rate-limited API'].map(f => (
-                <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.text }}>
-                  <span style={{ color: C.red }}><Icon.Check /></span>{f}
-                </div>
-              ))}
-            </div>
-            <button className="pi-btn pi-btn-red" style={{ padding: '12px 24px', background: C.red, border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 8 }}
-              onClick={() => go(isAuthenticated ? '/security/dashboard' : '/register')}>
-              Enter Security Mode <Icon.Arrow />
-            </button>
-          </div>
-        </FadeIn>
-
-        {/* User */}
-        <FadeIn delay={0.1} style={{ padding: '80px 48px', background: 'rgba(41,121,255,0.02)', position: 'relative', overflow: 'hidden', transition: 'all 0.3s' }}>
-          <div style={{ position: 'absolute', top: 40, right: -20, ...S.display, fontSize: 120, fontWeight: 900, color: C.dim, opacity: 0.06, pointerEvents: 'none', lineHeight: 1 }}>USR</div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ ...S.mono, fontSize: 11, color: C.blue, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8, fontWeight: 600 }}>User Mode</div>
-            <h2 style={{ ...S.display, fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 16 }}>For everyone.</h2>
-            <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 32, maxWidth: 360 }}>
-              Check if your password is PII-derived and dangerously weak. Get breach count, crack time estimate, and hardening steps.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
-              {['Password breach check', 'Crack time estimate', 'PII weakness detection', 'Fix recommendations'].map(f => (
-                <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.text }}>
-                  <span style={{ color: C.blue }}><Icon.Check /></span>{f}
-                </div>
-              ))}
-            </div>
-            <button className="pi-btn" style={{ padding: '12px 24px', background: C.blue, border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 8 }}
-              onClick={() => go(isAuthenticated ? '/user/dashboard' : '/register')}>
-              Check My Password <Icon.Arrow />
-            </button>
-          </div>
-        </FadeIn>
-      </section>
-
-      {/* Mode split keyboard hint */}
-      <div style={{ textAlign: 'center', padding: '12px 0', borderTop: `1px solid ${C.border}`, background: C.surface }}>
-        <span style={{ ...S.mono, fontSize: 11, color: C.dim, letterSpacing: '0.05em' }}>
-          ← User <span style={{ color: C.border }}>|</span> Security →
-        </span>
-      </div>
-
-      {/* ═══════════════════════════════════ HOW IT WORKS ═════════════════════ */}
-      <section className="pi-section" style={{ padding: '96px 48px', maxWidth: 900, margin: '0 auto' }}>
-        <FadeIn>
-          <div style={{ ...S.mono, fontSize: 11, color: C.red, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12, fontWeight: 600 }}>How It Works</div>
-          <h2 style={{ ...S.display, fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 64 }}>Three steps. That's it.</h2>
-        </FadeIn>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32, position: 'relative' }}>
-          {/* Connector line */}
-          <div style={{ position: 'absolute', top: 28, left: '16%', right: '16%', height: 1, background: C.border, zIndex: 0 }} />
-
-          {[
-            { step: '01', title: 'Input', desc: 'Enter what you know — name, DOB, hometown, pet names.', icon: <Icon.Users /> },
-            { step: '02', title: 'Generate', desc: 'Gemini AI constructs password hypotheses from human patterns.', icon: <Icon.Brain /> },
-            { step: '03', title: 'Export', desc: 'Get a ranked .txt wordlist or PDF threat report for delivery.', icon: <Icon.Download /> },
-          ].map((item, i) => (
-            <FadeIn key={i} delay={i * 0.1} style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                <div style={{
-                  width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: C.surface, border: `1px solid ${C.border}`, marginBottom: 20, color: C.red,
-                }}>
-                  {item.icon}
-                </div>
-                <div style={{ ...S.mono, fontSize: 10, color: C.dim, letterSpacing: '0.1em', marginBottom: 8 }}>{item.step}</div>
-                <div style={{ ...S.display, fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{item.title}</div>
-                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, maxWidth: 220 }}>{item.desc}</div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════ BENTO FEATURES ═══════════════════ */}
-      <section className="pi-section" style={{ padding: '0 48px 96px', maxWidth: 1100, margin: '0 auto' }}>
-        <FadeIn>
-          <div style={{ ...S.mono, fontSize: 11, color: C.red, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12, fontWeight: 600 }}>Capabilities</div>
-          <h2 style={{ ...S.display, fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 48 }}>Everything you need.</h2>
-        </FadeIn>
-
-        <div className="pi-bento" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 1, borderRadius: 12, overflow: 'hidden', border: `1px solid ${C.border}` }}>
-          {/* Big card: Gemini AI */}
-          <FadeIn delay={0} className="pi-bento-big" style={{ padding: '48px 40px', background: C.surface, gridRow: 'span 2' }}>
-            <div style={{ color: C.red, marginBottom: 16 }}><Icon.Brain /></div>
-            <div style={{ ...S.display, fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Gemini AI Core</div>
-            <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 24 }}>Not brute-force combos — contextually intelligent wordlists that understand how humans actually create passwords.</div>
-            <div style={{ background: '#0a0a0e', borderRadius: 8, padding: '16px 20px', border: `1px solid ${C.border}` }}>
-              <div style={{ ...S.mono, fontSize: 11, color: C.dim, marginBottom: 8 }}>Sample output:</div>
-              {['jsmith1987', 'johnny@work', 'js_admin!', 'smith_01', 'john#2024'].map((w, i) => (
-                <div key={i} style={{ ...S.mono, fontSize: 12, color: C.muted, padding: '2px 0' }}>{String(i + 1).padStart(2, '0')}. {w}</div>
-              ))}
-            </div>
-          </FadeIn>
-
-          {/* Small cards */}
-          {[
-            { icon: <Icon.Download />, title: 'PDF Reports', desc: 'Professional threat reports ready for client delivery.' },
-            { icon: <Icon.Globe />, title: 'Breach Intelligence', desc: 'HIBP integration for dark web breach checks.' },
-            { icon: <Icon.Shield />, title: 'RockYou Crossref', desc: '14M-entry breach dataset cross-reference.' },
-            { icon: <Icon.Users />, title: 'Team Access', desc: 'Role-based collaboration for security engagements.' },
-            { icon: <Icon.Alert />, title: 'Rate-Limited API', desc: 'Built-in throttling protects against abuse.' },
-          ].map((f, i) => (
-            <FadeIn key={i} delay={i * 0.05} className="pi-card" style={{ padding: '32px 28px', background: C.surface, transition: 'all 0.2s' }}>
-              <div style={{ color: C.red, marginBottom: 14 }}>{f.icon}</div>
-              <div style={{ ...S.display, fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{f.title}</div>
-              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{f.desc}</div>
-            </FadeIn>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════ INTERACTIVE DEMO ═════════════════ */}
-      <section className="pi-section" style={{ padding: '80px 48px 96px', textAlign: 'center' }}>
-        <FadeIn>
-          <div style={{ ...S.mono, fontSize: 11, color: C.red, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <Icon.Terminal /> Try It Now
-          </div>
-          <h2 style={{ ...S.display, fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>See it in action.</h2>
-          <p style={{ fontSize: 15, color: C.muted, maxWidth: 440, lineHeight: 1.6, margin: '0 auto 48px' }}>
-            Type a name below to see how PIIcasso would generate password hypotheses. No account needed.
-          </p>
-        </FadeIn>
-
-        <FadeIn delay={0.2}>
-          <InteractiveDemo />
-        </FadeIn>
-
-        <FadeIn delay={0.3}>
-          <p style={{ marginTop: 32, fontSize: 14, color: C.muted }}>
-            See real Gemini AI results — <span style={{ color: C.red, cursor: 'pointer', fontWeight: 600 }} onClick={() => go('/register')}>create a free account</span>
-          </p>
-        </FadeIn>
-      </section>
-
-      {/* ═══════════════════════════════════ CTA ══════════════════════════════ */}
-      <section className="pi-section" style={{ margin: '0 48px 96px', borderRadius: 16, overflow: 'hidden', position: 'relative', textAlign: 'center', padding: '80px 48px', border: `1px solid ${C.redBorder}`, background: 'linear-gradient(135deg, rgba(255,23,68,0.08) 0%, rgba(5,5,7,0.95) 60%)' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(270deg, rgba(255,23,68,0.06), rgba(255,23,68,0.02), rgba(255,23,68,0.06))', backgroundSize: '200% 100%', animation: 'pi-gradient 6s ease infinite', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <FadeIn>
-            <h2 style={{ ...S.display, fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: 16, lineHeight: 1.05 }}>
-              Stop guessing.<br />Start generating.
-            </h2>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <p style={{ fontSize: 16, color: C.muted, marginBottom: 40 }}>Free account. No card. Full access.</p>
-          </FadeIn>
-          <FadeIn delay={0.2}>
-            <button className="pi-btn pi-btn-red" style={{ padding: '16px 40px', background: C.red, border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', transition: 'all 0.15s' }}
-              onClick={() => go('/register')}>
-              Create Free Account →
-            </button>
-          </FadeIn>
-          <FadeIn delay={0.3}>
-            <p style={{ marginTop: 24, fontSize: 12, color: C.dim }}>For authorized security research only.</p>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════ FOOTER ═══════════════════════════ */}
-      <footer style={{ borderTop: `1px solid ${C.border}`, padding: '32px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ ...S.display, fontSize: 16, fontWeight: 900, letterSpacing: '-0.02em' }}>
-            P<span style={{ color: C.red }}>II</span>CASSO
-          </div>
-          <div style={{ fontSize: 12, color: C.dim, marginTop: 4 }}>Security research tool.</div>
-        </div>
-        <div className="pi-hide-sm" style={{ display: 'flex', gap: 32 }}>
-          {['Docs', 'API', 'GitHub'].map(l => (
-            <span key={l} className="pi-nav-link" style={{ fontSize: 13, color: C.dim, cursor: 'pointer', transition: 'color 0.15s' }}
-              onClick={() => l === 'Docs' || l === 'API' ? go('/api') : null}>{l}</span>
-          ))}
-        </div>
-        <div style={{ fontSize: 12, color: C.dim }}>© {new Date().getFullYear()}</div>
-      </footer>
+      <MarketingNav />
+      <Hero />
+      <Reveal variant="up"><LogoWall /></Reveal>
+      <Reveal variant="scale"><SplitModes /></Reveal>
+      <Reveal variant="up"><FeatureGrid /></Reveal>
+      <Reveal variant="left"><LiveDemo /></Reveal>
+      <Reveal variant="right"><ApiSnippet /></Reveal>
+      <Reveal variant="up"><Stats /></Reveal>
+      <Reveal variant="up"><Testimonials /></Reveal>
+      <Reveal variant="scale"><CtaBlock /></Reveal>
+      <Footer />
     </div>
   );
 }

@@ -1,240 +1,422 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { ModeContext } from '../context/ModeContext';
-import { motion } from 'framer-motion';
-import { UserPlus, Mail, Lock, User, AlertTriangle, CheckCircle, Database } from 'lucide-react';
-import Logo from '../components/Logo';
+import AuthShell from '../components/design/auth/AuthShell';
+import AttackVizSide from '../components/design/auth/AttackVizSide';
+import Field from '../components/design/auth/Field';
+import SsoButtons from '../components/design/auth/SsoButtons';
+import Divider from '../components/design/auth/Divider';
+import { scorePassword } from '../lib/piiEngine';
+
+const ROLES = [
+  {
+    value: 'individual',
+    title: 'Individual',
+    desc: "I want to check if my own passwords are crackable.",
+    color: 'var(--usr-500)',
+  },
+  {
+    value: 'security',
+    title: 'Security',
+    desc: "I'm a red teamer / security pro running missions.",
+    color: 'var(--sec-500)',
+  },
+  {
+    value: 'team',
+    title: 'Team',
+    desc: "We're plugging the SDK into our auth flow.",
+    color: 'var(--fg-0)',
+  },
+];
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
-  const isSecurityMode = appMode === 'security';
-  
-  const [form, setForm] = useState({ username: '', password: '', email: '' });
-  const [error, setError] = useState('');
+
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('individual');
+  const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const theme = {
-    card: isSecurityMode ? 'security-card' : 'user-glass-panel',
-    accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    accentBorder: isSecurityMode ? 'border-security-red' : 'border-user-cobalt',
-    btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
-    inputBg: isSecurityMode ? 'bg-black border-zinc-800 focus:border-security-red focus:ring-security-red/50' : 'bg-black/20 border-user-cobalt/20 focus:border-user-cobalt focus:ring-user-cobalt/50',
-    textMuted: isSecurityMode ? 'text-zinc-500' : 'text-user-muted',
-    iconColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    headerBorder: isSecurityMode ? 'border-zinc-800 bg-zinc-900/50' : 'border-user-cobalt/20 bg-user-cobalt/5',
-    footerBorder: isSecurityMode ? 'border-zinc-800 bg-zinc-900/30' : 'border-user-cobalt/20 bg-user-cobalt/5',
-    errorBg: isSecurityMode ? 'bg-red-900/20 border-red-500/50 text-red-200' : 'bg-red-500/10 border-red-500/30 text-red-400',
-    successBg: isSecurityMode ? 'bg-green-900/20 border border-green-500/50 text-green-400' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400',
-    linkHover: isSecurityMode ? 'hover:text-security-red' : 'hover:text-user-cobalt',
-  };
+  // Live password score using piiEngine
+  const result = useMemo(
+    () => scorePassword(password, { name, email }),
+    [password, name, email]
+  );
 
-  // ... (handleChange and handleSubmit remain same, skipped for brevity if I can just replace the top or specific part)
-  // Actually I need to be careful not to delete logic.
-  // I will replace from start of file to the return statement.
+  const scoreColor =
+    result.score < 45
+      ? 'var(--accent-500)'
+      : result.score < 70
+      ? 'var(--warn)'
+      : 'var(--good)';
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleSsoError = (msg) => setErr(msg || 'Google sign-in failed.');
 
-  // Password strength calculation
-  const getPasswordStrength = (pw) => {
-    if (!pw) return { score: 0, label: '', color: '' };
-    let score = 0;
-    if (pw.length >= 8) score++;
-    if (pw.length >= 12) score++;
-    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
-    if (/\d/.test(pw)) score++;
-    if (/[^A-Za-z0-9]/.test(pw)) score++;
-    if (score <= 1) return { score, label: 'WEAK', color: 'bg-red-500' };
-    if (score <= 2) return { score, label: 'FAIR', color: 'bg-amber-500' };
-    if (score <= 3) return { score, label: 'STRONG', color: 'bg-green-500' };
-    return { score, label: 'FORTRESS', color: 'bg-emerald-400' };
-  };
-
-  const strength = getPasswordStrength(form.password);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const handleSubmit = async () => {
+    setErr('');
     setLoading(true);
-    setSuccess(false);
+
+    // Get location — preserved from original
+    let lat = null, lng = null;
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('timeout')), 3000);
+        navigator.geolocation.getCurrentPosition(
+          (p) => { clearTimeout(timer); resolve(p); },
+          (e) => { clearTimeout(timer); reject(e); },
+          { timeout: 3000, maximumAge: 10000 }
+        );
+      });
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+    } catch (_) {
+      // location not available — continue without it
+    }
+
+    // Simulate provisioning delay — preserved from original
+    await new Promise(r => setTimeout(r, 1000));
 
     try {
-      // Get location helper
-      let lat = null, lng = null;
-      try {
-        const pos = await new Promise((resolve, reject) => {
-          const timer = setTimeout(() => reject(new Error('timeout')), 3000);
-          navigator.geolocation.getCurrentPosition(
-            (pos) => { clearTimeout(timer); resolve(pos); },
-            (err) => { clearTimeout(timer); reject(err); },
-            { timeout: 3000, maximumAge: 10000 }
-          );
-        });
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-      } catch (e) {
-        // Location not available
-      }
-
-      // Simulate account provisioning delay
-      await new Promise(r => setTimeout(r, 1000));
-
-      const payload = { ...form, lat, lng };
+      const payload = {
+        username: email.split('@')[0],
+        email,
+        password,
+        lat,
+        lng,
+      };
       const res = await axiosInstance.post('user/register/', payload);
       if (res.status === 201) {
-        setSuccess(true);
-        setTimeout(() => navigate('/login'), 2000);
+        navigate('/login');
       } else {
-        setError(res.data?.error || 'Registration failed');
+        setErr(res.data?.error || 'Registration failed');
+        setLoading(false);
       }
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Registration failed');
-    } finally {
+    } catch (e) {
+      setErr(e.response?.data?.error || e.message || 'Registration failed');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-transparent flex items-center justify-center text-white relative overflow-hidden font-mono">
-      {/* Brand Logo */}
-      <div className="absolute top-6 left-6 z-20">
-        <Logo className="text-3xl" />
+    <AuthShell
+      side={
+        <AttackVizSide
+          headline="The strongest passwords aren't created. They're tested."
+          sub="During sign-up, we check your password against the wordlist we'd build from your own profile. Live. While you type."
+        />
+      }
+    >
+      {/* Progress bars */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 32 }}>
+        {[1, 2, 3].map(s => (
+          <div
+            key={s}
+            style={{
+              flex: 1,
+              height: 3,
+              background: s <= step ? 'var(--accent-500)' : 'var(--ink-4)',
+              transition: 'background 0.25s',
+              borderRadius: 2,
+            }}
+          />
+        ))}
       </div>
 
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-lg relative z-10 px-4 md:px-0"
-      >
-        {/* Registration Terminal */}
-        <div className={`${theme.card} relative`}>
-          {/* Corner Markers */}
-          <div className={`absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 -mt-1 -ml-1 ${theme.accentBorder}`}></div>
-          <div className={`absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 -mt-1 -mr-1 ${theme.accentBorder}`}></div>
-          <div className={`absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 -mb-1 -ml-1 ${theme.accentBorder}`}></div>
-          <div className={`absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 -mb-1 -mr-1 ${theme.accentBorder}`}></div>
+      {/* Error banner (shown across steps) */}
+      {err && (
+        <div
+          style={{
+            color: 'var(--accent-500)',
+            fontSize: 13,
+            fontFamily: 'var(--font-mono-v3)',
+            padding: '8px 12px',
+            background: 'color-mix(in oklab, var(--accent-500) 8%, var(--ink-1))',
+            border: '1px solid color-mix(in oklab, var(--accent-500) 30%, transparent)',
+            borderRadius: 6,
+            marginBottom: 16,
+          }}
+        >
+          ! {err}
+        </div>
+      )}
 
-          <div className={`p-4 border-b flex items-center justify-between ${theme.headerBorder}`}>
-            <div className="flex items-center gap-2">
-              <Database className={`w-5 h-5 ${theme.textMuted}`} />
-              <span className="font-bold text-gray-200">Create Account</span>
-            </div>
-            <div className="flex gap-1">
-              <div className={`w-3 h-3 rounded-full ${isSecurityMode ? 'bg-red-500' : 'bg-user-cobalt'}`}></div>
-              <div className="w-3 h-3 bg-zinc-700 rounded-full"></div>
-            </div>
+      {/* ── STEP 1: Identity ── */}
+      {step === 1 && (
+        <>
+          <h1 className="h-display" style={{ fontSize: 36, marginBottom: 8 }}>
+            Create your account
+          </h1>
+          <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
+            It's free for individuals — forever.
+          </p>
+
+          <SsoButtons onError={handleSsoError} />
+          <Divider label="or with email" />
+
+          <div style={{ display: 'grid', gap: 14 }}>
+            <Field
+              label="Work email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="alex@northwind.io"
+              autoComplete="email"
+            />
+            <Field
+              label="Full name"
+              type="text"
+              value={name}
+              onChange={setName}
+              placeholder="Alex Chen"
+              autoComplete="name"
+            />
+            <button
+              type="button"
+              disabled={!email || !name}
+              onClick={() => email && name && setStep(2)}
+              className="v3-btn v3-btn-accent"
+              style={{
+                marginTop: 8,
+                padding: '13px 18px',
+                justifyContent: 'center',
+                width: '100%',
+                opacity: email && name ? 1 : 0.4,
+                cursor: email && name ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Continue →
+            </button>
           </div>
 
-          <div className="p-8">
-            <div className="mb-8 text-center">
-              <UserPlus className={`w-12 h-12 mx-auto mb-4 ${theme.iconColor}`} />
-              <h2 className="text-2xl font-heading tracking-widest uppercase">REGISTER</h2>
-              <p className={`text-xs mt-2 ${theme.textMuted}`}>Create a new account for PIIcasso.</p>
-            </div>
+          <p style={{ marginTop: 20, fontSize: 13, color: 'var(--fg-3)', textAlign: 'center' }}>
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: 'var(--accent-500)', textDecoration: 'underline' }}>
+              Sign in
+            </Link>
+          </p>
+        </>
+      )}
 
-            {error && (
-              <div className={`mb-6 p-3 rounded flex items-center gap-3 text-sm ${theme.errorBg}`}>
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                {error}
-              </div>
-            )}
+      {/* ── STEP 2: Password + live score ── */}
+      {step === 2 && (
+        <>
+          <h1 className="h-display" style={{ fontSize: 32, marginBottom: 8, lineHeight: 1.2 }}>
+            Pick a password.<br />We'll grade it as you type.
+          </h1>
+          <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
+            Anything with{' '}
+            <strong style={{ color: 'var(--fg-0)' }}>
+              {name.split(' ')[0] || 'your name'}
+            </strong>{' '}
+            in it? We'll know.
+          </p>
 
-            {success && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className={`mb-6 p-4 rounded flex flex-col items-center gap-2 text-center ${theme.successBg}`}
+          <Field
+            label="Password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            placeholder="Make it weird"
+            autoComplete="new-password"
+          />
+
+          {/* Strength panel */}
+          <div
+            style={{
+              marginTop: 16,
+              padding: 16,
+              borderRadius: 10,
+              background: 'var(--ink-1)',
+              border: '1px solid var(--ink-4)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                marginBottom: 10,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono-v3)',
+                  fontSize: 12,
+                  color: 'var(--fg-2)',
+                  letterSpacing: '0.08em',
+                }}
               >
-                <CheckCircle className="w-8 h-8 flex-shrink-0 text-green-400" />
-                <div>
-                  <strong className="text-base">{isSecurityMode ? 'ACCESS GRANTED' : 'Account Created'}</strong>
-                  <p className="text-xs mt-1 opacity-80">{isSecurityMode ? 'Credentials provisioned. Redirecting...' : 'Welcome! Redirecting to login...'}</p>
-                </div>
-              </motion.div>
-            )}
-
-            {!success && (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="relative group">
-                  <User className={`absolute left-3 top-3 w-5 h-5 transition-colors ${theme.textMuted} group-focus-within:text-white`} />
-                  <input
-                    name="username"
-                    value={form.username}
-                    onChange={handleChange}
-                    placeholder="Username"
-                    className={`w-full pl-10 pr-4 py-3 text-sm rounded border ring-1 ring-transparent outline-none transition-colors ${theme.inputBg}`}
-                    required
-                    autoComplete="off"
-                  />
-                </div>
-
-                <div className="relative group">
-                  <Mail className={`absolute left-3 top-3 w-5 h-5 transition-colors ${theme.textMuted} group-focus-within:text-white`} />
-                  <input
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="Email Address"
-                    className={`w-full pl-10 pr-4 py-3 text-sm rounded border ring-1 ring-transparent outline-none transition-colors ${theme.inputBg}`}
-                    required
-                  />
-                </div>
-
-                <div className="relative group">
-                  <Lock className={`absolute left-3 top-3 w-5 h-5 transition-colors ${theme.textMuted} group-focus-within:text-white`} />
-                  <input
-                    name="password"
-                    type="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Password"
-                    className={`w-full pl-10 pr-4 py-3 text-sm rounded border ring-1 ring-transparent outline-none transition-colors ${theme.inputBg}`}
-                    required
-                  />
-                  <div className="text-[10px] text-right mt-1 font-mono" style={{ color: form.password ? (strength.score <= 1 ? '#ef4444' : strength.score <= 2 ? '#f59e0b' : '#10b981') : 'inherit' }}>
-                    {form.password ? `${form.password.length} chars · ${strength.label}` : ''}
-                  </div>
-                  {/* Strength bar */}
-                  {form.password && (
-                    <div className="mt-2 flex gap-1">
-                      {[1, 2, 3, 4].map(i => (
-                        <div
-                          key={i}
-                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                            i <= strength.score ? strength.color : isSecurityMode ? 'bg-zinc-800' : 'bg-white/10'
-                          }`}
-                        />
-                      ))}
+                RESILIENCE
+              </span>
+              <span style={{ fontSize: 22, fontWeight: 500, color: scoreColor }}>
+                {result.score}{' '}
+                <span style={{ fontSize: 12, color: 'var(--fg-2)' }}>/ 100</span>
+              </span>
+            </div>
+            {/* Animated progress bar */}
+            <div
+              style={{
+                height: 6,
+                background: 'var(--ink-3)',
+                borderRadius: 3,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${result.score}%`,
+                  height: '100%',
+                  background: scoreColor,
+                  transition: 'width 0.25s, background 0.25s',
+                }}
+              />
+            </div>
+            {/* Reasons list */}
+            <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
+              {result.reasons && result.reasons.length > 0
+                ? result.reasons.map((r, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        fontFamily: 'var(--font-mono-v3)',
+                        fontSize: 11,
+                        color: 'var(--accent-400)',
+                      }}
+                    >
+                      ✕ {r.label || r}
+                    </div>
+                  ))
+                : password && (
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono-v3)',
+                        fontSize: 11,
+                        color: 'var(--good)',
+                      }}
+                    >
+                      ✓ No PII or pattern matches
                     </div>
                   )}
-                </div>
+            </div>
+          </div>
 
+          <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="v3-btn v3-btn-ghost"
+              style={{ padding: '12px 16px' }}
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              disabled={result.score < 45}
+              onClick={() => result.score >= 45 && setStep(3)}
+              className="v3-btn v3-btn-accent"
+              style={{
+                padding: '13px 18px',
+                flex: 1,
+                justifyContent: 'center',
+                opacity: result.score < 45 ? 0.4 : 1,
+                cursor: result.score < 45 ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {result.score < 45 ? 'Make it stronger to continue' : 'Continue →'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── STEP 3: Role picker + submit ── */}
+      {step === 3 && (
+        <>
+          <h1 className="h-display" style={{ fontSize: 32, marginBottom: 12 }}>
+            How will you use it?
+          </h1>
+          <p style={{ color: 'var(--fg-2)', marginBottom: 24, fontSize: 14 }}>
+            This sets your default mode. You can switch any time.
+          </p>
+
+          <div style={{ display: 'grid', gap: 10 }}>
+            {ROLES.map(({ value, title, desc, color }) => {
+              const selected = role === value;
+              return (
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full py-3 mt-4 rounded font-bold uppercase tracking-widest disabled:opacity-50 disabled:cursor-wait ${theme.btnPrimary}`}
+                  key={value}
+                  type="button"
+                  onClick={() => setRole(value)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    padding: 16,
+                    textAlign: 'left',
+                    borderRadius: 10,
+                    border: selected ? `1px solid ${color}` : '1px solid var(--ink-4)',
+                    background: selected
+                      ? `color-mix(in oklab, ${color} 8%, var(--ink-1))`
+                      : 'var(--ink-1)',
+                    transition: 'all 0.15s',
+                    cursor: 'pointer',
+                    color: 'var(--fg-0)',
+                    width: '100%',
+                  }}
                 >
-                  {loading
-                    ? (isSecurityMode ? 'Provisioning Account...' : 'Creating Account...')
-                    : 'Sign Up'
-                  }
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      border: `2px solid ${selected ? color : 'var(--ink-5)'}`,
+                      display: 'inline-block',
+                      marginTop: 2,
+                      background: selected ? color : 'transparent',
+                      flexShrink: 0,
+                      transition: 'all 0.15s',
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 500, marginBottom: 2 }}>{title}</div>
+                    <div style={{ color: 'var(--fg-2)', fontSize: 13 }}>{desc}</div>
+                  </div>
                 </button>
-              </form>
-            )}
+              );
+            })}
           </div>
 
-          <div className={`p-4 border-t text-center ${theme.footerBorder}`}>
-            <Link to="/login" className={`text-xs transition-colors flex items-center justify-center gap-2 py-3 ${theme.textMuted} hover:text-white`}>
-              <Lock className="w-3 h-3" /> Already have an account? Login
-            </Link>
+          <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="v3-btn v3-btn-ghost"
+              style={{ padding: '12px 16px' }}
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleSubmit}
+              className="v3-btn v3-btn-accent"
+              style={{
+                flex: 1,
+                padding: '13px 18px',
+                justifyContent: 'center',
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? 'Creating account…' : 'Create account →'}
+            </button>
           </div>
-        </div>
-      </motion.div>
-    </div>
+        </>
+      )}
+    </AuthShell>
   );
 };
 

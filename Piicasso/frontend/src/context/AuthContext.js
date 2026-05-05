@@ -51,11 +51,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const defaultBaseURL = process.env.REACT_APP_API_URL || 'https://core-engine-woeg.onrender.com/api/';
-      
-      const refreshUrl = `${defaultBaseURL}user/token/refresh/`; 
-         
-        
+      const refreshUrl = `${process.env.REACT_APP_API_URL || '/api/'}user/token/refresh/`;
 
       const res = await fetch(refreshUrl, {
         method: 'POST',

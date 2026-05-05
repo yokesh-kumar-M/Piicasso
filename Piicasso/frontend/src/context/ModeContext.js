@@ -14,7 +14,7 @@ export const ModeProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('app_mode', mode);
-    // Dynamic Netflix Theme Variables via Body Class
+    // v2 system: body class drives existing theme-security / theme-user CSS
     if (mode === 'security') {
       document.body.classList.add('mode-security');
       document.body.classList.remove('mode-user');
@@ -22,6 +22,8 @@ export const ModeProvider = ({ children }) => {
       document.body.classList.add('mode-user');
       document.body.classList.remove('mode-security');
     }
+    // v3 design system: data-mode on root rotates --accent-h via [data-mode="user"]
+    document.documentElement.setAttribute('data-mode', mode);
   }, [mode]);
 
   const fetchPreferences = useCallback(async () => {

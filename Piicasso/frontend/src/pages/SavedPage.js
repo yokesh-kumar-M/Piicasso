@@ -34,16 +34,20 @@ const SavedPage = () => {
     const isSecurityMode = mode === 'security';
 
     const theme = {
-        bg: isSecurityMode ? 'bg-security-bg text-white' : 'theme-user',
+        bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
         accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
         accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
-        card: isSecurityMode ? 'security-card group' : 'user-glass-panel group border-white/5 hover:border-user-cobalt/30 transition-all duration-300',
-        inputBg: isSecurityMode ? 'bg-[#181818] border-white/10 focus-within:border-security-red' : 'bg-black/20 border-white/10 focus-within:border-user-cobalt',
-        btnPrimary: isSecurityMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-user-cobalt text-white hover:bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.3)]',
-        btnSecondary: isSecurityMode ? 'bg-[#232323] text-white hover:bg-[#333]' : 'bg-white/10 text-white hover:bg-white/20',
-        searchContainer: isSecurityMode ? 'bg-dark-surface focus-within:border-security-red' : 'bg-black/20 focus-within:border-user-cobalt',
-        refreshBtn: isSecurityMode ? 'bg-dark-surface hover:bg-[#222]' : 'bg-black/20 hover:bg-black/40',
-        cardHeader: isSecurityMode ? 'bg-gradient-to-br from-[#222] to-[#141414]' : 'bg-gradient-to-br from-black/40 to-black/20',
+        card: isSecurityMode ? 'sec-card group' : 'usr-card group',
+        inputBg: isSecurityMode ? 'bg-black border-security-border focus-within:border-security-red text-white placeholder-gray-600' : 'bg-white/5 border-user-border focus-within:border-user-cobalt text-user-text placeholder-user-text/40',
+        btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
+        btnSecondary: isSecurityMode ? 'bg-security-surface text-white border border-security-border hover:bg-white/5' : 'bg-white/10 text-white border border-user-border hover:bg-white/20',
+        searchContainer: isSecurityMode ? 'bg-black border border-security-border focus-within:border-security-red' : 'bg-white/5 border border-user-border focus-within:border-user-cobalt',
+        refreshBtn: isSecurityMode ? 'bg-security-surface border border-security-border hover:bg-white/5' : 'bg-white/5 border border-user-border hover:bg-white/10',
+        cardHeader: isSecurityMode ? 'bg-gradient-to-br from-[#1a1a1a] to-black' : 'bg-gradient-to-br from-white/5 to-transparent',
+        heading: isSecurityMode ? 'security-heading' : 'user-heading',
+        textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
+        textPrimary: isSecurityMode ? 'text-gray-300' : 'text-user-text/90',
+        divider: isSecurityMode ? 'border-security-border' : 'border-user-border',
     };
 
     const [items, setItems] = useState([]);
@@ -123,11 +127,11 @@ const SavedPage = () => {
                 {/* Header */}
                 <div className={`flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 gap-4 ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
                     <div>
-                        <h1 className={`text-2xl md:text-3xl font-bold tracking-wide mb-1 flex items-center gap-3 ${isSecurityMode ? 'security-heading' : 'user-heading'}`}>
+                        <h1 className={`text-2xl md:text-3xl font-bold tracking-wide mb-1 flex items-center gap-3 ${theme.heading}`}>
                             <Bookmark className={`w-6 h-6 ${theme.accentColor}`} />
                             Saved <span className={isSecurityMode ? 'text-gray-500 font-normal font-sans tracking-normal uppercase text-lg' : 'text-user-text/60 font-normal'}>Items</span>
                         </h1>
-                        <p className={`text-xs ${isSecurityMode ? 'text-gray-500' : 'text-user-text/70'}`}>
+                        <p className={`text-xs ${theme.textMuted}`}>
                             Your bookmarked generation records — save items from the History page
                             <span className={`ml-1 ${isSecurityMode ? 'text-yellow-600' : 'text-user-cobalt/80'}`}>(stored locally in this browser only)</span>
                         </p>

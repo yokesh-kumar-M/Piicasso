@@ -18,8 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'Outfit', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['Geist', 'Inter', 'Outfit', 'sans-serif'],
+        mono: ['Geist Mono', 'JetBrains Mono', 'Fira Code', 'monospace'],
+        serif: ['Instrument Serif', 'Times New Roman', 'serif'],
         display: ['Oswald', 'Bebas Neue', 'sans-serif'],
         heading: ['Space Grotesk', 'Inter', 'sans-serif'],
       },
@@ -29,6 +30,49 @@ module.exports = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+
+        // ── Editorial design system (cinematic dark, mode-swap accents) ──
+        // Used by the redesigned pages. Coexists with existing security/user.
+        ink: {
+          0: '#07070a',  // page bg
+          1: '#0b0b10',  // surface bg
+          2: '#101017',  // elevated surface
+          3: '#16161f',  // card
+          4: '#1d1d28',  // hairline well
+          5: '#262633',  // hairline
+          6: '#383848',  // divider strong
+        },
+        fg: {
+          0: '#f6f6f8',  // primary text
+          1: '#c8c8d4',  // body
+          2: '#8e8ea3',  // muted
+          3: '#5a5a70',  // subtle
+          4: '#3a3a4a',  // whisper
+        },
+        // Accent maps to the active mode via CSS var. Use bg-accent-500, etc.
+        accent: {
+          50: 'oklch(0.96 0.02 var(--accent-h, 25))',
+          200: 'oklch(0.82 0.10 var(--accent-h, 25))',
+          400: 'oklch(0.70 0.16 var(--accent-h, 25))',
+          500: 'oklch(0.62 0.18 var(--accent-h, 25))',
+          600: 'oklch(0.55 0.18 var(--accent-h, 25))',
+          700: 'oklch(0.45 0.16 var(--accent-h, 25))',
+          glow: 'oklch(0.62 0.18 var(--accent-h, 25) / 0.22)',
+        },
+        // Static mode-anchored variants (when you need a specific mode regardless of active)
+        sec: {
+          500: 'oklch(0.62 0.18 25)',
+          400: 'oklch(0.70 0.16 25)',
+          700: 'oklch(0.45 0.16 25)',
+        },
+        usr: {
+          500: 'oklch(0.62 0.18 255)',
+          400: 'oklch(0.70 0.16 255)',
+          700: 'oklch(0.45 0.16 255)',
+        },
+        good: 'oklch(0.72 0.14 150)',
+        warn: 'oklch(0.78 0.14 78)',
+        crit: 'oklch(0.65 0.20 25)',
         
         // Premium Brand Colors (Blueprint: Refined Color Palette)
         premium: {

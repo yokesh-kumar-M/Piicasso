@@ -9,6 +9,7 @@ import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
@@ -288,11 +289,25 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = False
 
 # ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────────
-GOOGLE_CLIENT_ID = os.getenv(
-    "GOOGLE_CLIENT_ID",
-    "580009207244-spt94f5gp84ll2i2es1aqk78f66ulc2c.apps.googleusercontent.com",
-)
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+if not GOOGLE_CLIENT_ID:
+    raise ImproperlyConfigured(
+        "GOOGLE_CLIENT_ID environment variable is not set. "
+        "Google OAuth will not work without it."
+    )
 FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "piicasso-d923a")
+
+# ─── FIELD-LEVEL ENCRYPTION ──────────────────────────────────────────────────
+# Used by EncryptedJSONField (generator.fields) to encrypt pii_data at rest.
+# Generate a key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+_fek = os.getenv("FIELD_ENCRYPTION_KEY")
+if not _fek:
+    raise ImproperlyConfigured(
+        "FIELD_ENCRYPTION_KEY environment variable is not set. "
+        "Generate one with: python -c \"from cryptography.fernet import Fernet; "
+        "print(Fernet.generate_key().decode())\""
+    )
+FIELD_ENCRYPTION_KEY = _fek
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -460,9 +475,6 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 # ─── MISC ────────────────────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Google OAuth Client ID (1.4 fix — set in environment for production)
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 
 AUTHENTICATION_BACKENDS = [
     "wordgen.backends.EmailOrUsernameModelBackend",

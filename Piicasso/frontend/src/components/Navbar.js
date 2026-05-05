@@ -126,15 +126,15 @@ const Navbar = () => {
 
     return (
         <nav className={`fixed top-0 w-full z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${themeConfig.navBg}`}>
-            <div className="px-5 md:px-10 lg:px-16 py-4 flex items-center justify-between mx-auto max-w-screen-2xl">
+            <div className="px-4 sm:px-5 md:px-10 lg:px-16 py-3 sm:py-4 flex items-center justify-between mx-auto max-w-screen-2xl">
 
                 {/* Left Side: Logo & Links */}
-                <div className="flex items-center gap-14">
+                <div className="flex items-center gap-4 sm:gap-6 md:gap-10 lg:gap-14">
                     <Link to="/" className="flex items-center flex-shrink-0 group">
                         {themeConfig.logoComponent}
                     </Link>
 
-                    <div className="hidden lg:flex items-center gap-10 mt-1">
+                    <div className="hidden lg:flex items-center gap-6 md:gap-8 lg:gap-10 mt-1">
                         {navLinks.map((link) => {
                             const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
                             return (
@@ -160,11 +160,11 @@ const Navbar = () => {
                 </div>
 
                 {/* Right Side: Icons & Profile */}
-                <div className="flex items-center gap-7 text-white mt-1">
+                <div className="flex items-center gap-3 sm:gap-5 md:gap-7 text-white mt-1">
                     {isAuthenticated && <ModeSwitcher />}
 
                     <Link to="/darkweb" className="hidden sm:flex items-center text-gray-400 hover:text-white transition-colors" title="Deep Search">
-                        <Search className="w-5 h-5" strokeWidth={isSecurityMode ? 2.5 : 2} />
+                        <Search className="w-5 h-5 sm:w-[22px] sm:h-[22px]" strokeWidth={isSecurityMode ? 2.5 : 2} />
                     </Link>
 
                     {/* Notification Bell */}
@@ -172,42 +172,42 @@ const Navbar = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                                className="relative flex items-center transition-colors px-2 py-1"
+                                className="relative flex items-center transition-colors px-1.5 sm:px-2 py-1"
                             >
                                 <Bell className={`w-5 h-5 sm:w-[22px] sm:h-[22px] ${unreadCount > 0 ? 'text-white' : 'text-gray-400 hover:text-white'}`} strokeWidth={isSecurityMode ? 2.5 : 2} />
                                 {unreadCount > 0 && (
-                                    <span className={`absolute -top-1 right-1 sm:-right-1 min-w-[16px] h-[16px] rounded-full text-[9px] font-bold flex items-center justify-center border-2 border-transparent text-white shadow-md ${isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt'}`}>
+                                    <span className={`absolute -top-1 right-0 sm:-right-1 min-w-[16px] h-[16px] rounded-full text-[9px] font-bold flex items-center justify-center border-2 border-transparent text-white shadow-md ${isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt'}`}>
                                         {unreadCount > 9 ? '9+' : unreadCount}
                                     </span>
                                 )}
                             </button>
 
-                            {/* Dropdown Menu */}
-                            <AnimatePresence>
-                                {showNotifDropdown && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 15, scale: 0.98 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                        className={`absolute top-full right-0 sm:-right-16 mt-5 w-[calc(100vw-2rem)] sm:w-[320px] max-w-[420px] rounded-xl border shadow-2xl z-50 overflow-hidden ${themeConfig.dropdownBg}`}
-                                    >
-                                        <div className={`p-4 sm:p-5 border-b flex items-center justify-between ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
-                                            <h3 className={`font-bold ${isSecurityMode ? 'font-display text-base sm:text-lg uppercase tracking-wide text-white' : 'text-sm sm:text-base tracking-tight text-white'}`}>
+                                {/* Dropdown Menu */}
+                                <AnimatePresence>
+                                    {showNotifDropdown && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                            className={`absolute top-full right-0 sm:-right-16 mt-3 sm:mt-5 w-[calc(100vw-1rem)] xs:w-[calc(100vw-2rem)] sm:w-[320px] max-w-[420px] rounded-xl border shadow-2xl z-50 overflow-hidden ${themeConfig.dropdownBg}`}
+                                        >
+                                        <div className={`p-3 xs:p-4 sm:p-5 border-b flex items-center justify-between ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
+                                            <h3 className={`font-bold ${isSecurityMode ? 'font-display text-sm xs:text-base sm:text-lg uppercase tracking-wide text-white' : 'text-xs xs:text-sm sm:text-base tracking-tight text-white'}`}>
                                                 Notifications
                                             </h3>
                                             {unreadCount > 0 && (
                                                 <button
                                                     onClick={markAllRead}
-                                                    className={`text-[10px] sm:text-xs font-medium text-gray-400 transition-colors ${isSecurityMode ? 'hover:text-security-red uppercase font-display tracking-widest' : 'hover:text-user-cobalt'}`}
+                                                    className={`text-[9px] xs:text-[10px] sm:text-xs font-medium text-gray-400 transition-colors ${isSecurityMode ? 'hover:text-security-red uppercase font-display tracking-widest' : 'hover:text-user-cobalt'}`}
                                                 >
                                                     Mark all read
                                                 </button>
                                             )}
                                         </div>
-                                        <div className="max-h-[300px] sm:max-h-[400px] overflow-y-auto custom-scrollbar">
+                                        <div className="max-h-[250px] xs:max-h-[300px] sm:max-h-[400px] overflow-y-auto custom-scrollbar">
                                             {notifications.length === 0 ? (
-                                                <div className="text-sm text-center py-12 sm:py-16 text-gray-500 font-medium">
+                                                <div className="text-xs xs:text-sm text-center py-8 xs:py-12 sm:py-16 text-gray-500 font-medium">
                                                     No new updates.
                                                 </div>
                                             ) : (
@@ -216,18 +216,18 @@ const Navbar = () => {
                                                         key={n.id}
                                                         to={n.link || '#'}
                                                         onClick={() => { markOneRead(n.id); setShowNotifDropdown(false); }}
-                                                        className={`block px-4 sm:px-5 py-3 sm:py-4 border-b transition-colors hover:bg-white/[0.04] ${isSecurityMode ? 'border-security-border' : 'border-user-border'} ${!n.is_read ? 'bg-white/[0.02]' : ''}`}
+                                                        className={`block px-3 xs:px-4 sm:px-5 py-2 xs:py-3 sm:py-4 border-b transition-colors hover:bg-white/[0.04] ${isSecurityMode ? 'border-security-border' : 'border-user-border'} ${!n.is_read ? 'bg-white/[0.02]' : ''}`}
                                                     >
-                                                        <div className="flex items-start gap-3 sm:gap-4">
-                                                            <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.is_read ? (isSecurityMode ? 'bg-security-red shadow-[0_0_8px_rgba(225,29,72,0.8)]' : 'bg-user-cobalt shadow-[0_0_8px_rgba(59,130,246,0.8)]') : 'bg-gray-700'}`} />
+                                                        <div className="flex items-start gap-2 xs:gap-3 sm:gap-4">
+                                                            <div className={`w-1.5 xs:w-2 h-1.5 xs:h-2 rounded-full mt-1 shrink-0 ${!n.is_read ? (isSecurityMode ? 'bg-security-red shadow-[0_0_8px_rgba(225,29,72,0.8)]' : 'bg-user-cobalt shadow-[0_0_8px_rgba(59,130,246,0.8)]') : 'bg-gray-700'}`} />
                                                             <div className="min-w-0 flex-1">
-                                                                <p className={`text-xs sm:text-sm font-bold tracking-tight ${getNotifColor(n.notification_type)} truncate`}>
+                                                                <p className={`text-[11px] xs:text-xs sm:text-sm font-bold tracking-tight ${getNotifColor(n.notification_type)} truncate`}>
                                                                     {n.title}
                                                                 </p>
                                                                 {n.description && (
-                                                                    <p className="text-[11px] sm:text-[13px] text-gray-400 mt-1 leading-snug line-clamp-2">{n.description}</p>
+                                                                    <p className="text-[10px] xs:text-[11px] sm:text-[13px] text-gray-400 mt-0.5 xs:mt-1 leading-snug line-clamp-2">{n.description}</p>
                                                                 )}
-                                                                <p className={`text-[9px] sm:text-[11px] font-medium text-gray-500 mt-2 ${isSecurityMode ? 'font-display uppercase tracking-widest' : ''}`}>{timeSince(n.timestamp)}</p>
+                                                                <p className={`text-[8px] xs:text-[9px] sm:text-[11px] font-medium text-gray-500 mt-1 xs:mt-2 ${isSecurityMode ? 'font-display uppercase tracking-widest' : ''}`}>{timeSince(n.timestamp)}</p>
                                                             </div>
                                                         </div>
                                                     </Link>
@@ -244,30 +244,30 @@ const Navbar = () => {
                     )}
 
                     {isAuthenticated ? (
-                        <div className="group relative flex items-center gap-3 cursor-pointer py-2 pl-2">
+                        <div className="group relative flex items-center gap-2 sm:gap-3 cursor-pointer py-2 pl-1 sm:pl-2">
                             <div className="flex flex-col items-end hidden md:flex mr-1">
-                                <span className="text-[13px] font-bold text-white tracking-tight">{user?.username}</span>
+                                <span className="text-[11px] sm:text-[13px] font-bold text-white tracking-tight">{user?.username}</span>
                             </div>
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-base shadow-lg ${isSecurityMode ? 'bg-security-red text-white' : 'bg-gradient-to-tr from-user-cobalt to-user-indigo text-white'}`}>
+                            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-lg ${isSecurityMode ? 'bg-security-red text-white' : 'bg-gradient-to-tr from-user-cobalt to-user-indigo text-white'}`}>
                                 {user?.username?.[0]?.toUpperCase() || 'U'}
                             </div>
-                            <ChevronDown className="w-[14px] h-[14px] text-gray-400 group-hover:text-white transition-all duration-300 hidden sm:block" />
+                            <ChevronDown className="w-[12px] h-[12px] sm:w-[14px] sm:h-[14px] text-gray-400 group-hover:text-white transition-all duration-300 hidden sm:block" />
 
                             {/* Dropdown */}
-                            <div className={`absolute top-full right-0 mt-3 w-64 rounded-xl border shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden ${themeConfig.dropdownBg}`}>
+                            <div className={`absolute top-full right-0 mt-2 sm:mt-3 w-56 sm:w-64 rounded-xl border shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden ${themeConfig.dropdownBg}`}>
                                 <div className="py-2">
-                                    <div className={`px-5 py-4 border-b mb-2 ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
-                                        <p className={`text-[10px] text-gray-400 uppercase font-bold mb-1 ${isSecurityMode ? 'font-display tracking-widest' : 'tracking-wider'}`}>Signed in as</p>
-                                        <p className="text-sm font-bold text-white truncate">{user?.email || user?.username}</p>
+                                    <div className={`px-4 sm:px-5 py-3 sm:py-4 border-b mb-2 ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
+                                        <p className={`text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold mb-1 ${isSecurityMode ? 'font-display tracking-widest' : 'tracking-wider'}`}>Signed in as</p>
+                                        <p className="text-xs sm:text-sm font-bold text-white truncate">{user?.email || user?.username}</p>
                                     </div>
-                                    <Link to="/profile" className="px-5 py-3 text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white font-medium flex items-center gap-3">
-                                        <User className="w-[18px] h-[18px] text-gray-400" strokeWidth={2} /> Profile
+                                    <Link to="/profile" className="px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white font-medium flex items-center gap-2 sm:gap-3">
+                                        <User className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-gray-400" strokeWidth={2} /> Profile
                                     </Link>
-                                    <Link to="/inbox" className="px-5 py-3 text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white font-medium flex items-center gap-3">
-                                        <Mail className="w-[18px] h-[18px] text-gray-400" strokeWidth={2} /> Inbox
+                                    <Link to="/inbox" className="px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white font-medium flex items-center gap-2 sm:gap-3">
+                                        <Mail className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-gray-400" strokeWidth={2} /> Inbox
                                     </Link>
-                                    <div className={`h-px my-2 ${isSecurityMode ? 'bg-security-border' : 'bg-user-border'}`}></div>
-                                    <button onClick={logout} className={`w-full text-left px-5 py-3 text-sm transition-colors font-medium flex items-center gap-3 ${isSecurityMode ? 'text-security-red hover:bg-security-red/10' : 'text-red-400 hover:bg-red-500/10'}`}>
+                                    <div className={`h-px my-1.5 sm:my-2 ${isSecurityMode ? 'bg-security-border' : 'bg-user-border'}`}></div>
+                                    <button onClick={logout} className={`w-full text-left px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors font-medium flex items-center gap-2 sm:gap-3 ${isSecurityMode ? 'text-security-red hover:bg-security-red/10' : 'text-red-400 hover:bg-red-500/10'}`}>
                                         Sign out
                                     </button>
                                 </div>
@@ -280,9 +280,9 @@ const Navbar = () => {
                     )}
 
                     {/* Mobile Menu Toggle */}
-                    <div className="lg:hidden ml-2">
-                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white hover:opacity-80 transition-opacity p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
-                            {isMobileMenuOpen ? <X className="w-7 h-7"/> : <Menu className="w-7 h-7"/>}
+                    <div className="lg:hidden ml-1 sm:ml-2">
+                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white hover:opacity-80 transition-opacity p-1.5 sm:p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
+                            {isMobileMenuOpen ? <X className="w-6 h-6 sm:w-7 sm:h-7"/> : <Menu className="w-6 h-6 sm:w-7 sm:h-7"/>}
                         </button>
                     </div>
                 </div>
@@ -297,60 +297,61 @@ const Navbar = () => {
             <AnimatePresence>
               {isMobileMenuOpen && (
                   <>
-                      <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                      />
-                      <motion.div 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm lg:hidden overflow-y-auto shadow-2xl ${themeConfig.dropdownBg}`}
-                      >
-                          <div className="pt-24 px-6 pb-12">
-                              <div className="flex flex-col space-y-1">
-                                  {navLinks.map((link) => (
+                          <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                          />
+                          <motion.div 
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -20 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                              className={`fixed inset-y-0 left-0 z-50 w-[80vw] xs:w-[85vw] max-w-sm lg:hidden overflow-y-auto shadow-2xl ${themeConfig.dropdownBg}`}
+                          >
+                              <div className="pt-20 xs:pt-24 px-4 xs:px-6 pb-8 xs:pb-12">
+                                  <div className="flex flex-col space-y-1">
+                                      {navLinks.map((link) => (
+                                          <Link
+                                              key={link.name}
+                                              to={link.path}
+                                              className={`block py-3 xs:py-4 px-3 xs:px-4 text-base xs:text-lg rounded-lg transition-all duration-300 ${isSecurityMode ? 'text-white hover:text-security-red hover:bg-white/5' : 'text-gray-200 hover:text-white hover:bg-white/5 hover:translate-x-1'}`}
+                                              onClick={() => setIsMobileMenuOpen(false)}
+                                          >
+                                              {link.name}
+                                          </Link>
+                                      ))}
+
+                                      {/* Mobile Search/Deep Search link */}
                                       <Link
-                                          key={link.name}
-                                          to={link.path}
-                                          className={`block py-4 px-4 text-lg rounded-lg transition-all duration-300 ${isSecurityMode ? 'text-white hover:text-security-red hover:bg-white/5' : 'text-gray-200 hover:text-white hover:bg-white/5 hover:translate-x-1'}`}
+                                          to="/darkweb"
+                                          className={`flex items-center gap-2 xs:gap-3 py-3 xs:py-4 px-3 xs:px-4 text-base xs:text-lg rounded-lg transition-all duration-300 ${isSecurityMode ? 'text-white hover:text-security-red hover:bg-white/5' : 'text-gray-200 hover:text-white hover:bg-white/5 hover:translate-x-1'}`}
                                           onClick={() => setIsMobileMenuOpen(false)}
                                       >
-                                          {link.name}
+                                          <Search className="w-4 h-4 xs:w-5 xs:h-5" /> Deep Search
                                       </Link>
-                                  ))}
 
-                                  {/* Mobile Search/Deep Search link */}
-                                  <Link
-                                      to="/darkweb"
-                                      className={`flex items-center gap-3 py-4 px-4 text-lg rounded-lg transition-all duration-300 ${isSecurityMode ? 'text-white hover:text-security-red hover:bg-white/5' : 'text-gray-200 hover:text-white hover:bg-white/5 hover:translate-x-1'}`}
-                                      onClick={() => setIsMobileMenuOpen(false)}
-                                  >
-                                      <Search className="w-5 h-5" /> Deep Search
-                                  </Link>
-
-                                  <div className="pt-6 flex flex-col gap-3">
-                                      {isAuthenticated ? (
-                                          <>
-                                              <Link to="/profile" className="flex items-center gap-3 py-4 px-4 text-lg font-semibold text-white hover:bg-white/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
-                                                  <User className="w-5 h-5" /> Account Profile
+                                      <div className="pt-4 xs:pt-6 flex flex-col gap-2 xs:gap-3">
+                                          {isAuthenticated ? (
+                                              <>
+                                                  <Link to="/profile" className="flex items-center gap-2 xs:gap-3 py-3 xs:py-4 px-3 xs:px-4 text-base xs:text-lg font-semibold text-white hover:bg-white/5 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
+                                                      <User className="w-4 h-4 xs:w-5 xs:h-5" /> Account Profile
+                                                  </Link>
+                                                  <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className={`w-full py-3 xs:py-4 text-xs xs:text-sm font-bold tracking-wide rounded-xl flex items-center justify-center gap-2 ${themeConfig.primaryBtn}`}>
+                                                      Sign Out
+                                                  </button>
+                                              </>
+                                          ) : (
+                                              <Link to="/login" className={`w-full py-3 xs:py-4 text-center text-xs xs:text-sm font-bold tracking-wide rounded-xl ${themeConfig.primaryBtn}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                                  Sign In
                                               </Link>
-                                              <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className={`w-full py-4 text-sm font-bold tracking-wide rounded-xl flex items-center justify-center gap-2 ${themeConfig.primaryBtn}`}>
-                                                  Sign Out
-                                              </button>
-                                          </>
-                                      ) : (
-                                          <Link to="/login" className={`w-full py-4 text-center text-sm font-bold tracking-wide rounded-xl ${themeConfig.primaryBtn}`} onClick={() => setIsMobileMenuOpen(false)}>
-                                              Sign In
-                                          </Link>
-                                      )}
+                                          )}
+                                      </div>
                                   </div>
                               </div>
-                          </div>
-                      </motion.div>
+                          </motion.div>
                   </>
               )}
             </AnimatePresence>

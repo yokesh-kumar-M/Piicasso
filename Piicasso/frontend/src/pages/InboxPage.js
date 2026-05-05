@@ -26,15 +26,16 @@ const InboxPage = () => {
     const isSecurityMode = appMode === 'security';
 
     const theme = {
-        card: isSecurityMode ? 'security-card' : 'user-glass-panel',
+        bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
+        card: isSecurityMode ? 'sec-card' : 'usr-card',
         accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
         accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
         accentBorder: isSecurityMode ? 'border-security-red/30' : 'border-user-cobalt/30',
         hoverAccent: isSecurityMode ? 'hover:bg-security-red/10' : 'hover:bg-user-cobalt/10',
-        inputBg: isSecurityMode ? 'bg-black/50 border-white/10 focus-within:border-security-red/50' : 'bg-white/5 border-white/10 focus-within:border-user-cobalt/50',
+        inputBg: isSecurityMode ? 'bg-black/50 border-white/10 focus-within:border-security-red/50 text-white placeholder-gray-600' : 'bg-white/5 border-white/10 focus-within:border-user-cobalt/50 text-user-text placeholder-user-text/40',
         btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
         btnSecondary: isSecurityMode ? 'bg-black/50 text-white border border-white/10 hover:bg-white/10' : 'bg-white/10 text-white border border-white/10 hover:bg-white/20',
-        textMuted: isSecurityMode ? 'text-security-muted' : 'text-user-muted',
+        textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
         border: isSecurityMode ? 'border-security-red/20' : 'border-user-cobalt/20',
         chatBubbleMe: isSecurityMode ? 'bg-security-red text-white border border-security-red/50' : 'bg-user-cobalt text-white border border-user-cobalt/50',
         chatBubbleOther: isSecurityMode ? 'bg-black/60 text-white border border-white/10' : 'bg-white/10 text-white border border-white/10',
@@ -122,7 +123,9 @@ const InboxPage = () => {
         try {
             const url = userId ? `admin/messages/?user_id=${userId}` : `admin/messages/`;
             const { data } = await axios.get(url);
-            setMessages(Array.isArray(data) ? data : []);
+            // API returns newest-first (ORDER BY -timestamp) so we reverse
+            // before setting state to keep oldest-at-top, newest-at-bottom.
+            setMessages(Array.isArray(data) ? [...data].reverse() : []);
         } catch (e) { }
     };
 
@@ -169,14 +172,14 @@ const InboxPage = () => {
 
     if (loading && !isSuperuser) {
         return (
-            <div className="min-h-screen bg-transparent flex items-center justify-center">
+            <div className={`min-h-screen ${theme.bg} flex items-center justify-center`}>
                 <div className={`${theme.textMuted} animate-pulse text-xs font-mono tracking-[0.5em] uppercase`}>Securing Connection...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-transparent text-white">
+        <div className={`min-h-screen ${theme.bg} text-white`}>
             <Navbar />
 
             <div className="pt-24 pb-8 h-screen flex flex-col">

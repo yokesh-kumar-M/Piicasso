@@ -16,17 +16,20 @@ const ProfilePage = () => {
     const isSecurityMode = appMode === 'security';
 
     const theme = {
-        card: isSecurityMode ? 'security-card' : 'user-glass-panel',
+        bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
+        card: isSecurityMode ? 'sec-card' : 'usr-card',
         accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
         accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
         btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
         btnSecondary: isSecurityMode ? 'bg-black/50 text-white border border-white/10 hover:bg-white/10' : 'bg-white/10 text-white border border-white/10 hover:bg-white/20',
-        inputBg: isSecurityMode ? 'bg-black/50 border-white/10 focus-within:border-security-red/50' : 'bg-white/5 border-white/10 focus-within:border-user-cobalt/50',
+        inputBg: isSecurityMode ? 'bg-black/50 border-white/10 focus-within:border-security-red/50 text-white placeholder-gray-600' : 'bg-white/5 border-white/10 focus-within:border-user-cobalt/50 text-user-text placeholder-user-text/40',
         divider: isSecurityMode ? 'border-security-red/20' : 'border-user-cobalt/20',
-        textMuted: isSecurityMode ? 'text-security-muted' : 'text-user-muted',
-        textHighlight: 'text-white',
+        textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
+        textPrimary: isSecurityMode ? 'text-gray-300' : 'text-user-text/90',
+        textHighlight: isSecurityMode ? 'text-white' : 'text-user-text',
         successBg: isSecurityMode ? 'bg-green-900/20 border border-green-500/50 text-green-400' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400',
         errorBg: isSecurityMode ? 'bg-red-900/20 border border-red-500/50 text-red-400' : 'bg-red-500/10 border border-red-500/30 text-red-400',
+        heading: isSecurityMode ? 'security-heading' : 'user-heading',
     };
 
     const isAdmin = user?.is_superuser;

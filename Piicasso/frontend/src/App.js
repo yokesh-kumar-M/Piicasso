@@ -35,7 +35,6 @@ const useHelpBeacon = () => {
 const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
 const LoginPage = React.lazy(() => import('./pages/LoginPage'));
 const ForgotPasswordPage = React.lazy(() => import('./pages/ForgotPasswordPage'));
-const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 const ResultPage = React.lazy(() => import('./pages/ResultPage'));
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
@@ -49,7 +48,6 @@ const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 const UserModeLayout = React.lazy(() => import('./pages/UserModeLayout'));
 const UserDashboardPage = React.lazy(() => import('./pages/UserDashboardPage'));
 const SecurityDashboardPage = React.lazy(() => import('./pages/SecurityDashboardPage'));
-const PasswordCheckerPage = React.lazy(() => import('./pages/PasswordCheckerPage'));
 const AnalysisHistoryPage = React.lazy(() => import('./pages/AnalysisHistoryPage'));
 const FinancialRiskPage = React.lazy(() => import('./pages/FinancialRiskPage'));
 const ApiDocsPage = React.lazy(() => import('./pages/ApiDocsPage'));
@@ -131,11 +129,6 @@ function AppContent() {
                   <Route path="/inbox" element={
                     <PrivateRoute>
                       <InboxPage />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/dashboard" element={
-                    <PrivateRoute>
-                      <DashboardPage />
                     </PrivateRoute>
                   } />
                   <Route path="/risk" element={

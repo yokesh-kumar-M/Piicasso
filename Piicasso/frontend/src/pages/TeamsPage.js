@@ -17,15 +17,16 @@ const TeamsPage = () => {
   const isSecurityMode = appMode === 'security';
 
   const theme = {
-    bg: 'bg-transparent',
+    bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
     accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
     accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
-    card: isSecurityMode ? 'security-card' : 'user-glass-panel',
-    inputBg: isSecurityMode ? 'bg-black border border-security-border focus:border-security-red text-white' : 'bg-white/5 border border-user-border focus:border-user-cobalt text-white backdrop-blur-md',
+    card: isSecurityMode ? 'sec-card' : 'usr-card',
+    inputBg: isSecurityMode ? 'bg-black border border-security-border focus:border-security-red text-white placeholder-gray-600' : 'bg-white/5 border border-user-border focus:border-user-cobalt text-user-text placeholder-user-text/40',
     btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
-    btnSecondary: isSecurityMode ? 'bg-security-surface text-gray-300 border border-security-border hover:bg-white/5' : 'bg-white/5 text-user-text border border-user-border hover:bg-white/10 backdrop-blur-md',
+    btnSecondary: isSecurityMode ? 'bg-security-surface text-white border border-security-border hover:bg-white/5' : 'bg-white/5 text-user-text border border-user-border hover:bg-white/10',
     heading: isSecurityMode ? 'security-heading' : 'user-heading',
     textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
+    textPrimary: isSecurityMode ? 'text-gray-300' : 'text-user-text/90',
     border: isSecurityMode ? 'border-security-border' : 'border-user-border',
   };
 

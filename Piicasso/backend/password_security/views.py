@@ -1,6 +1,5 @@
 import hashlib
 import re
-import os
 import logging
 
 from django.contrib.auth import get_user_model
@@ -18,6 +17,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from rest_framework.throttling import UserRateThrottle
+
+from .hibp import k_anonymity_breach_count
 
 
 class BreachSearchRateThrottle(UserRateThrottle):
@@ -275,72 +276,6 @@ def analyze_password_strength(password, pii_data=None):
     }
 
 
-def get_breach_cache_key(password):
-    sha1_hash = hashlib.sha1(password.encode()).hexdigest().upper()
-    return f"breach_check:{sha1_hash}"
-
-
-def get_cached_breach_count(password):
-    try:
-        from django.core.cache import cache
-
-        cache_key = get_breach_cache_key(password)
-        cached = cache.get(cache_key)
-        if cached is not None:
-            return cached
-    except Exception:
-        pass
-    return None
-
-
-def set_cached_breach_count(password, count):
-    try:
-        from django.core.cache import cache
-
-        cache_key = get_breach_cache_key(password)
-        cache.set(cache_key, count, 86400)
-    except Exception:
-        pass
-
-
-def check_breach_count(password):
-    cached_count = get_cached_breach_count(password)
-    if cached_count is not None:
-        return cached_count
-
-    try:
-        sha1_hash = hashlib.sha1(password.encode()).hexdigest().upper()
-        prefix = sha1_hash[:5]
-        suffix = sha1_hash[5:]
-
-        hibp_api_key = os.environ.get("HAVEIBEENPWNED_API_KEY", "")
-
-        import urllib.request
-
-        url = f"https://api.pwnedpasswords.com/range/{prefix}"
-
-        if hibp_api_key:
-            req = urllib.request.Request(url, headers={"hibp-api-key": hibp_api_key})
-        else:
-            req = urllib.request.Request(url)
-
-        with urllib.request.urlopen(req, timeout=10) as response:
-            data = response.read().decode("utf-8")
-
-        count = 0
-        for line in data.split("\n"):
-            hash_suffix, cnt = line.strip().split(":")
-            if hash_suffix == suffix:
-                count = int(cnt)
-                break
-
-        set_cached_breach_count(password, count)
-        return count
-
-    except Exception as e:
-        logger.warning(f"Breach check failed: {e}")
-        return -1
-
 
 class PasswordAnalyzeView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -368,7 +303,7 @@ class PasswordAnalyzeView(APIView):
 
         analysis_result = analyze_password_strength(password, pii_data)
 
-        breach_count = check_breach_count(password)
+        breach_count = k_anonymity_breach_count(password)
         if breach_count >= 0:
             analysis_result["breach_count"] = breach_count
 
@@ -527,7 +462,7 @@ def check_password_breach(request):
             {"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    breach_count = check_breach_count(password)
+    breach_count = k_anonymity_breach_count(password)
 
     if breach_count >= 0:
         return Response(

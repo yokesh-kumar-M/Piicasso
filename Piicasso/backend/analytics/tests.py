@@ -16,6 +16,7 @@ class GlobeDataTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user("globeuser", password="Pass1234!")
         UserActivity.objects.create(
+            user=self.user,
             activity_type="LOGIN",
             description="Test login",
             latitude=40.7128,

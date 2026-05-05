@@ -1,4 +1,6 @@
 import os
+import re
+import itertools
 import logging
 import requests
 
@@ -31,8 +33,8 @@ def build_prompt(pii_data, pattern_mode="standard"):
 
     identity = f"""
     Full Name: {fmt('full_name')}
-    DOB/Year: {fmt('dob') if fmt('dob') != 'N/A' else fmt('birth_year')}
-    Phone Digits: {fmt('phone_digits') if fmt('phone_digits') != 'N/A' else fmt('phone_suffix')}
+    DOB/Year: {fmt('birth_year')}
+    Phone Digits: {fmt('phone_suffix')}
     Username: {fmt('username')}
     Email Handle: {fmt('email')}
     """
@@ -49,7 +51,7 @@ def build_prompt(pii_data, pattern_mode="standard"):
     """
 
     work = f"""
-    Company: {fmt('company') if fmt('company') != 'N/A' else fmt('employer_name')}
+    Company: {fmt('employer_name')}
     Job Title: {fmt('job_title')}
     Department: {fmt('department')}
     Employee ID: {fmt('employee_id')}
@@ -74,16 +76,16 @@ def build_prompt(pii_data, pattern_mode="standard"):
     interests = f"""
     Sports Team: {fmt('sports_team')}
     Musician: {fmt('musician')}
-    Movies: {fmt('movies') if fmt('movies') != 'N/A' else fmt('favourite_movies')}
+    Movies: {fmt('favourite_movies')}
     Hobbies: {fmt('hobbies')}
     Books: {fmt('books')}
     Games: {fmt('games')}
-    Favorite Food: {fmt('food') if fmt('food') != 'N/A' else fmt('favourite_food')}
+    Favorite Food: {fmt('favourite_food')}
     """
 
     assets = f"""
-    Car Model: {fmt('car_model') if fmt('car_model') != 'N/A' else fmt('first_car_model')}
-    License Plate: {fmt('license_plate')}
+    Car Model: {fmt('first_car_model')}
+    License Plate: {fmt('plate_number_partial')}
     Brand Affinity: {fmt('brand_affinity')}
     Device: {fmt('device_type')}
     Subscription: {fmt('subscription')}
@@ -191,7 +193,6 @@ def generate_fallback_wordlist(pii_data):
                 passwords.add(f"{base}{suff}!")
 
     # Combos
-    import itertools
     if len(seeds) >= 2:
         for a, b in itertools.permutations(seeds[:20], 2):  # Limit to prevent explosion
             passwords.add(f"{a}{b}")
@@ -253,3 +254,75 @@ def call_gemini_api(prompt, pii_data=None):
         if pii_data:
             return generate_fallback_wordlist(pii_data)
         return "fallback\npassword\n123456"
+
+
+# ─── Probability scoring ──────────────────────────────────────────────────────
+
+_YEAR_RE = re.compile(r'(19|20)\d{2}')
+_COMMON_SUFFIXES = ('123', '1234', '12345', '!', '@', '#', '!@#', '!!', '007', '01', '1')
+# str.translate table for de-leetification (used to detect leet-encoded PII)
+_LEET_TABLE = str.maketrans({'@': 'a', '3': 'e', '1': 'i', '0': 'o', '$': 's', '7': 't', '4': 'a'})
+
+
+def score_wordlist(passwords, pii_data, rockyou_set=frozenset()):
+    """
+    Assign a probability score (1–100) to each password and return the list
+    sorted descending by score.
+
+    Scoring dimensions:
+      - PII overlap   (up to 60 pts): how many PII tokens appear in the password
+      - Pattern bonus (up to 30 pts): year, common suffix, leet-encoded PII, special chars
+      - RockYou bonus (      10 pts): password appears in the sampled corpus
+
+    Returns: [{"password": "...", "score": N}, ...]
+    """
+    pii_tokens = _extract_pii_tokens(pii_data)
+    scored = [
+        {"password": pwd, "score": _score_one(pwd, pii_tokens, rockyou_set)}
+        for pwd in passwords
+    ]
+    scored.sort(key=lambda x: x["score"], reverse=True)
+    return scored
+
+
+def _extract_pii_tokens(pii_data):
+    """Return a frozenset of lowercased PII substrings (≥3 chars) for overlap checks."""
+    tokens = set()
+    for val in pii_data.values():
+        if not val:
+            continue
+        chunks = val if isinstance(val, list) else [val]
+        for chunk in chunks:
+            if isinstance(chunk, str) and chunk.strip():
+                s = chunk.strip().lower()
+                tokens.add(s)
+                tokens.update(w for w in s.split() if len(w) >= 3)
+    return frozenset(t for t in tokens if len(t) >= 3)
+
+
+def _score_one(password, pii_tokens, rockyou_set):
+    pw_lower = password.lower()
+
+    # PII overlap — each matching token contributes 30 pts, capped at 60
+    pii_hits = sum(1 for tok in pii_tokens if tok in pw_lower)
+    score = min(pii_hits * 30, 60)
+
+    # Pattern bonuses — capped collectively at 30
+    pattern = 0
+    if _YEAR_RE.search(password):
+        pattern += 10
+    if any(pw_lower.endswith(s) for s in _COMMON_SUFFIXES):
+        pattern += 8
+    # De-leetify and check again: catches P@ssw0rd-style PII encoding
+    normalised = password.translate(_LEET_TABLE).lower()
+    if normalised != pw_lower and any(tok in normalised for tok in pii_tokens):
+        pattern += 7
+    if any(c in password for c in '!@#$%^&*'):
+        pattern += 5
+    score += min(pattern, 30)
+
+    # RockYou corpus presence
+    if password in rockyou_set:
+        score += 10
+
+    return max(1, min(100, score))

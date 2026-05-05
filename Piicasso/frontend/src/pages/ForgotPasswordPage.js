@@ -1,275 +1,273 @@
-import React, { useState, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Mail, ArrowLeft, Send, KeyRound, Lock, CheckCircle } from 'lucide-react';
-import axios from '../api/axios';
-import Logo from '../components/Logo';
-import { ModeContext } from '../context/ModeContext';
+import React, { useState, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import axiosInstance from '../api/axios';
+import AuthShell from '../components/design/auth/AuthShell';
+import AttackVizSide from '../components/design/auth/AttackVizSide';
+import Field from '../components/design/auth/Field';
 
 const ForgotPasswordPage = () => {
-    const navigate = useNavigate();
-    const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
-    const isSecurityMode = appMode === 'security';
+  const navigate = useNavigate();
 
-    const [step, setStep] = useState(1); // 1 = Request, 2 = Verify & Reset, 3 = Success
+  const [stage, setStage] = useState('email'); // 'email' | 'code'
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [newPassword, setNewPassword] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    // Data State
-    const [email, setEmail] = useState('');
-    const [otp, setOtp] = useState('');
-    const [newPassword, setNewPassword] = useState('');
+  const refs = useRef([]);
 
-    // Status State
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
+  const setDigit = (i, v) => {
+    if (!/^\d?$/.test(v)) return;
+    const next = [...code];
+    next[i] = v;
+    setCode(next);
+    if (v && i < 5) refs.current[i + 1]?.focus();
+  };
 
-    const theme = {
-        card: isSecurityMode ? 'security-card' : 'user-glass-panel',
-        accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-        btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
-        inputBg: isSecurityMode ? 'bg-black/50 border-zinc-800 focus:border-security-red focus:ring-security-red/50' : 'bg-white/5 border-white/10 focus:border-user-cobalt focus:ring-user-cobalt/50',
-        textMuted: isSecurityMode ? 'text-zinc-500' : 'text-user-muted',
-        iconColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-        headerBorder: isSecurityMode ? 'border-zinc-800 bg-zinc-900/50' : 'border-user-cobalt/20 bg-user-cobalt/5',
-        footerBorder: isSecurityMode ? 'border-zinc-800 bg-zinc-900/30' : 'border-user-cobalt/20 bg-user-cobalt/5',
-        errorBg: isSecurityMode ? 'bg-red-900/20 border-red-500/50 text-red-200' : 'bg-red-500/10 border-red-500/30 text-red-400',
-        successBg: isSecurityMode ? 'bg-green-900/20 border-green-500/50 text-green-200' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-        iconBg: isSecurityMode ? 'bg-black border-zinc-800' : 'bg-black/40 border-user-cobalt/20',
-        verifyBtn: isSecurityMode ? 'bg-yellow-600 border-yellow-500 hover:bg-yellow-700 text-black shadow-[0_0_20px_rgba(202,138,4,0.4)]' : 'bg-indigo-500 border-indigo-400 hover:bg-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]',
-        successBtn: isSecurityMode ? 'bg-green-600 border-green-500 hover:bg-green-700 text-black shadow-[0_0_20px_rgba(22,163,74,0.4)]' : 'bg-emerald-500 border-emerald-400 hover:bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]'
-    };
+  // Backspace: move focus back
+  const handleKeyDown = (i, e) => {
+    if (e.key === 'Backspace' && !code[i] && i > 0) {
+      refs.current[i - 1]?.focus();
+    }
+  };
 
-    const handleRequestOTP = async (e) => {
-        e.preventDefault();
-        if (!email) {
-            setError('Please enter your email address.');
-            return;
-        }
+  const handleSendCode = async (e) => {
+    e.preventDefault();
+    setErr('');
+    if (!email) { setErr('Please enter your email address.'); return; }
+    setLoading(true);
+    try {
+      await axiosInstance.post('user/auth/password/reset/', { email });
+      setStage('code');
+    } catch (ex) {
+      setErr(ex.response?.data?.error || 'Failed to send code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setError('');
-        setMessage('');
-        setLoading(true);
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setErr('');
+    const otp = code.join('');
+    if (otp.length < 6) { setErr('Enter all 6 digits.'); return; }
+    if (!newPassword) { setErr('New password is required.'); return; }
+    if (newPassword.length < 6) { setErr('New password must be at least 6 characters.'); return; }
+    setLoading(true);
+    try {
+      await axiosInstance.post('user/auth/password/reset/verify/', {
+        email,
+        otp,
+        new_password: newPassword,
+      });
+      navigate('/login', { state: { message: 'Password reset successful. Sign in with your new password.' } });
+    } catch (ex) {
+      setErr(ex.response?.data?.error || 'Verification failed. Check the code and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        try {
-            const res = await axios.post('auth/password/reset/', { email });
-            setMessage(res.data.message);
-            setStep(2); // Proceed to OTP entry
-        } catch (err) {
-            setError(err.response?.data?.error || 'Failed to request OTP. Ensure your systems are online.');
-        } finally {
-            setLoading(false);
-        }
-    };
+  return (
+    <AuthShell
+      side={
+        <AttackVizSide
+          headline="Even password resets are an attack surface."
+          sub="We rate-limit, we challenge, we never email codes that resolve to PII tokens. The full audit trail is yours."
+        />
+      }
+    >
+      {/* ── Stage: email ── */}
+      {stage === 'email' && (
+        <>
+          <h1 className="h-display" style={{ fontSize: 36, marginBottom: 8 }}>
+            Reset password
+          </h1>
+          <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
+            We'll send a 6-digit code to your email.
+          </p>
 
-    const handleVerifyReset = async (e) => {
-        e.preventDefault();
-        if (!otp || !newPassword) {
-            setError('All fields are required.');
-            return;
-        }
-        if (newPassword.length < 6) {
-            setError('New password must be at least 6 characters.');
-            return;
-        }
+          <form onSubmit={handleSendCode} style={{ display: 'grid', gap: 14 }}>
+            <Field
+              label="Email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="alex@northwind.io"
+              autoComplete="email"
+            />
 
-        setError('');
-        setMessage('');
-        setLoading(true);
+            {err && (
+              <div
+                style={{
+                  color: 'var(--accent-500)',
+                  fontSize: 13,
+                  fontFamily: 'var(--font-mono-v3)',
+                  padding: '8px 12px',
+                  background: 'color-mix(in oklab, var(--accent-500) 8%, var(--ink-1))',
+                  border: '1px solid color-mix(in oklab, var(--accent-500) 30%, transparent)',
+                  borderRadius: 6,
+                }}
+              >
+                ! {err}
+              </div>
+            )}
 
-        try {
-            const res = await axios.post('auth/password/reset/verify/', { email, otp, new_password: newPassword });
-            setMessage(res.data.message);
-            setStep(3); // Proceed to success
-        } catch (err) {
-            setError(err.response?.data?.error || 'Verification failed. Incorrect OTP.');
-        } finally {
-            setLoading(false);
-        }
-    };
+            <button
+              type="submit"
+              disabled={loading}
+              className="v3-btn v3-btn-accent"
+              style={{
+                marginTop: 8,
+                padding: '13px 18px',
+                justifyContent: 'center',
+                width: '100%',
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? 'Sending…' : 'Send code →'}
+            </button>
+          </form>
 
-    return (
-        <div className="min-h-screen bg-transparent flex items-center justify-center text-white relative overflow-hidden font-mono">
-            {/* Brand Logo */}
-            <div className="absolute top-6 left-6 z-20">
-                <Logo className="text-3xl" />
+          <p style={{ marginTop: 20, fontSize: 13, color: 'var(--fg-3)', textAlign: 'center' }}>
+            <Link to="/login" style={{ color: 'var(--fg-2)', textDecoration: 'underline' }}>
+              ← Back to sign in
+            </Link>
+          </p>
+        </>
+      )}
+
+      {/* ── Stage: code ── */}
+      {stage === 'code' && (
+        <>
+          <h1 className="h-display" style={{ fontSize: 32, marginBottom: 8 }}>
+            Two-factor verify
+          </h1>
+          <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
+            Code sent to{' '}
+            <span style={{ color: 'var(--fg-0)', fontFamily: 'var(--font-mono-v3)' }}>
+              {email}
+            </span>
+            . Expires in 10:00.
+          </p>
+
+          <form onSubmit={handleVerify} style={{ display: 'grid', gap: 14 }}>
+            {/* 6-digit OTP grid */}
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono-v3)',
+                  fontSize: 11,
+                  color: 'var(--fg-3)',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
+                6-digit code
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {code.map((d, i) => (
+                  <input
+                    key={i}
+                    ref={el => (refs.current[i] = el)}
+                    value={d}
+                    maxLength={1}
+                    inputMode="numeric"
+                    onChange={e => setDigit(i, e.target.value)}
+                    onKeyDown={e => handleKeyDown(i, e)}
+                    style={{
+                      flex: 1,
+                      height: 64,
+                      textAlign: 'center',
+                      fontSize: 28,
+                      fontFamily: 'var(--font-mono-v3)',
+                      background: 'var(--ink-1)',
+                      border: `1px solid ${d ? 'var(--accent-500)' : 'var(--ink-5)'}`,
+                      borderRadius: 8,
+                      color: 'var(--fg-0)',
+                      outline: 'none',
+                      transition: 'border-color 0.15s, box-shadow 0.15s',
+                    }}
+                    onFocus={e => {
+                      e.target.style.borderColor = 'var(--accent-500)';
+                      e.target.style.boxShadow = '0 0 0 3px var(--accent-glow)';
+                    }}
+                    onBlur={e => {
+                      e.target.style.borderColor = d ? 'var(--accent-500)' : 'var(--ink-5)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                ))}
+              </div>
             </div>
 
-            <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md relative z-10 px-4"
+            <Field
+              label="New password"
+              type="password"
+              value={newPassword}
+              onChange={setNewPassword}
+              placeholder="••••••••"
+              autoComplete="new-password"
+            />
+
+            {err && (
+              <div
+                style={{
+                  color: 'var(--accent-500)',
+                  fontSize: 13,
+                  fontFamily: 'var(--font-mono-v3)',
+                  padding: '8px 12px',
+                  background: 'color-mix(in oklab, var(--accent-500) 8%, var(--ink-1))',
+                  border: '1px solid color-mix(in oklab, var(--accent-500) 30%, transparent)',
+                  borderRadius: 6,
+                }}
+              >
+                ! {err}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="v3-btn v3-btn-accent"
+              style={{
+                marginTop: 8,
+                padding: '13px 18px',
+                justifyContent: 'center',
+                width: '100%',
+                opacity: loading ? 0.7 : 1,
+              }}
             >
-                <div className={`${theme.card} overflow-hidden`}>
-                    {/* Header */}
-                    <div className={`p-6 border-b flex justify-between items-center ${theme.headerBorder}`}>
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-widest text-white flex items-center gap-2">
-                                System <span className={theme.iconColor}>Recovery</span>
-                            </h1>
-                            <p className={`text-xs mt-1 tracking-widest ${theme.textMuted}`}>
-                                {step === 1 && 'Authenticate via email transmission'}
-                                {step === 2 && 'Verify 6-digit access code'}
-                                {step === 3 && 'Access Restored'}
-                            </p>
-                        </div>
-                        <div className={`w-12 h-12 rounded-full border flex items-center justify-center ${step === 3 ? '' : 'animate-pulse'} ${theme.iconBg}`}>
-                            {step === 3 ? (
-                                <CheckCircle className="w-6 h-6 text-green-500" />
-                            ) : (
-                                <ShieldAlert className={`w-6 h-6 ${isSecurityMode ? 'text-yellow-500/50' : 'text-user-cobalt/50'}`} />
-                            )}
-                        </div>
-                    </div>
+              {loading ? 'Verifying…' : 'Verify & reset →'}
+            </button>
+          </form>
 
-                    <div className="p-8">
-                        <AnimatePresence mode="wait">
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className={`mb-6 border p-3 rounded flex items-center gap-3 text-sm ${theme.errorBg}`}
-                                >
-                                    <ShieldAlert className="w-4 h-4 text-red-500 shrink-0" />
-                                    {error}
-                                </motion.div>
-                            )}
-
-                            {message && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className={`mb-6 border p-3 rounded flex items-start gap-3 text-sm ${theme.successBg}`}
-                                >
-                                    <Mail className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                                    {message}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* STEP 1: REQUEST OTP */}
-                        {step === 1 && (
-                            <form onSubmit={handleRequestOTP} className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className={`text-xs font-bold uppercase flex items-center gap-2 ${theme.textMuted}`}>
-                                        <Mail className="w-3 h-3" /> Registered Email Address
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className={`w-full rounded p-3 text-white ring-1 ring-transparent transition-all outline-none font-mono ${theme.inputBg}`}
-                                        placeholder="operator@network.com"
-                                        autoComplete="off"
-                                    />
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className={`w-full py-4 mt-4 font-bold tracking-wider rounded border transition-all flex items-center justify-center gap-2 ${loading
-                                        ? 'bg-zinc-800 border border-zinc-700 text-gray-400 cursor-not-allowed'
-                                        : theme.btnPrimary
-                                        }`}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Send className="w-5 h-5 animate-bounce" /> Transmitting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <KeyRound className="w-4 h-4" /> Request Access Code
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        )}
-
-                        {/* STEP 2: VERIFY OTP AND SET NEW PASSWORD */}
-                        {step === 2 && (
-                            <motion.form
-                                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                                onSubmit={handleVerifyReset}
-                                className="space-y-6"
-                            >
-                                <div className="space-y-2">
-                                    <label className={`text-xs font-bold uppercase flex items-center gap-2 ${theme.textMuted}`}>
-                                        <KeyRound className="w-3 h-3" /> 6-Digit Authorization Code
-                                    </label>
-                                    <input
-                                        type="text"
-                                        maxLength={6}
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
-                                        className={`w-full rounded p-3 text-white ring-1 ring-transparent transition-all outline-none font-mono tracking-widest text-center text-xl ${theme.inputBg}`}
-                                        placeholder="------"
-                                        autoComplete="off"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className={`text-xs font-bold uppercase flex items-center gap-2 mt-4 ${theme.textMuted}`}>
-                                        <Lock className="w-3 h-3" /> New System Password
-                                    </label>
-                                    <input
-                                        type="password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className={`w-full rounded p-3 text-white ring-1 ring-transparent transition-all outline-none font-mono ${theme.inputBg}`}
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className={`w-full py-4 mt-4 font-bold tracking-wider rounded border transition-all flex items-center justify-center gap-2 ${loading
-                                        ? 'bg-zinc-800 border-zinc-700 text-gray-400 cursor-not-allowed'
-                                        : theme.verifyBtn
-                                        }`}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Send className="w-5 h-5 animate-spin" /> Verifying...
-                                        </>
-                                    ) : (
-                                        'Confirm & Reset'
-                                    )}
-                                </button>
-                            </motion.form>
-                        )}
-
-                        {/* STEP 3: SUCCESS */}
-                        {step === 3 && (
-                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-6">
-                                <p className={`${theme.textMuted} text-sm mb-8`}>
-                                    Your identity matrix has been successfully updated. Secure access to your account has been restored.
-                                </p>
-                                <button
-                                    onClick={() => navigate('/login')}
-                                    className={`w-full py-4 font-bold tracking-wider rounded border transition-all flex items-center justify-center gap-2 ${theme.successBtn}`}
-                                >
-                                    Return to Dashboard
-                                </button>
-                            </motion.div>
-                        )}
-
-                    </div>
-
-                    <div className={`p-4 border-t text-center text-xs flex justify-center items-center gap-2 transition-colors cursor-pointer ${theme.footerBorder} ${theme.textMuted} hover:text-white`}>
-                        <ArrowLeft className="w-4 h-4" />
-                        <Link to="/login" className="tracking-widest uppercase font-bold decoration-1 underline-offset-4">Cancel Recovery</Link>
-                    </div>
-                </div>
-
-                <div className={`mt-8 text-center text-[10px] tracking-widest ${theme.textMuted}`}>
-                    PIIcasso v2.5.1
-                </div>
-            </motion.div>
-        </div>
-    );
+          <div
+            style={{
+              marginTop: 16,
+              fontSize: 12,
+              color: 'var(--fg-2)',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
+            <button
+              type="button"
+              style={{ color: 'var(--fg-2)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12 }}
+              onClick={() => { setStage('email'); setErr(''); setCode(['','','','','','']); }}
+            >
+              Use a different email
+            </button>
+            <Link to="/login" style={{ color: 'var(--fg-2)' }}>
+              Back to sign in
+            </Link>
+          </div>
+        </>
+      )}
+    </AuthShell>
+  );
 };
 
 export default ForgotPasswordPage;

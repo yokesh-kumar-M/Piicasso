@@ -217,10 +217,32 @@
 }
 
 /* --- Mobile Responsiveness Utilities --- */
+
+/* Extra Small devices (phones, 320px and up) */
+@media (min-width: 320px) {
+  .xs\:block { display: block; }
+  .xs\:hidden { display: none; }
+  .xs\:text-xs { font-size: 0.75rem; }
+  .xs\:text-sm { font-size: 0.875rem; }
+  .xs\:px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .xs\:py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+}
+
+/* Small devices (large phones, 640px and up) */
+@media (min-width: 640px) {
+  .sm\:block { display: block; }
+  .sm\:hidden { display: none; }
+  .sm\:text-base { font-size: 1rem; }
+  .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+
+/* Mobile-first base styles (up to 768px) */
 @media (max-width: 768px) {
   /* Ensure minimum touch target size (44px) */
-  button, a, input[type="submit"], input[type="button"] {
+  button, a, input[type="submit"], input[type="button"], 
+  [role="button"], .clickable {
     min-height: 44px;
+    min-width: 44px;
   }
   
   /* Prevent horizontal overflow */
@@ -234,9 +256,45 @@
     min-width: 44px;
   }
   
-  /* Ensure inputs are easily tappable */
+  /* Ensure inputs are easily tappable and prevent iOS zoom */
   input, select, textarea {
-    font-size: 16px !important; /* Prevent iOS zoom on focus */
+    font-size: 16px !important;
+  }
+
+  /* Mobile typography adjustments */
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  h3 { font-size: 1.125rem !important; }
+  
+  /* Mobile card spacing */
+  .card-mobile {
+    padding: 1rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Stack grid items on mobile */
+  .grid-cols-mobile-stack {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Hide desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* Full width on mobile */
+  .mobile-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Mobile table adjustments */
+  table {
+    font-size: 0.75rem;
+  }
+  
+  td, th {
+    padding: 0.5rem 0.25rem !important;
   }
 }
 
@@ -248,6 +306,35 @@
 @media (min-width: 768px) {
   .responsive-dashboard-height {
     min-height: 800px;
+  }
+}
+
+/* Tablet-specific styles (768px to 1024px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Tablet typography */
+  h1 { font-size: 1.875rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  
+  /* Tablet grid adjustments */
+  .tablet\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+    
+  /* Tablet spacing */
+  .tablet\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+  .tablet\:py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    
+  /* Tablet card adjustments */
+  .tablet-card {
+    padding: 1.25rem !important;
+  }
+}
+
+/* Large tablet and small desktop (1024px and up) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .lg-tablet\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
 
@@ -276,5 +363,290 @@
 @media (min-width: 640px) {
   .notif-dropdown-sm {
     right: 0;
+  }
+}
+
+/* ============================================================
+   PIICASSO — Editorial Design System Tokens (v3)
+   Cinematic dark, mode-swap accents (red ↔ blue), redaction motif.
+   Coexists with the v2 system above; new pages opt into these.
+   ============================================================ */
+
+:root {
+  /* Ink scale — slightly cool, never pure black */
+  --ink-0: #07070a;     /* deepest — page bg */
+  --ink-1: #0b0b10;     /* surface bg */
+  --ink-2: #101017;     /* elevated surface */
+  --ink-3: #16161f;     /* card */
+  --ink-4: #1d1d28;     /* hairline well */
+  --ink-5: #262633;     /* hairline */
+  --ink-6: #383848;     /* divider strong */
+
+  /* Foreground scale */
+  --fg-0: #f6f6f8;      /* primary text */
+  --fg-1: #c8c8d4;      /* body */
+  --fg-2: #8e8ea3;      /* muted */
+  --fg-3: #5a5a70;      /* subtle */
+  --fg-4: #3a3a4a;      /* whisper */
+
+  /* Mode hue (default: security red = 25). Swapped to 255 in user mode. */
+  --accent-h: 25;
+  --accent-50:  oklch(0.96 0.02 var(--accent-h));
+  --accent-200: oklch(0.82 0.10 var(--accent-h));
+  --accent-400: oklch(0.70 0.16 var(--accent-h));
+  --accent-500: oklch(0.62 0.18 var(--accent-h));
+  --accent-600: oklch(0.55 0.18 var(--accent-h));
+  --accent-700: oklch(0.45 0.16 var(--accent-h));
+  --accent-glow: oklch(0.62 0.18 var(--accent-h) / 0.22);
+
+  /* Static mode anchors — use when you must have a specific mode color */
+  --sec-500: oklch(0.62 0.18 25);
+  --usr-500: oklch(0.62 0.18 255);
+
+  /* Semantic — hue-locked */
+  --good:  oklch(0.72 0.14 150);
+  --warn:  oklch(0.78 0.14 78);
+  --crit:  oklch(0.65 0.20 25);
+
+  /* Type */
+  --font-sans-v3: "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono-v3: "Geist Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-serif-v3: "Instrument Serif", "Times New Roman", Times, serif;
+
+  /* Radius */
+  --r-1: 4px;
+  --r-2: 8px;
+  --r-3: 12px;
+  --r-4: 18px;
+  --r-pill: 999px;
+
+  /* Layout */
+  --max-w: 1280px;
+  --gutter: 24px;
+}
+
+/* Mode swap — when ModeContext sets data-mode, the accent hue rotates 180°
+   so reds become blues without changing chroma or lightness. */
+[data-mode="user"] {
+  --accent-h: 255;
+}
+
+/* ── Editorial typography utilities ───────────────────────────────── */
+.h-display {
+  font-family: var(--font-sans-v3);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--fg-0);
+}
+
+.eyebrow {
+  font-family: var(--font-mono-v3);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.kbd {
+  font-family: var(--font-mono-v3);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--ink-3);
+  border: 1px solid var(--ink-5);
+  color: var(--fg-1);
+}
+
+.hairline {
+  border: 0;
+  border-top: 1px solid var(--ink-5);
+  margin: 0;
+}
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-500);
+  box-shadow: 0 0 8px var(--accent-glow);
+  vertical-align: middle;
+}
+
+/* ── Editorial cards / badges / buttons ───────────────────────────── */
+.v3-card {
+  background: var(--ink-2);
+  border: 1px solid var(--ink-4);
+  border-radius: var(--r-3);
+}
+
+.v3-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono-v3);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: var(--ink-3);
+  border: 1px solid var(--ink-5);
+  color: var(--fg-1);
+}
+
+.v3-badge-accent {
+  background: color-mix(in oklab, var(--accent-500) 12%, transparent);
+  border-color: color-mix(in oklab, var(--accent-500) 40%, transparent);
+  color: var(--accent-200);
+}
+
+.v3-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--r-2);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.v3-btn-primary {
+  background: var(--fg-0);
+  color: var(--ink-0);
+}
+.v3-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255,255,255,0.08);
+}
+.v3-btn-accent {
+  background: var(--accent-500);
+  color: var(--ink-0);
+  box-shadow: 0 0 0 1px var(--accent-600), 0 8px 32px var(--accent-glow);
+}
+.v3-btn-accent:hover { background: var(--accent-400); }
+.v3-btn-ghost {
+  background: transparent;
+  color: var(--fg-0);
+  border: 1px solid var(--ink-5);
+}
+.v3-btn-ghost:hover {
+  border-color: var(--fg-2);
+  background: var(--ink-2);
+}
+.v3-btn-link {
+  color: var(--fg-1);
+  padding: 6px 0;
+}
+.v3-btn-link:hover { color: var(--fg-0); }
+
+/* ── Backgrounds & overlays ───────────────────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(var(--ink-4) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ink-4) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: -1px -1px;
+}
+
+/* Brand redaction motif — the central visual idiom */
+.redact {
+  display: inline-block;
+  background: var(--accent-500);
+  color: transparent;
+  padding: 0 4px;
+  border-radius: 2px;
+  user-select: none;
+  position: relative;
+}
+.redact::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(0,0,0,0.15) 6px 7px);
+}
+
+/* ── Animations ───────────────────────────────────────────────────── */
+@keyframes v3-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: v3-fade-up 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.9s cubic-bezier(0.2, 0.7, 0.3, 1),
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+.reveal-left { transform: translateX(-32px); }
+.reveal-left.in { transform: translateX(0); }
+.reveal-right { transform: translateX(32px); }
+.reveal-right.in { transform: translateX(0); }
+.reveal-scale { transform: scale(0.94); }
+.reveal-scale.in { transform: scale(1); }
+
+.reveal.stagger > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.3, 1),
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.reveal.stagger.in > * { opacity: 1; transform: translateY(0); }
+.reveal.stagger.in > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal.stagger.in > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal.stagger.in > *:nth-child(3) { transition-delay: 0.19s; }
+.reveal.stagger.in > *:nth-child(4) { transition-delay: 0.26s; }
+.reveal.stagger.in > *:nth-child(5) { transition-delay: 0.33s; }
+.reveal.stagger.in > *:nth-child(6) { transition-delay: 0.40s; }
+.reveal.stagger.in > *:nth-child(7) { transition-delay: 0.47s; }
+.reveal.stagger.in > *:nth-child(8) { transition-delay: 0.54s; }
+.reveal.stagger.in > *:nth-child(9) { transition-delay: 0.61s; }
+
+@keyframes v3-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.v3-marquee {
+  display: inline-flex;
+  gap: 64px;
+  animation: v3-marquee 38s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes v3-shimmer {
+  0%, 100% { background-position: -200% 0; }
+  50%      { background-position: 200% 0; }
+}
+.shimmer-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-500), transparent);
+  background-size: 200% 100%;
+  animation: v3-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes v3-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+.dot.pulse, .v3-pulse { animation: v3-pulse-dot 1.6s ease-in-out infinite; }
+
+@keyframes v3-blink {
+  50% { opacity: 0; }
+}
+.v3-blink { animation: v3-blink 1s infinite; }
+
+/* Mobile responsiveness for the new typography */
+@media (max-width: 768px) {
+  .h-display {
+    letter-spacing: -0.03em !important;
   }
 }

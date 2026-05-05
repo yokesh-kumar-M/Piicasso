@@ -1,3 +1,0 @@
-# PIIcasso — Root requirements (points to backend)
-# Use: pip install -r Piicasso/backend/requirements.txt
--r backend/requirements.txt

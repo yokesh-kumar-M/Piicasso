@@ -1,12 +1,15 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import (
+from .views.generation import (
     RegisterView, PiiSubmitView, HistoryView, delete_history_entry,
     download_wordlist, export_history_csv, download_report_pdf,
-    user_profile, user_stats, admin_message_view, super_admin_view,
-    admin_users_list, generate_download_token, download_file_with_token,
-    SystemLogView, SimulatedTerminalView, health_check, get_cached_wordlist
+    user_profile, user_stats, generate_download_token,
+    download_file_with_token, get_cached_wordlist,
 )
+from .views.admin import (
+    admin_message_view, super_admin_view, admin_users_list,
+)
+from .views.system import SystemLogView, SimulatedTerminalView, health_check
 from .auth_views import (
     MyTokenObtainPairView, GoogleLoginView, RequestPasswordResetView, VerifyResetOTPView
 )
@@ -30,11 +33,11 @@ urlpatterns = [
     path('report/pdf/<int:id>/', download_report_pdf),
     path('profile/', user_profile),
     path('stats/', user_stats),
-    
+
     # 1.2 download token flow
     path('download-token/', generate_download_token),
     path('file/<str:file_type>/<int:id>/', download_file_with_token),
-    
+
     # Admin / System
     path('admin/users/', admin_users_list),
     path('messages/', admin_message_view),

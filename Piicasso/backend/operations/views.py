@@ -14,6 +14,7 @@ from .serializers import (
     SystemSettingSerializer,
 )
 from backend.permissions import IsActiveUserOrMessagesOnly
+from password_security.hibp import k_anonymity_breach_count
 
 User = get_user_model()
 
@@ -239,7 +240,6 @@ class BreachSearchView(APIView):
         return [BreachSearchRateThrottle()]
 
     def post(self, request):
-        import hashlib
         import requests as http_requests
 
         query = request.data.get("query", "").strip()
@@ -307,23 +307,11 @@ class BreachSearchView(APIView):
                 )
 
         # 2. Check HIBP Passwords API using k-anonymity (SHA-1 prefix)
-        # This checks if the query itself (as a password) has been exposed
-        try:
-            sha1_hash = hashlib.sha1(query.encode("utf-8")).hexdigest().upper()
-            prefix = sha1_hash[:5]
-            suffix = sha1_hash[5:]
-
-            resp = http_requests.get(
-                f"https://api.pwnedpasswords.com/range/{prefix}", timeout=10
-            )
-            if resp.status_code == 200:
-                for line in resp.text.splitlines():
-                    parts = line.split(":")
-                    if len(parts) == 2 and parts[0] == suffix:
-                        results["password_exposures"] = int(parts[1])
-                        break
-        except Exception:
-            pass
+        # This checks if the query itself (as a password) has been exposed.
+        # k_anonymity_breach_count() only sends the first 5 hex chars to HIBP.
+        exposure_count = k_anonymity_breach_count(query)
+        if exposure_count >= 0:
+            results["password_exposures"] = exposure_count
 
         # 3. Check internal generation history (restricted to user's own data for non-admins)
         from generator.models import GenerationHistory

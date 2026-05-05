@@ -38,14 +38,16 @@ const FinancialRiskPage = () => {
   const isSecurityMode = appMode === 'security';
 
   const theme = {
-    bg: isSecurityMode ? 'bg-[#0a0a0a] text-white' : 'bg-[#040B16] text-blue-100',
-    accentColor: isSecurityMode ? 'text-red-500' : 'text-blue-400',
-    accentBg: isSecurityMode ? 'bg-red-500' : 'bg-blue-600',
-    card: isSecurityMode ? 'bg-[#141414] border border-white/10' : 'bg-[#0B162C]/80 backdrop-blur-xl border border-blue-500/10 shadow-2xl',
-    btnSecondary: isSecurityMode ? 'bg-[#232323] text-white hover:bg-[#333]' : 'bg-blue-900/20 text-blue-300 hover:bg-blue-800/30 border border-blue-500/20',
-    textMuted: isSecurityMode ? 'text-gray-400' : 'text-blue-300/70',
-    borderLight: isSecurityMode ? 'border-white/5' : 'border-blue-500/10',
-    highlight: isSecurityMode ? 'text-white' : 'text-white',
+    card: isSecurityMode ? 'sec-card' : 'usr-card',
+    accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
+    accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
+    btnSecondary: isSecurityMode ? 'bg-security-surface text-white border border-security-border hover:bg-white/5' : 'bg-white/10 text-white border border-user-border hover:bg-white/20',
+    textMuted: isSecurityMode ? 'text-gray-400' : 'text-user-text/70',
+    borderLight: isSecurityMode ? 'border-security-border' : 'border-user-border',
+    highlight: isSecurityMode ? 'text-white' : 'text-user-text',
+    heading: isSecurityMode ? 'security-heading' : 'user-heading',
+    cardInner: isSecurityMode ? 'bg-black/50' : 'bg-white/5',
+    glowBg: isSecurityMode ? 'bg-red-500/5' : 'bg-blue-500/10',
   };
 
 
@@ -125,22 +127,26 @@ const FinancialRiskPage = () => {
     };
 
     return (
-        <div className={`${theme.bg} min-h-screen font-sans flex flex-col transition-colors duration-300`}>
-            {!isSecurityMode && (
+        <div className={`min-h-screen flex flex-col ${isSecurityMode ? 'bg-security-bg' : 'bg-user-bg'} font-sans transition-colors duration-300`}>
+            {isSecurityMode ? (
+                <div className="fixed inset-0 pointer-events-none opacity-5 overflow-hidden z-0">
+                    <div className="absolute top-0 w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
+                </div>
+            ) : (
                 <>
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(37,99,235,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0"></div>
+                    <div className="fixed inset-0 bg-[linear-gradient(rgba(37,99,235,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0"></div>
                     <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
                 </>
             )}
             <Navbar />
-            <div className="relative z-10 pt-24 px-4 md:px-8 pb-8 flex-1 w-full max-w-7xl mx-auto flex flex-col gap-6">
+            <div className="relative z-10 pt-28 px-4 md:px-12 pb-20 flex-1 w-full max-w-7xl mx-auto flex flex-col gap-6">
                 
                 {/* Header */}
                 <div className={`flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b ${theme.borderLight} pb-4`}>
                     <div>
                         <div className={`flex items-center gap-3 ${theme.accentColor} mb-2`}>
-                            <ShieldAlert className="w-6 h-6 animate-pulse" />
-                            <h1 className="text-xl md:text-3xl font-bold tracking-wider">FINANCIAL RISK <span className={theme.highlight}>COMMAND</span></h1>
+                            <ShieldAlert className={`w-6 h-6 ${theme.accentColor} ${isSecurityMode ? 'animate-pulse' : ''}`} />
+                            <h1 className={`text-xl md:text-3xl font-bold tracking-wider ${theme.heading}`}>FINANCIAL RISK <span className={theme.accentColor}>COMMAND</span></h1>
                         </div>
                         <p className={`${theme.textMuted} text-sm max-w-xl`}>
                             Continuous Threat Exposure Management (CTEM). Analyzing real-time monetary impact of currently exposed identity vectors and potential regulatory violations.

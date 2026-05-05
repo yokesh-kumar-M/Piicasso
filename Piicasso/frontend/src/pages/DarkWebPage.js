@@ -17,14 +17,15 @@ const DarkWebPage = () => {
   const isSecurityMode = appMode === 'security';
 
   const theme = {
-    bg: 'bg-transparent', // Handled globally
+    bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
     accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
     accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
-    card: isSecurityMode ? 'security-card' : 'user-glass-panel',
-    inputBg: isSecurityMode ? 'bg-black border-security-border focus-within:border-security-red' : 'bg-white/5 border-user-border focus-within:border-user-cobalt backdrop-blur-md',
+    card: isSecurityMode ? 'sec-card' : 'usr-card',
+    inputBg: isSecurityMode ? 'bg-black border border-security-border focus-within:border-security-red' : 'bg-white/5 border border-user-border focus-within:border-user-cobalt',
     btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
     heading: isSecurityMode ? 'security-heading' : 'user-heading',
     textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
+    textPrimary: isSecurityMode ? 'text-gray-300' : 'text-user-text/90',
     border: isSecurityMode ? 'border-security-border' : 'border-user-border',
   };
 

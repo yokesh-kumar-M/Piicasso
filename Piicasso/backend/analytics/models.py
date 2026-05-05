@@ -1,4 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 class UserActivity(models.Model):
     ACTIVITY_TYPES = [
@@ -11,6 +15,10 @@ class UserActivity(models.Model):
         ('CONFIG', 'Configuration Change'),
     ]
 
+    user = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="activities", db_index=True,
+    )
     activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
     description = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)

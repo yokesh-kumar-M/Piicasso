@@ -111,6 +111,31 @@ class Piiserializer(serializers.Serializer):
     device_type = serializers.CharField(required=False, allow_blank=True, default='')
     subscription = serializers.CharField(required=False, allow_blank=True, default='')
 
+    def validate(self, data):
+        """
+        Fold legacy field names into their canonical equivalents so downstream
+        code (llm_handler.build_prompt) always receives one consistent name.
+
+        Legacy fields are still declared above so the serializer continues to
+        accept both old and new names from API consumers.  This method is the
+        single place where the renaming lives.
+        """
+        _LEGACY_TO_CANONICAL = {
+            'dob':           'birth_year',
+            'phone_digits':  'phone_suffix',
+            'company':       'employer_name',
+            'movies':        'favourite_movies',
+            'food':          'favourite_food',
+            'car_model':     'first_car_model',
+            'license_plate': 'plate_number_partial',
+        }
+        for legacy, canonical in _LEGACY_TO_CANONICAL.items():
+            legacy_val = data.get(legacy, '')
+            if legacy_val and not data.get(canonical, ''):
+                data[canonical] = legacy_val
+            data.pop(legacy, None)
+        return data
+
 
 from operations.models import SystemLog
 

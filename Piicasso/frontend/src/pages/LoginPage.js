@@ -2,239 +2,147 @@ import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
-import { motion } from 'framer-motion';
-import { Lock, User, ShieldCheck, AlertCircle, Eye, EyeOff, Fingerprint, ScanLine } from 'lucide-react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import Logo from '../components/Logo';
+import AuthShell from '../components/design/auth/AuthShell';
+import AttackVizSide from '../components/design/auth/AttackVizSide';
+import Field from '../components/design/auth/Field';
+import SsoButtons from '../components/design/auth/SsoButtons';
+import Divider from '../components/design/auth/Divider';
+import ModePill from '../components/design/ModePill';
 
 const LoginPage = () => {
-  const { login, googleLogin } = useContext(AuthContext);
-  const { mode: appMode, openModeModal } = useContext(ModeContext) || { mode: 'security' };
-  const isSecurityMode = appMode === 'security';
+  const { login } = useContext(AuthContext);
+  const { mode, switchMode, openModeModal } = useContext(ModeContext) || { mode: 'security' };
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: '', password: '' });
-  const [error, setError] = useState('');
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const theme = {
-    card: isSecurityMode ? 'security-card' : 'user-glass-panel',
-    accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
-    btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
-    inputBg: isSecurityMode ? 'bg-black/50 border-zinc-800 focus:border-security-red focus:ring-security-red/50' : 'bg-white/5 border-white/10 focus:border-user-cobalt focus:ring-user-cobalt/50',
-    textMuted: isSecurityMode ? 'text-zinc-500' : 'text-user-muted',
-    iconColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    headerBorder: isSecurityMode ? 'border-zinc-800 bg-zinc-900/50' : 'border-user-cobalt/20 bg-user-cobalt/5',
-    footerBorder: isSecurityMode ? 'border-zinc-800 bg-zinc-900/30' : 'border-user-cobalt/20 bg-user-cobalt/5',
-    errorBg: isSecurityMode ? 'bg-red-900/20 border-red-500/50 text-red-200' : 'bg-red-500/10 border-red-500/30 text-red-400',
-    linkHover: isSecurityMode ? 'hover:text-security-red' : 'hover:text-user-cobalt',
-    iconBg: isSecurityMode ? 'bg-black border-zinc-800' : 'bg-black/40 border-user-cobalt/20',
-  };
-
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    // Guard against auto-triggered calls with empty/invalid credentials
-    if (!credentialResponse?.credential || credentialResponse.credential.split('.').length < 3) {
-      return;
-    }
-    setLoading(true);
-    setError('');
-    try {
-      const res = await googleLogin(credentialResponse.credential);
-      if (res.success) {
-        const hasSelectedMode = localStorage.getItem('app_mode');
-        if (!hasSelectedMode) {
-          openModeModal();
-        }
-        navigate('/');
-      } else {
-        setError(res.error || 'Google Login Failed');
-      }
-    } catch (err) {
-      console.error('Google Native Login Error:', err);
-      setError('An error occurred while connecting to Google. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setErr('');
     setLoading(true);
 
+    // Simulate brief auth delay (matches original)
     await new Promise(r => setTimeout(r, 800));
 
-    const res = await login(form.username, form.password);
+    const res = await login(username, password);
     setLoading(false);
 
     if (res.success) {
       const hasSelectedMode = localStorage.getItem('app_mode');
-      if (!hasSelectedMode) {
-        openModeModal();
-      }
-      navigate('/');
+      if (!hasSelectedMode) openModeModal?.();
+      navigate(mode === 'security' ? '/security/dashboard' : '/user/dashboard');
     } else {
-      setError(res.error || 'Authentication denied. Invalid credentials.');
+      setErr(res.error || 'Authentication denied. Invalid credentials.');
     }
   };
 
+  const handleSsoError = (msg) => setErr(msg || 'Google sign-in failed.');
+
   return (
-    <div className="min-h-screen bg-transparent flex items-center justify-center text-white relative overflow-hidden font-mono">
-      {/* Brand Logo */}
-      <div className="absolute top-6 left-6 z-20">
-        <Logo className="text-3xl" />
-      </div>
+    <AuthShell
+      side={
+        <AttackVizSide
+          headline="Welcome back. The wordlist remembers."
+          sub="Resume your missions, review your fleet's resilience, and keep the engine warm."
+        />
+      }
+    >
+      <h1 className="h-display" style={{ fontSize: 36, marginBottom: 8 }}>Sign in</h1>
+      <p style={{ color: 'var(--fg-2)', marginBottom: 32, fontSize: 14 }}>
+        New to PIIcasso?{' '}
+        <Link to="/register" style={{ color: 'var(--accent-500)', textDecoration: 'underline' }}>
+          Create an account
+        </Link>
+      </p>
 
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md relative z-10 px-4 md:px-0"
-      >
-        {/* Security Card */}
-        <div className={`${theme.card} overflow-hidden`}>
+      <SsoButtons onError={handleSsoError} />
+      <Divider label="or with email" />
 
-          {/* Header */}
-          <div className={`p-6 border-b flex justify-between items-center ${theme.headerBorder}`}>
-            <div>
-              {isSecurityMode && (
-                <div className="text-[10px] font-bold tracking-[0.2em] text-security-red uppercase mb-1" style={{ fontFamily: "'Oswald', sans-serif" }}>
-                  Secure Login
-                </div>
-              )}
-              <h1 className="text-2xl font-bold tracking-widest text-white flex items-center gap-2">
-                <ShieldCheck className={`${theme.iconColor} w-6 h-6`} />
-                {isSecurityMode ? 'AUTHENTICATE' : <><span>Login</span><span className={theme.iconColor}>.</span></>}
-              </h1>
-              <p className={`text-xs mt-1 tracking-widest ${theme.textMuted}`}>Welcome back</p>
-            </div>
-            <motion.div
-              className={`w-12 h-12 rounded-full border flex items-center justify-center ${theme.iconBg}`}
-              animate={{
-                scale: error ? [1, 1.15, 1] : [1, 1.08, 1],
-                borderColor: error ? 'rgba(239,68,68,0.6)' : isSecurityMode ? 'rgba(34,197,94,0.5)' : 'rgba(16,185,129,0.5)',
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 14 }}>
+        <Field
+          label="Email or username"
+          type="text"
+          name="username"
+          value={username}
+          onChange={setUsername}
+          placeholder="alex@northwind.io"
+          autoComplete="username"
+        />
+        <Field
+          label="Password"
+          type="password"
+          name="password"
+          value={password}
+          onChange={setPassword}
+          placeholder="••••••••"
+          autoComplete="current-password"
+          rightLink={
+            <Link
+              to="/forgot-password"
+              style={{ fontSize: 12, color: 'var(--fg-2)', textDecoration: 'none' }}
+              onMouseEnter={e => (e.target.style.color = 'var(--fg-0)')}
+              onMouseLeave={e => (e.target.style.color = 'var(--fg-2)')}
             >
-              <Fingerprint className={`w-6 h-6 ${error ? 'text-red-500' : isSecurityMode ? 'text-green-500/60' : 'text-emerald-400/60'}`} />
-            </motion.div>
+              Forgot?
+            </Link>
+          }
+        />
+
+        {err && (
+          <div
+            style={{
+              color: 'var(--accent-500)',
+              fontSize: 13,
+              fontFamily: 'var(--font-mono-v3)',
+              padding: '8px 12px',
+              background: 'color-mix(in oklab, var(--accent-500) 8%, var(--ink-1))',
+              border: '1px solid color-mix(in oklab, var(--accent-500) 30%, transparent)',
+              borderRadius: 6,
+            }}
+          >
+            ! {err}
           </div>
+        )}
 
-          <div className="p-8">
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`mb-6 border p-3 rounded flex items-center gap-3 text-sm ${theme.errorBg}`}
-              >
-                <AlertCircle className="w-4 h-4 text-red-500" />
-                {error}
-              </motion.div>
-            )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="v3-btn v3-btn-accent"
+          style={{ marginTop: 8, padding: '13px 18px', justifyContent: 'center', width: '100%', opacity: loading ? 0.7 : 1 }}
+        >
+          {loading
+            ? 'Signing in…'
+            : mode === 'security'
+            ? 'Continue to Mission Control →'
+            : 'Continue to your dashboard →'}
+        </button>
+      </form>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className={`text-xs font-bold uppercase flex items-center gap-2 ${theme.textMuted}`}>
-                  <User className="w-3 h-3" /> Username or Email
-                </label>
-                <input
-                  name="username"
-                  value={form.username}
-                  onChange={handleChange}
-                  className={`w-full rounded p-3 text-white ring-1 ring-transparent transition-all outline-none font-mono ${theme.inputBg}`}
-                  placeholder="Enter username or email..."
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className={`text-xs font-bold uppercase flex items-center gap-2 ${theme.textMuted}`}>
-                  <Lock className="w-3 h-3" /> Password
-                </label>
-                <div className="relative">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={form.password}
-                    onChange={handleChange}
-                    className={`w-full rounded p-3 text-white ring-1 ring-transparent transition-all outline-none font-mono pr-10 ${theme.inputBg}`}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md ${theme.textMuted} hover:text-white transition-colors`}
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <div className="flex justify-end mt-1">
-                  <Link to="/forgot-password" className={`text-[10px] ${theme.textMuted} hover:text-white transition-colors`}>
-                    Forgot Password?
-                  </Link>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full mt-4 font-bold tracking-wider rounded transition-all flex items-center justify-center gap-2 ${loading
-                  ? 'bg-zinc-800 border border-zinc-700 text-gray-400 cursor-not-allowed py-4'
-                  : `${theme.btnPrimary} !py-4`
-                  }`}
-              >
-                {loading ? (
-                  <>
-                    <ScanLine className="w-5 h-5 animate-spin" /> {isSecurityMode ? 'Verifying credentials...' : 'Signing in...'}
-                  </>
-                ) : (
-                  isSecurityMode ? 'AUTHENTICATE' : 'Login'
-                )}
-              </button>
-            </form>
-          </div>
-
-          <div className={`p-4 border-t text-center text-xs ${theme.footerBorder} ${theme.textMuted}`}>
-            Don't have an account? <Link to="/register" className={`text-white underline decoration-1 underline-offset-4 transition-colors ${theme.linkHover}`}>Create an account</Link>
-          </div>
+      {/* Mode switcher card */}
+      <div
+        style={{
+          marginTop: 24,
+          padding: 16,
+          background: 'var(--ink-1)',
+          border: '1px dashed var(--ink-5)',
+          borderRadius: 8,
+        }}
+      >
+        <div
+          className="eyebrow"
+          style={{ marginBottom: 8, color: 'var(--fg-3)', fontSize: 10, letterSpacing: '0.1em' }}
+        >
+          You're signing in as
         </div>
-
-        <div className="mt-6 flex justify-center w-full">
-          {process.env.REACT_APP_GOOGLE_CLIENT_ID ? (
-            <div className="flex flex-col items-center gap-2">
-              <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => {
-                    setError('Google Authentication was cancelled or failed.');
-                  }}
-                  theme={isSecurityMode ? 'filled_black' : 'outline'}
-                  shape="pill"
-                  text="continue_with"
-                  context="signin"
-                  useOneTap={false}
-                />
-              </GoogleOAuthProvider>
-              {error === 'Google Authentication was cancelled or failed.' && (
-                <span className="text-[10px] text-red-500 mt-2 text-center max-w-xs">If you see "origin_mismatch", wait 5 mins for Google Cloud to sync. You may also need to clear your browser cache.</span>
-              )}
-            </div>
-          ) : (
-            <div className={`w-full p-3 rounded text-center text-xs border ${theme.errorBg}`}>
-              <strong>Configuration Error:</strong> REACT_APP_GOOGLE_CLIENT_ID is missing. 
-              Please restart your terminal/development server to load the new .env variables.
-            </div>
-          )}
-        </div>
-
-        <div className={`mt-8 text-center text-[10px] tracking-widest ${theme.textMuted} font-mono`}>
-          {isSecurityMode ? '[● SYS_ONLINE]  [v2.5.1]' : 'PIIcasso v2.5.1'}
-        </div>
-      </motion.div>
-    </div>
+        <ModePill mode={mode} onChange={switchMode} />
+        <p style={{ fontSize: 12, color: 'var(--fg-3)', marginTop: 8, lineHeight: 1.5 }}>
+          The mode determines which dashboard you'll land in. You can switch any time.
+        </p>
+      </div>
+    </AuthShell>
   );
 };
 

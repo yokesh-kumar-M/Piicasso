@@ -51,3 +51,9 @@ Thumbs.db
 *.key
 *.crt
 rockyou.txt
+piicasso.md
+opencode.json
+refer/
+
+# ─── Local Development Docker ──────────────────────────────────────────────────
+*Dockerfile.dev
