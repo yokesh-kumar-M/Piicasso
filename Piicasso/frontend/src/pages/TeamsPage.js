@@ -6,8 +6,8 @@ import { ModeContext } from '../context/ModeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Shield, UserPlus, Terminal,
-    Zap, Lock, Activity, RefreshCw,
-    MessageCircle, Send, ChevronRight
+    Activity, RefreshCw,
+    MessageCircle, Send
 } from 'lucide-react';
 
 const TeamsPage = () => {

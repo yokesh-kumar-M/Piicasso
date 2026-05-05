@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import axios from '../api/axios';
-import { ShieldAlert, Users, Database, TerminalSquare, Trash2, Activity, Server, Unlock, Ban, CheckCircle2, KeyRound, Eye, X, Mail, Save, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, Users, Database, TerminalSquare, Trash2, Activity, Server, Unlock, Ban, CheckCircle2, KeyRound, Eye, X, Mail, RefreshCw, AlertTriangle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
 const SuperAdminPage = () => {

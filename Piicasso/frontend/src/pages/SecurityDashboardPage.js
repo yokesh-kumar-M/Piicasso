@@ -1,11 +1,9 @@
-import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
+import React, { useState, lazy, Suspense, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import TargetForm from '../components/TargetForm';
 import RiskRadar from '../components/RiskRadar';
 import SystemLogs from '../components/SystemLogs';
-import { Activity, Wifi, Terminal, ShieldAlert, Crosshair, Database, Server } from 'lucide-react';
-import { motion } from 'framer-motion';
-
+import { Activity, Wifi, Terminal, ShieldAlert, Crosshair } from 'lucide-react';
 const GlobalMap = lazy(() => import('../components/GlobalMap'));
 
 const SecurityDashboardPage = () => {

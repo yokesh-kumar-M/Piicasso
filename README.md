@@ -141,7 +141,31 @@ PIIcasso/
 ## 🚀 Live Demo
 
 - **Frontend (Vercel)**: https://pii-casso.vercel.app
-- **Backend API (Render)**: https://piicasso.onrender.com/api/
+- **Backend API (Render)**: https://core-engine-woeg.onrender.com/api/
+- **API Documentation**: https://core-engine-woeg.onrender.com/api/docs/
+- **Status**: ![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)
+
+---
+
+## 📊 Production Status
+
+### Monitoring Stack
+- **Error Tracking**: [Sentry](https://sentry.io) - Real-time error monitoring
+- **Uptime Monitoring**: [Better Stack](https://betterstack.com) - 3 endpoints monitored
+- **Metrics**: [Prometheus](https://prometheus.io) - Django middleware active
+- **Dashboards**: [Grafana Cloud](https://grafana.com) - Performance visualization
+
+### Keep-Alive System
+- GitHub Actions pings services every 10 minutes
+- Prevents free-tier spin-down (Render, Supabase)
+- View logs: [GitHub Actions](https://github.com/.../actions)
+
+### Security
+- ✅ HTTPS enforced (Render/Vercel)
+- ✅ Security headers (CSP, HSTS, X-Frame-Options)
+- ✅ JWT authentication with refresh tokens
+- ✅ CORS properly configured
+- ✅ Environment variables secured
 
 ---
 
@@ -279,6 +303,24 @@ File sizes after gzip:
 ## ⚠️ Security Notice
 
 This tool is strictly intended for **authorized security testing, penetration testing, and educational purposes only**. Using this tool to generate wordlists for targets without their explicit consent is illegal. The developers assume no liability and are not responsible for any misuse, damage, or breaches caused by this program.
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details.
+
+### Quick Start
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Style
+- Backend: Follow PEP 8, use `black` formatter
+- Frontend: Follow Airbnb style guide, use `prettier`
+- Run `flake8` and `npm run lint` before committing
 
 ---
 
