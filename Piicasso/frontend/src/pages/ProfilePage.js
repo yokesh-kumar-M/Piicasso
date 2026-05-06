@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import axiosInstance from '../api/axios';
+import ProfileAvatar from '../components/design/ProfileAvatar';
 import {
     User, Shield, Activity, Lock, Database,
     Terminal, Clock, AlertTriangle, Mail, Calendar,
@@ -26,6 +27,9 @@ const ProfilePage = () => {
     const [editError, setEditError] = useState('');
     const [editSuccess, setEditSuccess] = useState('');
     const [saving, setSaving] = useState(false);
+
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarPreview, setAvatarPreview] = useState(null);
 
     const [showPasswordChange, setShowPasswordChange] = useState(false);
     const [passwordForm, setPasswordForm] = useState({ current_password: '', new_password: '', confirm_password: '' });
@@ -66,12 +70,24 @@ const ProfilePage = () => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        if (user?.profile_picture) setAvatarPreview(user.profile_picture);
+    }, [user]);
+
     const handleSaveProfile = async () => {
         setSaving(true);
         setEditError('');
         setEditSuccess('');
         try {
-            await axiosInstance.patch('profile/', editForm);
+            const formData = new FormData();
+            formData.append('first_name', editForm.first_name);
+            formData.append('last_name', editForm.last_name);
+            formData.append('email', editForm.email);
+            if (avatarFile) formData.append('profile_picture', avatarFile);
+
+            await axiosInstance.patch('profile/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             setEditSuccess('Profile updated successfully!');
             setEditing(false);
             const res = await axiosInstance.get('profile/');
@@ -419,6 +435,62 @@ const ProfilePage = () => {
                                             {editError}
                                         </div>
                                     )}
+
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 20,
+                                        marginBottom: 28,
+                                        paddingBottom: 28,
+                                        borderBottom: '1px solid var(--ink-4)',
+                                    }}>
+                                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                                            <ProfileAvatar
+                                                user={{ ...user, profile_picture: avatarPreview }}
+                                                size={64}
+                                            />
+                                            <label
+                                                htmlFor="avatar-upload"
+                                                style={{
+                                                    position: 'absolute',
+                                                    bottom: -2,
+                                                    right: -2,
+                                                    width: 22,
+                                                    height: 22,
+                                                    borderRadius: '50%',
+                                                    background: 'var(--accent-500)',
+                                                    color: 'var(--ink-0)',
+                                                    display: 'grid',
+                                                    placeItems: 'center',
+                                                    fontSize: 11,
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 0 0 2px var(--ink-0)',
+                                                }}
+                                            >
+                                                ✎
+                                            </label>
+                                            <input
+                                                id="avatar-upload"
+                                                type="file"
+                                                accept="image/*"
+                                                style={{ display: 'none' }}
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    setAvatarFile(file);
+                                                    setAvatarPreview(URL.createObjectURL(file));
+                                                }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--fg-0)' }}>
+                                                {user?.username}
+                                            </div>
+                                            <div style={{ fontSize: 12, color: 'var(--fg-3)', marginTop: 2 }}>
+                                                {user?.email}
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                         <div>

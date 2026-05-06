@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../Logo.jsx';
 import ModePill from '../ModePill.jsx';
+import ProfileAvatar from '../ProfileAvatar.jsx';
 import { AuthContext } from '../../../context/AuthContext.js';
 import { ModeContext } from '../../../context/ModeContext.js';
 import axios from '../../../api/axios';
@@ -56,10 +57,6 @@ const [inboxOpen, setInboxOpen] = useState(false);
   };
 
   const unread = notifications.filter(n => !n.is_read).length;
-
-  const initials = user?.username
-    ? user.username.slice(0, 2).toUpperCase()
-    : '?';
 
   const handleModeChange = (m) => {
     switchMode(m);
@@ -396,25 +393,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
                     {isSecurityMode ? 'analyst' : 'standard'}
                   </div>
                 </div>
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  background: 'var(--accent-500)',
-                  color: 'var(--ink-0)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: '0.02em',
-                  boxShadow: '0 0 0 2px var(--ink-0), 0 0 0 3px var(--accent-700)',
-                  fontFamily: 'var(--font-mono)',
-                  cursor: 'pointer',
-                }}
-                  onClick={() => navigate('/profile')}
-                >
-                  {initials}
-                </div>
+                <ProfileAvatar user={user} size={32} onClick={() => navigate('/profile')} />
               </div>
             </div>
           </div>
