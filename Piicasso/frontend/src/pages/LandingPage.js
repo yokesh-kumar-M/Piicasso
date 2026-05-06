@@ -7,6 +7,25 @@ import Reveal from '../components/design/Reveal';
 import Section from '../components/design/Section';
 import { detectEntities, redactText, scorePassword, generateWordlist } from '../lib/piiEngine';
 
+const HERO = {
+  security: {
+    eyebrow: '● SECURITY MODE',
+    headline: 'Attack surface mapped.',
+    accentLine: 'Credentials ready.',
+    sub: 'Offensive security tooling for red teams and security analysts. Generate targeted wordlists from real PII exposure data.',
+    ctaLabel: 'Launch operation',
+    ctaPath: '/register',
+  },
+  user: {
+    eyebrow: '● USER MODE',
+    headline: 'Your password',
+    accentLine: "isn't yours anymore.",
+    sub: 'PIIcasso detects your leaked personal data and generates the wordlist that could crack you — before someone else does.',
+    ctaLabel: 'Check my password',
+    ctaPath: '/register',
+  },
+};
+
 /* ─── RedactToken helper ─────────────────────────────────────── */
 function RedactToken({ children, label }) {
   return (
@@ -174,6 +193,8 @@ function HeroDemo() {
 /* ─── Hero ───────────────────────────────────────────────────── */
 function Hero() {
   const navigate = useNavigate();
+  const { mode } = useContext(ModeContext);
+  const hero = HERO[mode] || HERO.user;
   return (
     <section style={{ position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--ink-4)' }}>
       <div className="grid-bg" style={{
@@ -192,40 +213,45 @@ function Hero() {
         padding: '80px var(--gutter) 120px',
         position: 'relative', textAlign: 'center'
       }}>
-        <h1 className="h-display fade-up" style={{
-          fontSize: 'clamp(48px, 8vw, 104px)',
-          margin: '0 auto', maxWidth: 1100,
-          letterSpacing: '-0.045em', fontWeight: 500
+        <div className="eyebrow fade-up" style={{ color: 'var(--accent-500)', marginBottom: 16 }}>{hero.eyebrow}</div>
+
+        <h1 className="fade-up" style={{
+          fontSize: 'clamp(40px, 6vw, 72px)',
+          fontWeight: 700,
+          lineHeight: 1.08,
+          letterSpacing: '-0.03em',
         }}>
-          Your password <br />
-          <span style={{
-            fontFamily: 'var(--font-serif)', fontStyle: 'italic',
-            fontWeight: 400, color: 'var(--accent-500)'
-          }}>
-            isn't yours
+          {hero.headline}{' '}
+          <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400, color: 'var(--accent-500)' }}>
+            {hero.accentLine}
           </span>
-          {' '}anymore.
         </h1>
 
         <p className="fade-up" style={{
-          color: 'var(--fg-2)', fontSize: 19,
-          maxWidth: 620, margin: '28px auto 0',
-          lineHeight: 1.5, animationDelay: '.1s'
+          color: 'var(--fg-2)',
+          fontSize: 19,
+          maxWidth: 620,
+          margin: '28px auto 0',
+          lineHeight: 1.5,
+          animationDelay: '.1s',
         }}>
-          PIIcasso turns leaked Personally Identifiable Information into the
-          wordlist that will crack you — so you can fix it before someone else does.
+          {hero.sub}
         </p>
 
         <div className="fade-up" style={{
-          display: 'flex', justifyContent: 'center', gap: 12,
-          marginTop: 36, flexWrap: 'wrap', animationDelay: '.15s'
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 12,
+          marginTop: 36,
+          flexWrap: 'wrap',
+          animationDelay: '.15s',
         }}>
           <button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate(hero.ctaPath)}
             className="btn btn-accent"
             style={{ padding: '14px 22px', fontSize: 14 }}
           >
-            Test your password free <span style={{ opacity: 0.6 }}>→</span>
+            {hero.ctaLabel} <span style={{ opacity: 0.6 }}>→</span>
           </button>
           <button
             onClick={() => navigate('/api')}
