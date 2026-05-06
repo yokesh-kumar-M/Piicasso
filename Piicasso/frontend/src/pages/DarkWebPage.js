@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import axiosInstance from '../api/axios';
@@ -17,16 +17,12 @@ const DarkWebPage = () => {
   const isSecurityMode = appMode === 'security';
 
   const theme = {
-    bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
     accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
     card: isSecurityMode ? 'sec-card' : 'usr-card',
-    inputBg: isSecurityMode ? 'bg-black border border-security-border focus-within:border-security-red' : 'bg-white/5 border border-user-border focus-within:border-user-cobalt',
-    btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
     heading: isSecurityMode ? 'security-heading' : 'user-heading',
     textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
-    textPrimary: isSecurityMode ? 'text-gray-300' : 'text-user-text/90',
-    border: isSecurityMode ? 'border-security-border' : 'border-user-border',
+    inputBg: isSecurityMode ? 'bg-black border border-security-border focus:border-security-red text-white placeholder-gray-600' : 'bg-white/5 border border-user-border focus:border-user-cobalt text-user-text placeholder-user-text/40',
+    btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
   };
 
     const [isSearching, setIsSearching] = useState(false);
@@ -98,17 +94,9 @@ const DarkWebPage = () => {
     };
 
     return (
-        <div className={`min-h-screen flex flex-col ${theme.bg}`}>
-            <Navbar />
-
-            {/* Scan line effect (only relevant for security mode, but harmless in user mode if subtle) */}
-            {isSecurityMode && (
-                <div className="fixed inset-0 pointer-events-none opacity-5 overflow-hidden z-0">
-                    <div className="absolute top-0 w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-                </div>
-            )}
-
-            <div className="pt-28 px-4 md:px-12 max-w-7xl mx-auto relative z-10 pb-20 w-full">
+        <DesignAppShell activeKey={isSecurityMode ? 'intel' : 'leaks'}>
+            <div style={{ paddingTop: 24, paddingBottom: 80, paddingLeft: 16, paddingRight: 16 }}>
+            <div style={{ maxWidth: 1100, marginLeft: 'auto', marginRight: 'auto' }}>
 
                 {/* Header */}
                 <div className={`flex flex-col md:flex-row justify-between items-start mb-12 gap-8 border-b pb-8 ${isSecurityMode ? 'border-security-red/30' : 'border-user-border'}`}>
@@ -346,7 +334,8 @@ const DarkWebPage = () => {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </DesignAppShell>
     );
 };
 

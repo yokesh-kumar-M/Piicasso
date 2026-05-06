@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell';
 import axiosInstance from '../api/axios';
 import { ModeContext } from '../context/ModeContext';
 import { useContext } from 'react';
-import { Bookmark, BookmarkCheck, Download, FileDown, Trash2, Search, FileText, RefreshCw } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Download, FileDown, Search, FileText, RefreshCw } from 'lucide-react';
 
 const SAVED_KEY = 'piicasso_saved_ids';
 
@@ -32,23 +32,6 @@ const SavedPage = () => {
     const [savedIds, setSavedIds] = useState(getSavedIds());
     const { mode } = useContext(ModeContext);
     const isSecurityMode = mode === 'security';
-
-    const theme = {
-        bg: isSecurityMode ? 'bg-security-bg' : 'bg-user-bg',
-        accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-        accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
-        card: isSecurityMode ? 'sec-card group' : 'usr-card group',
-        inputBg: isSecurityMode ? 'bg-black border-security-border focus-within:border-security-red text-white placeholder-gray-600' : 'bg-white/5 border-user-border focus-within:border-user-cobalt text-user-text placeholder-user-text/40',
-        btnPrimary: isSecurityMode ? 'security-btn-primary' : 'user-btn-primary',
-        btnSecondary: isSecurityMode ? 'bg-security-surface text-white border border-security-border hover:bg-white/5' : 'bg-white/10 text-white border border-user-border hover:bg-white/20',
-        searchContainer: isSecurityMode ? 'bg-black border border-security-border focus-within:border-security-red' : 'bg-white/5 border border-user-border focus-within:border-user-cobalt',
-        refreshBtn: isSecurityMode ? 'bg-security-surface border border-security-border hover:bg-white/5' : 'bg-white/5 border border-user-border hover:bg-white/10',
-        cardHeader: isSecurityMode ? 'bg-gradient-to-br from-[#1a1a1a] to-black' : 'bg-gradient-to-br from-white/5 to-transparent',
-        heading: isSecurityMode ? 'security-heading' : 'user-heading',
-        textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
-        textPrimary: isSecurityMode ? 'text-gray-300' : 'text-user-text/90',
-        divider: isSecurityMode ? 'border-security-border' : 'border-user-border',
-    };
 
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -96,7 +79,7 @@ const SavedPage = () => {
 
     const downloadWithSignedToken = async (fileType, id) => {
         try {
-            // Request a short-lived signed download token (1.2 fix)
+            // Request a short-lived signed download token
             const res = await axiosInstance.post('download-token/', {
                 file_type: fileType,
                 record_id: id,
@@ -121,117 +104,397 @@ const SavedPage = () => {
     });
 
     return (
-        <div className={`min-h-screen flex flex-col ${theme.bg}`}>
-            <Navbar />
-            <div className="pt-28 px-4 md:px-12 pb-20 max-w-7xl mx-auto w-full">
-                {/* Header */}
-                <div className={`flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 gap-4 ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
-                    <div>
-                        <h1 className={`text-2xl md:text-3xl font-bold tracking-wide mb-1 flex items-center gap-3 ${theme.heading}`}>
-                            <Bookmark className={`w-6 h-6 ${theme.accentColor}`} />
-                            Saved <span className={isSecurityMode ? 'text-gray-500 font-normal font-sans tracking-normal uppercase text-lg' : 'text-user-text/60 font-normal'}>Items</span>
-                        </h1>
-                        <p className={`text-xs ${theme.textMuted}`}>
-                            Your bookmarked generation records — save items from the History page
-                            <span className={`ml-1 ${isSecurityMode ? 'text-yellow-600' : 'text-user-cobalt/80'}`}>(stored locally in this browser only)</span>
-                        </p>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <div className={`flex items-center px-3 py-2 rounded border transition-colors ${theme.searchContainer}`}>
-                            <Search className={`w-4 h-4 mr-2 shrink-0 ${isSecurityMode ? 'text-gray-500' : 'text-user-text/50'}`} />
-                            <input
-                                type="text"
-                                placeholder="Search saved..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className={`bg-transparent border-none outline-none text-sm w-36 ${isSecurityMode ? 'text-white placeholder-gray-600' : 'text-user-text placeholder-user-text/40'}`}
-                            />
-                        </div>
-                        <button
-                            onClick={fetchItems}
-                            className={`p-2 rounded transition-colors border ${theme.refreshBtn} ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}
-                            title="Refresh"
-                        >
-                            <RefreshCw className={`w-4 h-4 ${isSecurityMode ? 'text-gray-400' : 'text-user-text/70'}`} />
-                        </button>
-                    </div>
+        <DesignAppShell activeKey="wordlists">
+            {/* Header */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: 32,
+                paddingBottom: 16,
+                borderBottom: '1px solid var(--ink-4)',
+                gap: 16
+            }}>
+                <div>
+                    <h1 style={{
+                        fontSize: 28,
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                        marginBottom: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        color: 'var(--fg-0)'
+                    }}>
+                        <Bookmark style={{ width: 24, height: 24, color: 'var(--accent-500)' }} />
+                        Saved
+                        <span style={{
+                            color: 'var(--fg-3)',
+                            fontWeight: 400,
+                            fontSize: 16,
+                            fontFamily: 'var(--font-mono)',
+                            letterSpacing: '0.05em',
+                            textTransform: 'uppercase'
+                        }}>
+                            Items
+                        </span>
+                    </h1>
+                    <p style={{
+                        fontSize: 12,
+                        color: 'var(--fg-2)',
+                        maxWidth: 500
+                    }}>
+                        Your bookmarked generation records — save items from the History page
+                        <span style={{ color: 'var(--accent-500)', marginLeft: 4 }}>
+                            (stored locally in this browser only)
+                        </span>
+                    </p>
                 </div>
 
-                {/* Content */}
-                {loading ? (
-                    <div className={`text-center mt-24 text-sm animate-pulse ${isSecurityMode ? 'text-gray-500' : 'text-user-text/60'}`}>Loading saved items...</div>
-                ) : savedIds.length === 0 ? (
-                    <div className="text-center mt-24">
-                        <Bookmark className={`w-14 h-14 mx-auto mb-5 ${isSecurityMode ? 'text-gray-800' : 'text-user-text/20'}`} />
-                        <h2 className={`text-xl font-bold mb-2 ${isSecurityMode ? 'text-gray-400' : 'text-user-text/80'}`}>No saved items yet</h2>
-                        <p className={`text-sm max-w-md mx-auto mb-6 ${isSecurityMode ? 'text-gray-600' : 'text-user-text/60'}`}>
-                            Go to the <strong className={isSecurityMode ? 'text-gray-400' : 'text-user-text'}>History</strong> page and click the bookmark icon on any record to save it here for quick access.
-                        </p>
-                        <a href="/dashboard" className={`inline-block text-sm font-bold py-2.5 px-6 rounded transition-colors ${theme.btnPrimary}`}>
-                            Go to History
-                        </a>
+                {/* Search & Refresh */}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        paddingLeft: 12,
+                        paddingRight: 12,
+                        paddingTop: 8,
+                        paddingBottom: 8,
+                        borderRadius: 6,
+                        border: '1px solid var(--ink-4)',
+                        transition: 'border-color 0.2s',
+                        backgroundColor: 'var(--ink-3)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--ink-5)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--ink-4)';
+                    }}>
+                        <Search style={{
+                            width: 16,
+                            height: 16,
+                            marginRight: 8,
+                            flexShrink: 0,
+                            color: 'var(--fg-3)'
+                        }} />
+                        <input
+                            type="text"
+                            placeholder="Search saved..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: 13,
+                                width: 160,
+                                color: 'var(--fg-0)',
+                                fontFamily: 'inherit'
+                            }}
+                        />
                     </div>
-                ) : filtered.length === 0 ? (
-                    <div className={`text-center mt-24 text-sm ${isSecurityMode ? 'text-gray-500' : 'text-user-text/60'}`}>
-                        No saved items match "<span className={isSecurityMode ? 'text-white' : 'text-user-text font-bold'}>{searchTerm}</span>"
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                        {filtered.map(item => {
-                            const name = item.pii_data?.full_name || item.pii_data?.username || 'Unnamed Target';
-                            const wordCount = item.wordlist_count || (item.wordlist ? item.wordlist.length : 0);
-                            return (
-                                <div
-                                    key={item.id}
-                                    className={`${theme.card} overflow-hidden`}
-                                >
-                                    <div className={`h-24 p-4 relative flex items-end ${theme.cardHeader} border-b ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}>
-                                        <FileText className={`absolute top-4 right-4 w-10 h-10 transition-colors ${isSecurityMode ? 'text-gray-800 group-hover:text-gray-700' : 'text-white/10 group-hover:text-white/20'}`} />
-                                        <div className="relative z-10">
-                                            <span className={`text-[9px] font-mono uppercase tracking-widest ${isSecurityMode ? 'text-gray-500' : 'text-user-text/60'}`}>Record #{item.id}</span>
-                                        </div>
-                                        {/* Unsave button */}
-                                        <button
-                                            onClick={() => handleUnsave(item.id)}
-                                            className={`absolute top-3 left-3 transition-colors z-20 ${isSecurityMode ? 'text-yellow-500 hover:text-yellow-400' : 'text-user-cobalt hover:text-blue-400'}`}
-                                            title="Remove from saved"
-                                        >
-                                            <BookmarkCheck className="w-5 h-5 fill-current" />
-                                        </button>
-                                    </div>
+                    <button
+                        onClick={fetchItems}
+                        style={{
+                            padding: '8px 12px',
+                            borderRadius: 6,
+                            border: '1px solid var(--ink-4)',
+                            backgroundColor: 'var(--ink-1)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--ink-3)';
+                            e.currentTarget.style.borderColor = 'var(--ink-5)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--ink-1)';
+                            e.currentTarget.style.borderColor = 'var(--ink-4)';
+                        }}
+                        title="Refresh"
+                    >
+                        <RefreshCw style={{
+                            width: 16,
+                            height: 16,
+                            color: 'var(--fg-2)'
+                        }} />
+                    </button>
+                </div>
+            </div>
 
-                                    <div className="p-4">
-                                        <h3 className={`font-bold text-base mb-1 truncate ${isSecurityMode ? 'text-white' : 'text-user-text'}`} title={name}>{name}</h3>
-                                        <p className={`text-[11px] mb-3 ${isSecurityMode ? 'text-gray-500' : 'text-user-text/50'}`}>{new Date(item.timestamp).toLocaleString()}</p>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <span className={`text-[10px] px-2 py-0.5 rounded font-mono border ${isSecurityMode ? 'bg-black border-security-border text-gray-400' : 'bg-white/5 border-user-border text-user-text/70'}`}>
-                                                {wordCount} passwords
-                                            </span>
-                                        </div>
+            {/* Content */}
+            {loading ? (
+                <div style={{
+                    textAlign: 'center',
+                    marginTop: 96,
+                    fontSize: 13,
+                    color: 'var(--fg-2)',
+                    animation: 'pulse 2s infinite'
+                }}>
+                    Loading saved items...
+                </div>
+            ) : savedIds.length === 0 ? (
+                <div style={{ textAlign: 'center', marginTop: 96 }}>
+                    <Bookmark style={{
+                        width: 56,
+                        height: 56,
+                        margin: '0 auto 20px',
+                        color: 'var(--ink-3)'
+                    }} />
+                    <h2 style={{
+                        fontSize: 18,
+                        fontWeight: 700,
+                        marginBottom: 8,
+                        color: 'var(--fg-2)'
+                    }}>
+                        No saved items yet
+                    </h2>
+                    <p style={{
+                        fontSize: 13,
+                        maxWidth: 400,
+                        margin: '0 auto 24px',
+                        color: 'var(--fg-2)'
+                    }}>
+                        Go to the <strong style={{ color: 'var(--fg-0)' }}>History</strong> page and click the bookmark icon on any record to save it here for quick access.
+                    </p>
+                    <a
+                        href="/dashboard"
+                        style={{
+                            display: 'inline-block',
+                            fontSize: 13,
+                            fontWeight: 700,
+                            padding: '12px 24px',
+                            borderRadius: 6,
+                            backgroundColor: 'var(--accent-500)',
+                            color: '#fff',
+                            textDecoration: 'none',
+                            transition: 'opacity 0.2s',
+                            cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                    >
+                        Go to History
+                    </a>
+                </div>
+            ) : filtered.length === 0 ? (
+                <div style={{
+                    textAlign: 'center',
+                    marginTop: 96,
+                    fontSize: 13,
+                    color: 'var(--fg-2)'
+                }}>
+                    No saved items match "<span style={{
+                        color: 'var(--fg-0)',
+                        fontWeight: 700
+                    }}>
+                        {searchTerm}
+                    </span>"
+                </div>
+            ) : (
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                    gap: 16
+                }}>
+                    {filtered.map(item => {
+                        const name = item.pii_data?.full_name || item.pii_data?.username || 'Unnamed Target';
+                        const wordCount = item.wordlist_count || (item.wordlist ? item.wordlist.length : 0);
+                        return (
+                            <div
+                                key={item.id}
+                                style={{
+                                    backgroundColor: 'var(--ink-1)',
+                                    border: '1px solid var(--ink-4)',
+                                    borderRadius: 8,
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = 'var(--ink-5)';
+                                    e.currentTarget.style.backgroundColor = 'var(--ink-3)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = 'var(--ink-4)';
+                                    e.currentTarget.style.backgroundColor = 'var(--ink-1)';
+                                }}
+                            >
+                                {/* Card Header */}
+                                <div style={{
+                                    height: 96,
+                                    padding: 16,
+                                    display: 'flex',
+                                    alignItems: 'flex-end',
+                                    position: 'relative',
+                                    backgroundColor: 'var(--ink-3)',
+                                    borderBottom: '1px solid var(--ink-4)',
+                                    background: 'linear-gradient(135deg, var(--ink-3), var(--ink-1))'
+                                }}>
+                                    <FileText style={{
+                                        position: 'absolute',
+                                        top: 16,
+                                        right: 16,
+                                        width: 40,
+                                        height: 40,
+                                        color: 'var(--ink-4)',
+                                        opacity: 0.5,
+                                        transition: 'opacity 0.2s'
+                                    }} />
 
-                                        <div className="flex gap-2 mt-auto pt-2">
-                                            <button
-                                                onClick={() => downloadWordlist(item.id)}
-                                                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-bold py-2 rounded transition-colors border ${theme.btnPrimary} ${isSecurityMode ? 'border-transparent' : 'border-transparent'}`}
-                                            >
-                                                <Download className="w-3 h-3" /> Wordlist
-                                            </button>
-                                            <button
-                                                onClick={() => downloadPDF(item.id)}
-                                                className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-bold py-2 rounded transition-colors border ${theme.btnSecondary} ${isSecurityMode ? 'border-security-border' : 'border-user-border'}`}
-                                            >
-                                                <FileDown className="w-3 h-3" /> Report
-                                            </button>
-                                        </div>
+                                    {/* Unsave button */}
+                                    <button
+                                        onClick={() => handleUnsave(item.id)}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 12,
+                                            left: 12,
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            color: 'var(--accent-500)',
+                                            transition: 'color 0.2s',
+                                            zIndex: 20,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-glow)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--accent-500)'}
+                                        title="Remove from saved"
+                                    >
+                                        <BookmarkCheck style={{ width: 20, height: 20 }} />
+                                    </button>
+
+                                    <div style={{ position: 'relative', zIndex: 10 }}>
+                                        <span style={{
+                                            fontSize: 9,
+                                            fontFamily: 'var(--font-mono)',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            color: 'var(--fg-3)',
+                                            fontWeight: 700
+                                        }}>
+                                            Record #{item.id}
+                                        </span>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        </div>
+
+                                {/* Card Body */}
+                                <div style={{
+                                    padding: 16,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    flex: 1
+                                }}>
+                                    <h3 style={{
+                                        fontWeight: 700,
+                                        fontSize: 14,
+                                        marginBottom: 4,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        color: 'var(--fg-0)'
+                                    }} title={name}>
+                                        {name}
+                                    </h3>
+                                    <p style={{
+                                        fontSize: 11,
+                                        marginBottom: 12,
+                                        color: 'var(--fg-3)',
+                                        fontFamily: 'var(--font-mono)'
+                                    }}>
+                                        {new Date(item.timestamp).toLocaleString()}
+                                    </p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                                        <span style={{
+                                            fontSize: 10,
+                                            paddingLeft: 8,
+                                            paddingRight: 8,
+                                            paddingTop: 4,
+                                            paddingBottom: 4,
+                                            borderRadius: 4,
+                                            fontFamily: 'var(--font-mono)',
+                                            border: '1px solid var(--ink-4)',
+                                            backgroundColor: 'var(--ink-1)',
+                                            color: 'var(--fg-3)'
+                                        }}>
+                                            {wordCount} passwords
+                                        </span>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                                        <button
+                                            onClick={() => downloadWordlist(item.id)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: 6,
+                                                fontSize: 11,
+                                                fontWeight: 700,
+                                                paddingTop: 8,
+                                                paddingBottom: 8,
+                                                borderRadius: 6,
+                                                border: 'none',
+                                                backgroundColor: 'var(--accent-500)',
+                                                color: '#fff',
+                                                cursor: 'pointer',
+                                                transition: 'opacity 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                                            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                                        >
+                                            <Download style={{ width: 12, height: 12 }} />
+                                            Wordlist
+                                        </button>
+                                        <button
+                                            onClick={() => downloadPDF(item.id)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: 6,
+                                                fontSize: 11,
+                                                fontWeight: 700,
+                                                paddingTop: 8,
+                                                paddingBottom: 8,
+                                                borderRadius: 6,
+                                                border: '1px solid var(--ink-4)',
+                                                backgroundColor: 'var(--ink-1)',
+                                                color: 'var(--fg-0)',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'var(--ink-3)';
+                                                e.currentTarget.style.borderColor = 'var(--ink-5)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'var(--ink-1)';
+                                                e.currentTarget.style.borderColor = 'var(--ink-4)';
+                                            }}
+                                        >
+                                            <FileDown style={{ width: 12, height: 12 }} />
+                                            Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </DesignAppShell>
     );
 };
 

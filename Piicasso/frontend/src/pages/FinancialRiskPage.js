@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { ModeContext } from "../context/ModeContext";
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -38,18 +38,14 @@ const FinancialRiskPage = () => {
   const isSecurityMode = appMode === 'security';
 
   const theme = {
-    card: isSecurityMode ? 'sec-card' : 'usr-card',
     accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
-    btnSecondary: isSecurityMode ? 'bg-security-surface text-white border border-security-border hover:bg-white/5' : 'bg-white/10 text-white border border-user-border hover:bg-white/20',
-    textMuted: isSecurityMode ? 'text-gray-400' : 'text-user-text/70',
-    borderLight: isSecurityMode ? 'border-security-border' : 'border-user-border',
-    highlight: isSecurityMode ? 'text-white' : 'text-user-text',
+    card: isSecurityMode ? 'sec-card' : 'usr-card',
+    btnSecondary: isSecurityMode ? 'bg-security-surface text-white border border-security-border hover:bg-white/5' : 'bg-white/5 text-user-text border border-user-border hover:bg-white/10',
     heading: isSecurityMode ? 'security-heading' : 'user-heading',
-    cardInner: isSecurityMode ? 'bg-black/50' : 'bg-white/5',
-    glowBg: isSecurityMode ? 'bg-red-500/5' : 'bg-blue-500/10',
+    textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
+    borderLight: isSecurityMode ? 'border-security-border/50' : 'border-user-border/50',
+    highlight: isSecurityMode ? 'text-white' : 'text-user-text',
   };
-
 
     const [isCalculating, setIsCalculating] = useState(true);
 
@@ -127,19 +123,9 @@ const FinancialRiskPage = () => {
     };
 
     return (
-        <div className={`min-h-screen flex flex-col ${isSecurityMode ? 'bg-security-bg' : 'bg-user-bg'} font-sans transition-colors duration-300`}>
-            {isSecurityMode ? (
-                <div className="fixed inset-0 pointer-events-none opacity-5 overflow-hidden z-0">
-                    <div className="absolute top-0 w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]"></div>
-                </div>
-            ) : (
-                <>
-                    <div className="fixed inset-0 bg-[linear-gradient(rgba(37,99,235,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0"></div>
-                    <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
-                </>
-            )}
-            <Navbar />
-            <div className="relative z-10 pt-28 px-4 md:px-12 pb-20 flex-1 w-full max-w-7xl mx-auto flex flex-col gap-6">
+        <DesignAppShell>
+            <div style={{ paddingTop: 24, paddingBottom: 80, paddingLeft: 16, paddingRight: 16 }}>
+            <div style={{ maxWidth: 1400, marginLeft: 'auto', marginRight: 'auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
                 
                 {/* Header */}
                 <div className={`flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b ${theme.borderLight} pb-4`}>
@@ -255,7 +241,9 @@ const FinancialRiskPage = () => {
                     </motion.div>
                 )}
             </div>
-        </div>
+            </div>
+            </div>
+        </DesignAppShell>
     );
 };
 

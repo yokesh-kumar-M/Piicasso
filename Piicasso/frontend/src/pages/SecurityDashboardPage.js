@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import TargetForm from '../components/TargetForm';
 import RiskRadar from '../components/RiskRadar';
 import SystemLogs from '../components/SystemLogs';
@@ -31,10 +31,8 @@ const SecurityDashboardPage = () => {
   const totalCompletenessScore = useMemo(() => Math.round((Object.values(metrics).reduce((a, b) => a + b, 0) / 60) * 100) || 0, [metrics]);
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-[#050505] text-security-text font-sans">
-      <Navbar />
-      
-      <div className="flex-1 w-full max-w-[1800px] mx-auto pt-24 px-4 sm:px-6 lg:px-8 pb-12 flex flex-col">
+    <DesignAppShell activeKey="mission">
+      <div className="max-w-[1800px] mx-auto flex flex-col">
         
         {/* Header Strip */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 shrink-0 mb-4 md:mb-6 border-b border-white/10 pb-3 md:pb-4">
@@ -153,7 +151,7 @@ const SecurityDashboardPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </DesignAppShell>
   );
 };
 

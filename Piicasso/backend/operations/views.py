@@ -146,6 +146,8 @@ class SystemSettingsView(APIView):
             "max_wordlist_size",
             "data_retention_days",
             "announcement",
+            "strict_security",
+            "generation_speed",
         ]
     )
 

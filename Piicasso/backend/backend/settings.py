@@ -306,7 +306,7 @@ if not GOOGLE_CLIENT_ID:
         "GOOGLE_CLIENT_ID environment variable is not set. "
         "Google OAuth will not work without it."
     )
-FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "piicasso-d923a")
+FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")
 
 # ─── FIELD-LEVEL ENCRYPTION ──────────────────────────────────────────────────
 # Used by EncryptedJSONField (generator.fields) to encrypt pii_data at rest.

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MarketingNav from '../components/design/MarketingNav';
 
 /**
  * 404 — terminal-lookup motif. Big editorial 4·0·4 with the 0 in accent,
@@ -23,17 +22,17 @@ const NotFoundPage = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--ink-0)', display: 'flex', flexDirection: 'column' }}>
-      <MarketingNav />
-      <div style={{ flex: 1, display: 'grid', placeItems: 'center', padding: 32 }}>
-        <div style={{ textAlign: 'center', maxWidth: 640 }}>
+      <div style={{ flex: 1, display: 'grid', placeItems: 'center', padding: '32px' }}>
+        <div style={{ textAlign: 'center', maxWidth: '640px' }}>
+          {/* 404 Display */}
           <div
             style={{
               fontFamily: 'var(--font-sans-v3)',
               fontSize: 'clamp(120px, 22vw, 240px)',
-              fontWeight: 500,
+              fontWeight: '500',
               letterSpacing: '-0.06em',
-              lineHeight: 1,
-              marginBottom: 32,
+              lineHeight: '1',
+              marginBottom: '32px',
               background: 'linear-gradient(180deg, var(--fg-0), var(--fg-3))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -52,18 +51,22 @@ const NotFoundPage = () => {
             4
           </div>
 
+          {/* Eyebrow label */}
+          <div className="eyebrow" style={{ marginBottom: '20px' }}>ERROR — ROUTE NOT FOUND</div>
+
+          {/* Faux CLI block */}
           <div
             style={{
               background: 'var(--ink-1)',
               border: '1px solid var(--ink-4)',
-              borderRadius: 12,
+              borderRadius: '8px',
               padding: '20px 24px',
               fontFamily: 'var(--font-mono-v3)',
-              fontSize: 13,
+              fontSize: '13px',
               textAlign: 'left',
               color: 'var(--fg-1)',
-              lineHeight: 1.7,
-              marginBottom: 32,
+              lineHeight: '1.7',
+              marginBottom: '32px',
             }}
           >
             {lines.map((l, i) => (
@@ -83,20 +86,26 @@ const NotFoundPage = () => {
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {/* Message */}
+          <p style={{ fontSize: '14px', color: 'var(--fg-2)', marginBottom: '32px', margin: '0 0 32px 0' }}>
+            The page you're looking for doesn't exist or has been moved.
+          </p>
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => navigate('/')}
               className="v3-btn v3-btn-accent"
               style={{ padding: '12px 20px' }}
             >
-              ← Back to safety
+              Go Home
             </button>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(-1)}
               className="v3-btn v3-btn-ghost"
               style={{ padding: '12px 20px' }}
             >
-              Sign in
+              Go Back
             </button>
           </div>
         </div>

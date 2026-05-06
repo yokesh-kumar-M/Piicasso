@@ -1,27 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import axiosInstance from '../api/axios';
 import { ModeContext } from '../context/ModeContext';
-import { History, AlertTriangle, Clock, Database, Shield, RefreshCw, AlertCircle } from 'lucide-react';
+import { AlertTriangle, Clock, Database, RefreshCw, AlertCircle } from 'lucide-react';
 import { HistorySkeleton } from '../components/SkeletonLoader';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 
 const AnalysisHistoryPage = () => {
   const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
   const isSecurityMode = appMode === 'security';
-
-  const theme = {
-    card: isSecurityMode ? 'sec-card' : 'usr-card',
-    accentColor: isSecurityMode ? 'text-security-red' : 'text-user-cobalt',
-    accentBg: isSecurityMode ? 'bg-security-red' : 'bg-user-cobalt',
-    heading: isSecurityMode ? 'security-heading' : 'user-heading',
-    textMuted: isSecurityMode ? 'text-gray-500' : 'text-user-text/70',
-    textPrimary: isSecurityMode ? 'text-gray-300' : 'text-user-text/90',
-    divider: isSecurityMode ? 'border-security-border' : 'border-user-border',
-    tableHeader: isSecurityMode ? 'bg-black border-b border-security-border text-gray-500' : 'bg-white/10 border-b border-user-border text-user-text/70',
-    tableRowHover: isSecurityMode ? 'hover:bg-white/5' : 'hover:bg-white/10',
-    cardInner: isSecurityMode ? 'bg-black/50 border-security-border' : 'bg-white/5 border-user-border',
-    refreshBtn: isSecurityMode ? 'bg-security-surface border border-security-border hover:bg-white/5' : 'bg-white/5 border border-user-border hover:bg-white/10',
-    iconBg: isSecurityMode ? 'bg-security-red/20 border border-security-red/30' : 'bg-user-cobalt/20 border border-user-cobalt/30',
-  };
 
   const [analyses, setAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,22 +32,20 @@ const AnalysisHistoryPage = () => {
 
   const getLevelColor = (level) => {
     const colors = {
-      low: 'text-green-500',
-      medium: 'text-yellow-500',
-      high: 'text-orange-500',
-      critical: 'text-red-500'
+      low: 'var(--good)',
+      medium: 'var(--warn)',
+      high: 'var(--warn)',
+      critical: 'var(--accent-500)'
     };
-    return colors[level] || (isSecurityMode ? 'text-gray-400' : 'text-user-text/60');
+    return colors[level] || 'var(--fg-2)';
   };
 
   const getLevelBg = (level) => {
-    const colors = {
-      low: 'bg-green-500/20 border border-green-500/30',
-      medium: 'bg-yellow-500/20 border border-yellow-500/30',
-      high: 'bg-orange-500/20 border border-orange-500/30',
-      critical: 'bg-red-500/20 border border-red-500/30'
+    const levelColor = getLevelColor(level);
+    return {
+      backgroundColor: `color-mix(in oklab, ${levelColor} 12%, var(--ink-1))`,
+      borderColor: `color-mix(in oklab, ${levelColor} 30%, transparent)`,
     };
-    return colors[level] || theme.cardInner;
   };
 
   const formatDate = (dateStr) => {
@@ -75,123 +59,210 @@ const AnalysisHistoryPage = () => {
     });
   };
 
+  const getScoreColor = (score) => {
+    if (score >= 75) return 'var(--good)';
+    if (score >= 50) return 'var(--warn)';
+    if (score >= 25) return 'var(--warn)';
+    return 'var(--accent-500)';
+  };
+
   if (loading) {
     return <HistorySkeleton />;
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${isSecurityMode ? 'bg-security-bg' : 'bg-user-bg'}`}>
-      <div className="pt-28 px-4 md:px-12 pb-20 max-w-6xl mx-auto w-full space-y-6">
+    <DesignAppShell activeKey="passwords">
+      <div style={{ padding: '40px 24px', maxWidth: '1000px', margin: '0 auto' }}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl ${theme.iconBg} flex items-center justify-center ${isSecurityMode ? 'shadow-[0_0_15px_rgba(225,29,72,0.2)]' : 'shadow-[0_0_15px_rgba(59,130,246,0.2)]'}`}>
-              <History className={`w-6 h-6 ${theme.accentColor}`} />
-            </div>
-            <div>
-              <h1 className={`text-2xl md:text-3xl mb-1 ${theme.heading}`}>
-                {isSecurityMode ? 'ANALYSIS HISTORY' : 'Analysis History'}
-              </h1>
-              <p className={`text-sm ${theme.textMuted}`}>
-                {isSecurityMode ? 'Past credential scan records.' : 'View your past password analyses'}
-              </p>
-            </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', gap: '24px' }}>
+          <div>
+            <div className="eyebrow" style={{ marginBottom: '8px' }}>PASSWORD ANALYSIS</div>
+            <h1 className="h-display" style={{ marginBottom: '12px' }}>Analysis History</h1>
+            <p style={{ fontSize: '14px', color: 'var(--fg-2)', margin: 0 }}>
+              View your past password analyses and security findings.
+            </p>
           </div>
           <button
             onClick={fetchHistory}
-            className={`p-2 rounded-lg transition-colors ${theme.refreshBtn} ${theme.textMuted} hover:text-white`}
+            className="v3-btn v3-btn-ghost"
             title="Refresh"
+            style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
           >
-            <RefreshCw className="w-5 h-5" />
+            <RefreshCw style={{ width: '16px', height: '16px' }} />
+            Refresh
           </button>
         </div>
 
         {error && (
-          <div className={`rounded-lg p-4 flex items-center gap-3 text-red-400 border ${isSecurityMode ? 'bg-red-500/10 border-red-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <span className="text-sm font-medium">{error}</span>
+          <div
+            style={{
+              background: 'color-mix(in oklab, var(--accent-500) 12%, var(--ink-1))',
+              border: '1px solid color-mix(in oklab, var(--accent-500) 30%, transparent)',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              color: 'var(--accent-500)',
+              marginBottom: '24px',
+            }}
+          >
+            <AlertCircle style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+            <span style={{ fontSize: '14px', fontWeight: '500' }}>{error}</span>
           </div>
         )}
 
         {!loading && analyses.length === 0 ? (
-          <div className={`${theme.card} p-12 text-center flex flex-col items-center justify-center min-h-[300px]`}>
-            <div className={`w-16 h-16 rounded-full ${isSecurityMode ? 'bg-white/5' : 'bg-white/5'} flex items-center justify-center mb-4`}>
-              <Shield className={`w-8 h-8 ${isSecurityMode ? 'text-gray-600' : 'text-user-text/40'}`} />
+          <div
+            className="card"
+            style={{
+              padding: '48px 24px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '300px',
+            }}
+          >
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: 'var(--ink-3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <AlertTriangle style={{ width: '32px', height: '32px', color: 'var(--fg-3)' }} />
             </div>
-            <h3 className={`text-lg font-bold mb-2 ${theme.heading}`}>
-              {isSecurityMode ? 'NO RECORDS FOUND' : 'No Analyses Yet'}
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--fg-0)', marginBottom: '8px', margin: 0 }}>
+              No records found
             </h3>
-            <p className={`text-sm max-w-sm ${theme.textMuted}`}>
-              {isSecurityMode ? 'Run a password scan from the dashboard to populate this log.' : 'Check your first password on the Dashboard to see your analysis history here.'}
+            <p style={{ fontSize: '14px', color: 'var(--fg-2)', maxWidth: '360px', margin: '8px 0 0 0' }}>
+              Run a password scan from the dashboard to populate this log.
             </p>
           </div>
         ) : (
-          <div className={`${theme.card} overflow-hidden`}>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
+          <div className="card" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--ink-4)' }}>
+              <div className="eyebrow">ANALYSIS RECORDS</div>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%' }}>
                 <thead>
-                  <tr className={`text-xs uppercase tracking-widest font-semibold ${theme.tableHeader}`}>
-                    <th className="p-5">Date</th>
-                    <th className="p-5">Level</th>
-                    <th className="p-5">Score</th>
-                    <th className="p-5">Crack Time</th>
-                    <th className="p-5">Breaches</th>
-                    <th className="p-5">Issues</th>
+                  <tr style={{ borderBottom: '1px solid var(--ink-4)', background: 'var(--ink-1)' }}>
+                    <th style={{ padding: '12px 20px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', fontWeight: '600' }}>
+                      Date
+                    </th>
+                    <th style={{ padding: '12px 20px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', fontWeight: '600' }}>
+                      Level
+                    </th>
+                    <th style={{ padding: '12px 20px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', fontWeight: '600' }}>
+                      Score
+                    </th>
+                    <th style={{ padding: '12px 20px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', fontWeight: '600' }}>
+                      Crack Time
+                    </th>
+                    <th style={{ padding: '12px 20px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', fontWeight: '600' }}>
+                      Breaches
+                    </th>
+                    <th style={{ padding: '12px 20px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', fontWeight: '600' }}>
+                      Issues
+                    </th>
                   </tr>
                 </thead>
-                <tbody className={`divide-y ${isSecurityMode ? 'divide-security-border' : 'divide-user-border'}`}>
-                  {analyses.map((analysis) => (
-                    <tr key={analysis.id} className={`transition-colors ${theme.tableRowHover}`}>
-                      <td className="p-5">
-                        <span className={`text-sm ${theme.textPrimary} font-medium`}>{formatDate(analysis.created_at)}</span>
-                      </td>
-                      <td className="p-5">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getLevelBg(analysis.vulnerability_level)} ${getLevelColor(analysis.vulnerability_level)}`}>
-                          {analysis.vulnerability_level.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="p-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-20 h-1.5 bg-black/30 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-1000 ${
-                                analysis.strength_score >= 75 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' :
-                                analysis.strength_score >= 50 ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]' :
-                                analysis.strength_score >= 25 ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
-                              }`}
-                              style={{ width: `${analysis.strength_score}%` }}
-                            />
+                <tbody>
+                  {analyses.map((analysis, idx) => {
+                    const levelColor = getLevelColor(analysis.vulnerability_level);
+                    const scoreColor = getScoreColor(analysis.strength_score);
+                    const levelBg = getLevelBg(analysis.vulnerability_level);
+
+                    return (
+                      <tr
+                        key={analysis.id}
+                        style={{
+                          borderBottom: '1px solid var(--ink-4)',
+                          transition: 'background-color 0.2s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--ink-2)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        <td style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--fg-0)', fontWeight: '500' }}>
+                          {formatDate(analysis.created_at)}
+                        </td>
+                        <td style={{ padding: '14px 20px', fontSize: '13px' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              padding: '3px 10px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              fontFamily: 'var(--font-mono)',
+                              fontWeight: '700',
+                              letterSpacing: '0.08em',
+                              color: levelColor,
+                              ...levelBg,
+                              border: `1px solid ${levelBg.borderColor}`,
+                            }}
+                          >
+                            {analysis.vulnerability_level.toUpperCase()}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 20px', fontSize: '13px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '80px', height: '4px', background: 'var(--ink-3)', borderRadius: '2px', overflow: 'hidden' }}>
+                              <div
+                                style={{
+                                  width: `${analysis.strength_score}%`,
+                                  height: '100%',
+                                  background: scoreColor,
+                                  transition: 'width 0.4s',
+                                }}
+                              />
+                            </div>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: scoreColor, fontWeight: '600' }}>
+                              {analysis.strength_score}
+                            </span>
                           </div>
-                          <span className={`text-sm font-bold ${isSecurityMode ? 'text-white' : 'text-user-text'}`}>{analysis.strength_score}%</span>
-                        </div>
-                      </td>
-                      <td className="p-5">
-                        <div className={`flex items-center gap-2 ${theme.textPrimary} ${theme.cardInner} px-3 py-1.5 rounded-lg border w-fit`}>
-                          <Clock className={`w-4 h-4 ${theme.accentColor}`} />
-                          <span className="text-sm font-medium">{analysis.crack_time_estimate}</span>
-                        </div>
-                      </td>
-                      <td className="p-5">
-                        <div className={`flex items-center gap-2 font-bold ${analysis.breach_count > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                          <Database className="w-4 h-4" />
-                          <span className="text-sm">{analysis.breach_count}</span>
-                        </div>
-                      </td>
-                      <td className="p-5">
-                        <div className={`flex items-center gap-2 ${theme.textPrimary}`}>
-                          <AlertTriangle className={`w-4 h-4 ${analysis.vulnerabilities_count > 0 ? 'text-yellow-500' : theme.textMuted}`} />
-                          <span className="text-sm font-medium">{analysis.vulnerabilities_count}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--fg-0)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Clock style={{ width: '14px', height: '14px', color: 'var(--fg-2)' }} />
+                            <span>{analysis.crack_time_estimate}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 20px', fontSize: '13px', fontWeight: '600' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: analysis.breach_count > 0 ? 'var(--warn)' : 'var(--good)' }}>
+                            <Database style={{ width: '14px', height: '14px' }} />
+                            <span>{analysis.breach_count}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--fg-0)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <AlertTriangle
+                              style={{
+                                width: '14px',
+                                height: '14px',
+                                color: analysis.vulnerabilities_count > 0 ? 'var(--warn)' : 'var(--fg-2)',
+                              }}
+                            />
+                            <span>{analysis.vulnerabilities_count}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </DesignAppShell>
   );
 };
 

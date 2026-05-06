@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import axiosInstance from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
@@ -160,10 +160,9 @@ const TeamsPage = () => {
     }
 
     return (
-        <div className={`min-h-screen flex flex-col ${theme.bg}`}>
-            <Navbar />
-
-            <div className="pt-28 px-4 md:px-12 max-w-[1600px] mx-auto pb-20 w-full flex-1">
+        <DesignAppShell>
+            <div style={{ paddingTop: 24, paddingBottom: 80, paddingLeft: 16, paddingRight: 16 }}>
+            <div style={{ maxWidth: 1400, marginLeft: 'auto', marginRight: 'auto' }}>
                 <div className={`flex justify-between items-end mb-8 border-b pb-4 ${theme.border}`}>
                     <div>
                         <h1 className={`text-2xl md:text-3xl mb-1 flex items-center gap-3 ${theme.heading}`}>
@@ -463,7 +462,8 @@ const TeamsPage = () => {
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+            </div>
+        </DesignAppShell>
     );
 };
 

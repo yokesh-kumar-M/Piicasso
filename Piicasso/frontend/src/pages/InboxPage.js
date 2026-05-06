@@ -8,7 +8,7 @@ import {
     Send, Mail, Users, ChevronRight, Search,
     AlertCircle, MessageCircle, ArrowLeft, Circle
 } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 
 /**
  * InboxPage: Dual-purpose messaging interface.
@@ -101,7 +101,7 @@ const InboxPage = () => {
 
     const fetchConversations = async () => {
         try {
-            const { data } = await axios.get('admin/messages/');
+            const { data } = await axios.get('operations/messages/');
             setConversations(Array.isArray(data) ? data : []);
         } catch (e) {
             console.error('Failed to load conversations', e);
@@ -121,7 +121,7 @@ const InboxPage = () => {
 
     const fetchThread = async (userId) => {
         try {
-            const url = userId ? `admin/messages/?user_id=${userId}` : `admin/messages/`;
+            const url = userId ? `operations/messages/?user_id=${userId}` : `operations/messages/`;
             const { data } = await axios.get(url);
             // API returns newest-first (ORDER BY -timestamp) so we reverse
             // before setting state to keep oldest-at-top, newest-at-bottom.
@@ -145,7 +145,7 @@ const InboxPage = () => {
         setSending(true);
         setError('');
         try {
-            await axios.post('admin/messages/', {
+            await axios.post('operations/messages/', {
                 recipient_id: isSuperuser ? selectedUser.id : null,
                 content: content,
             });
@@ -179,10 +179,8 @@ const InboxPage = () => {
     }
 
     return (
-        <div className={`min-h-screen ${theme.bg} text-white`}>
-            <Navbar />
-
-            <div className="pt-24 pb-8 h-screen flex flex-col">
+        <DesignAppShell>
+            <div style={{ height: 'calc(100vh - 56px)', display: 'flex', overflow: 'hidden' }}>
                 <div className="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full px-4 gap-4">
 
                     {/* ── Admin Sidebar (Conditional) ── */}
@@ -382,7 +380,8 @@ const InboxPage = () => {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </DesignAppShell>
     );
 };
 

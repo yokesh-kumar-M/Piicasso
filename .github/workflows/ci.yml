@@ -37,7 +37,7 @@ jobs:
           DJANGO_SECRET_KEY: test-secret-key-not-for-production
           ENV: test
           GOOGLE_CLIENT_ID: test-google-client-id
-          FIELD_ENCRYPTION_KEY: test-field-encryption-key-123
+          FIELD_ENCRYPTION_KEY: dGVzdC1maWVsZC1lbmNyeXB0aW9uLWtleS0xMjM0NTY=
         run: |
           cd Piicasso/backend
           python manage.py test --verbosity=2

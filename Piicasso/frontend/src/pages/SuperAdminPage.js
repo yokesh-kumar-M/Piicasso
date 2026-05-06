@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import axios from '../api/axios';
 import { ShieldAlert, Users, Database, TerminalSquare, Trash2, Activity, Server, Unlock, Ban, CheckCircle2, KeyRound, Eye, X, Mail, RefreshCw, AlertTriangle } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 
 const SuperAdminPage = () => {
     const { user, isAuthenticated } = useContext(AuthContext);
@@ -68,7 +68,7 @@ const SuperAdminPage = () => {
 
     const fetchAdminData = async () => {
         try {
-            const res = await axios.get('admin/');
+            const res = await axios.get('super-admin/');
             setData(res.data);
             setError('');
         } catch (err) {
@@ -112,7 +112,7 @@ const SuperAdminPage = () => {
     const deleteUser = async (userId, username) => {
         if (window.confirm(`Delete user: ${username}? This cannot be undone.`)) {
             try {
-                await axios.delete(`admin/?user_id=${userId}`);
+                await axios.delete(`super-admin/?user_id=${userId}`);
                 fetchAdminData();
             } catch (err) {
                 alert(err.response?.data?.error || 'Delete failed.');
@@ -124,7 +124,7 @@ const SuperAdminPage = () => {
         const action = isCurrentlyActive ? 'block' : 'unblock';
         if (window.confirm(`Are you sure you want to ${action} ${username}?`)) {
             try {
-                const res = await axios.post('admin/', { action, user_id: userId });
+                const res = await axios.post('super-admin/', { action, user_id: userId });
                 alert(res.data.message);
                 fetchAdminData();
             } catch (err) {
@@ -136,7 +136,7 @@ const SuperAdminPage = () => {
     const handleChangePasswordSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('admin/', { action: 'change_password', user_id: selectedUser.id, new_password: newPassword });
+            const res = await axios.post('super-admin/', { action: 'change_password', user_id: selectedUser.id, new_password: newPassword });
             alert(res.data.message);
             setShowPasswordModal(false);
             setNewPassword('');
@@ -148,7 +148,7 @@ const SuperAdminPage = () => {
 
     const viewUserGenerations = async (userId, username) => {
         try {
-            const res = await axios.get(`admin/?action=get_generations&user_id=${userId}`);
+            const res = await axios.get(`super-admin/?action=get_generations&user_id=${userId}`);
             setGenerations(res.data.generations || []);
             setSelectedUser({ id: userId, username });
             setShowGenerationsModal(true);
@@ -180,8 +180,8 @@ const SuperAdminPage = () => {
     }
 
     return (
-        <div className="bg-transparent min-h-screen text-white font-sans flex flex-col pt-16">
-            <Navbar />
+        <DesignAppShell activeKey="audit">
+        <div className="text-white font-sans flex flex-col -mx-8 -mt-6">
 
             <div className="flex-1 w-full flex overflow-hidden relative">
                 {/* Mobile sidebar toggle */}
@@ -622,6 +622,7 @@ const SuperAdminPage = () => {
                 </div>
             )}
         </div>
+        </DesignAppShell>
     );
 };
 

@@ -1,9 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../Logo.jsx';
 import ModePill from '../ModePill.jsx';
 import { AuthContext } from '../../../context/AuthContext.js';
 import { ModeContext } from '../../../context/ModeContext.js';
+import axios from '../../../api/axios';
 
 /**
  * DesignAppShell — sidebar + topbar wrapper for both security and user dashboards.
@@ -17,13 +18,18 @@ export default function DesignAppShell({ children, activeKey }) {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const { mode, switchMode } = useContext(ModeContext);
-  const [inboxOpen, setInboxOpen] = useState(false);
+const [inboxOpen, setInboxOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    axios.get('operations/notifications/').then(r => setNotifications(r.data.notifications || []));
+  }, []);
 
   const isSecurityMode = mode === 'security';
 
   const securityItems = [
-    ['mission',   'Missions',     '◈', '/dashboard'],
+    ['mission',   'Missions',     '◈', '/security/dashboard'],
     ['wordlists', 'Wordlists',    '≡', '/workspace'],
     ['intel',     'Threat Intel', '◉', '/darkweb'],
     ['targets',   'Targets',      '◎', '/operation'],
@@ -40,22 +46,16 @@ export default function DesignAppShell({ children, activeKey }) {
   const items = isSecurityMode ? securityItems : userItems;
   const active = activeKey || items[0][0];
 
-  // TODO: wire to GET /api/operations/notifications/ for real inbox data
-  const notifications = isSecurityMode
-    ? [
-        { t: 'alert', title: 'New cracked credential', body: "Operation: Northwind — alex@nw.io fell to 'Marcus1987!'", time: '2m' },
-        { t: 'info',  title: 'Mission complete', body: 'Target Webb · 1,247 candidates · 38 hits · report ready', time: '14m' },
-        { t: 'alert', title: 'Wordlist anomaly', body: 'Profile mutation produced 4 new high-confidence variants', time: '1h' },
-        { t: 'info',  title: 'Audit log signed', body: 'April 2026 audit trail sealed and exported', time: '3h' },
-        { t: 'info',  title: 'New leak ingested', body: '+ 240k records added to dictionary corpus', time: '1d' },
-      ]
-    : [
-        { t: 'alert', title: 'Weak password detected', body: 'old-banking.com is reused and contains your name', time: '12m' },
-        { t: 'info',  title: 'Leak scan complete', body: '0 new credentials found in the last 24h', time: '2h' },
-        { t: 'info',  title: 'Resilience improved', body: 'Your overall score went from 58 → 64', time: '1d' },
-      ];
+  const relativeTime = (ts) => {
+    if (!ts) return '';
+    const diff = (Date.now() - new Date(ts)) / 1000;
+    if (diff < 60) return `${Math.floor(diff)}s`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    return `${Math.floor(diff / 86400)}d`;
+  };
 
-  const unread = notifications.filter(n => n.t === 'alert').length;
+  const unread = notifications.filter(n => !n.is_read).length;
 
   const initials = user?.username
     ? user.username.slice(0, 2).toUpperCase()
@@ -198,15 +198,15 @@ export default function DesignAppShell({ children, activeKey }) {
                   height: 6,
                   borderRadius: '50%',
                   marginTop: 6,
-                  background: n.t === 'alert' ? 'var(--accent-500)' : 'var(--fg-3)',
-                  boxShadow: n.t === 'alert' ? '0 0 6px var(--accent-glow)' : 'none',
+                  background: (n.notification_type === 'SECURITY' || n.notification_type === 'SYSTEM') ? 'var(--accent-500)' : 'var(--fg-3)',
+                  boxShadow: (n.notification_type === 'SECURITY' || n.notification_type === 'SYSTEM') ? '0 0 6px var(--accent-glow)' : 'none',
                   flexShrink: 0,
                   display: 'inline-block',
                 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg-0)' }}>{n.title}</div>
-                  <div style={{ fontSize: 11, color: 'var(--fg-2)', lineHeight: 1.4, marginTop: 2 }}>{n.body}</div>
-                  <div style={{ fontSize: 10, color: 'var(--fg-4)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>{n.time} ago</div>
+                  <div style={{ fontSize: 11, color: 'var(--fg-2)', lineHeight: 1.4, marginTop: 2 }}>{n.description}</div>
+                  <div style={{ fontSize: 10, color: 'var(--fg-4)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>{relativeTime(n.timestamp)}</div>
                 </div>
               </div>
             ))}

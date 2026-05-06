@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import Navbar from '../components/Navbar';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import KaliTerminal from '../components/KaliTerminal';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
@@ -27,8 +27,7 @@ const NewOperationPage = () => {
     const isGod = user?.is_superuser;
 
     return (
-        <div className={`min-h-screen ${theme.bg} flex flex-col`}>
-            <Navbar />
+        <DesignAppShell activeKey="operation">
 
             <div className="pt-20 md:pt-28 px-4 md:px-12 pb-20 max-w-7xl mx-auto w-full flex-1">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full responsive-dashboard-height">
@@ -153,7 +152,7 @@ const NewOperationPage = () => {
 
                 </div>
             </div>
-        </div>
+        </DesignAppShell>
     );
 };
 

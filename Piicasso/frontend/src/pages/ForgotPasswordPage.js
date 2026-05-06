@@ -38,7 +38,7 @@ const ForgotPasswordPage = () => {
     if (!email) { setErr('Please enter your email address.'); return; }
     setLoading(true);
     try {
-      await axiosInstance.post('user/auth/password/reset/', { email });
+      await axiosInstance.post('auth/password/reset/', { email });
       setStage('code');
     } catch (ex) {
       setErr(ex.response?.data?.error || 'Failed to send code. Please try again.');
@@ -56,7 +56,7 @@ const ForgotPasswordPage = () => {
     if (newPassword.length < 6) { setErr('New password must be at least 6 characters.'); return; }
     setLoading(true);
     try {
-      await axiosInstance.post('user/auth/password/reset/verify/', {
+      await axiosInstance.post('auth/password/reset/verify/', {
         email,
         otp,
         new_password: newPassword,

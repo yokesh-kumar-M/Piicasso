@@ -17,7 +17,7 @@ jobs:
           curl -f -s -o /dev/null -w "%{http_code}" \
             --max-time 30 \
             -H "User-Agent: PIcasso-KeepAlive" \
-            "https://core-engine-woeg.onrender.com/api/schema/" \
+            "https://core-engine-woeg.onrender.com/api/health/" \
             && echo "✓ Render backend is alive" \
             || (echo "✗ Render backend ping failed" && exit 1)
         continue-on-error: true
