@@ -431,6 +431,10 @@
   --accent-h: 255;
 }
 
+[data-mode="security"] {
+  --font-sans-v3: 'Courier Prime', 'Courier New', monospace;
+}
+
 /* ── Editorial typography utilities ───────────────────────────────── */
 .h-display {
   font-family: var(--font-sans-v3);
