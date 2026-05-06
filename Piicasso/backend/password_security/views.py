@@ -376,6 +376,8 @@ class PasswordAnalysisHistoryView(APIView):
                         "crack_time_estimate": a.crack_time_estimate,
                         "breach_count": a.breach_count,
                         "vulnerabilities_count": len(a.vulnerabilities_found),
+                        "vulnerabilities_found": a.vulnerabilities_found,
+                        "recommendations": a.recommendations,
                         "created_at": a.created_at.isoformat(),
                     }
                 )
