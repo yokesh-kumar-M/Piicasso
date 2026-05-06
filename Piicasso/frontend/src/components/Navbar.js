@@ -91,7 +91,7 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Dashboard', path: isSecurityMode ? '/security/dashboard' : '/user/dashboard' },
         ...(isSecurityMode ? [
-            { name: 'Intel DB', path: '/dashboard' },
+            { name: 'Intel DB', path: '/darkweb' },
             { name: 'Generators', path: '/operation' },
             { name: 'Risk Radar', path: '/risk' },
         ] : []),

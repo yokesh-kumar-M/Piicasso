@@ -203,6 +203,9 @@ CI env vars needed in GitHub Secrets:
 | T7 | `backend/.env.example` — Added SENTRY_DSN and HIBP_API_KEY | ✅ |
 | T8 | piicasso.md — Corrected route table (all paths verified from source) | ✅ |
 | T9 | SuperAdminPage admin endpoint paths corrected | ✅ |
+| F1 | Navbar.js — Fix "Intel DB" nav link (`/dashboard` → `/darkweb`) | ✅ |
+| F2 | UserModeLayout.js — Replace old Navbar with DesignAppShell | ✅ |
+| F3 | UserModeLayout.js — Remove duplicate custom sidebar (handled by DesignAppShell) | ✅ |
 
 ---
 
