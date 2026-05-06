@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import DesignAppShell from '../components/design/dashboard/DesignAppShell';
 import {
   Book, Code, Key, Shield, Zap, Database,
   Copy, Check, ChevronRight, Terminal, Globe,
@@ -214,6 +216,7 @@ const sections = [
 ];
 
 const ApiDocsPage = () => {
+  const { isAuthenticated } = useContext(AuthContext);
   const [copiedId, setCopiedId] = useState(null);
   const [activeSection, setActiveSection] = useState('overview');
   const [expandedGroups, setExpandedGroups] = useState(['authentication', 'wordlist-generation']);
@@ -363,7 +366,7 @@ const ApiDocsPage = () => {
     { endpoint: 'Terminal (/api/terminal/)', limit: 'Rate limited (TerminalRateThrottle)' },
   ];
 
-  return (
+  const pageContent = (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.text, ...S.display }}>
       {/* Header */}
       <div style={{
@@ -800,6 +803,16 @@ const ApiDocsPage = () => {
       </div>
     </div>
   );
+
+  if (isAuthenticated) {
+    return (
+      <DesignAppShell activeKey="learn">
+        {pageContent}
+      </DesignAppShell>
+    );
+  }
+
+  return pageContent;
 };
 
 export default ApiDocsPage;
