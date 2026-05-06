@@ -87,7 +87,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
       {/* Mode eyebrow */}
       <div className="eyebrow" style={{ marginBottom: 12, color: 'var(--accent-500)' }}>
-        ● {mode} mode
+        ● {mode === 'security' ? 'SECURITY' : 'USER'}
       </div>
 
       {/* Nav links */}
@@ -229,24 +229,6 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
       {/* Bottom actions */}
       <div style={{ marginTop: 'auto', display: 'grid', gap: 10 }}>
-        <button
-          onClick={() => navigate('/profile')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '8px 10px',
-            borderRadius: 6,
-            fontSize: 13,
-            color: 'var(--fg-2)',
-            textAlign: 'left',
-            background: 'none',
-            border: 0,
-            cursor: 'pointer',
-          }}
-        >
-          ⚙ Settings
-        </button>
         <div style={{
           paddingTop: 12,
           borderTop: '1px solid var(--ink-4)',
@@ -255,7 +237,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
           color: 'var(--fg-3)',
           letterSpacing: '0.06em',
         }}>
-          ⌘ + K to search
+          ⌘K search
         </div>
       </div>
     </aside>
@@ -381,7 +363,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
             backdropFilter: 'blur(12px)',
           }}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-3)' }}>
-              ● {isSecurityMode ? 'live mission' : 'personal vault'} · synced
+              ● {isSecurityMode ? 'active session' : 'password vault'} · synced
             </div>
             <ModePill mode={mode} onChange={handleModeChange} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, alignItems: 'center' }}>
@@ -411,7 +393,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
                     {user?.username || 'User'}
                   </div>
                   <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)' }}>
-                    {isSecurityMode ? 'operator' : 'pro plan'}
+                    {isSecurityMode ? 'analyst' : 'standard'}
                   </div>
                 </div>
                 <div style={{
