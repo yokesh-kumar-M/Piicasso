@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useContext } from 'react';
-import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import { AuthContext } from '../context/AuthContext.js';
 import { scorePassword } from '../lib/piiEngine.js';
 
@@ -103,7 +102,7 @@ const UserDashboardPage = () => {
     : 'var(--good)';
 
   return (
-    <DesignAppShell activeKey="overview">
+    <>
       {/* ── Header ── */}
       <div style={{ marginBottom: 28 }}>
         <div className="eyebrow" style={{ color: 'var(--accent-500)' }}>● Your security overview</div>
@@ -116,6 +115,18 @@ const UserDashboardPage = () => {
         <p style={{ color: 'var(--fg-2)', fontSize: 14, fontFamily: 'var(--font-mono)', marginTop: 4 }}>
           Here's how you'd hold up against someone who knows you.
         </p>
+      </div>
+
+      {/* ── Quick check — CORE feature, top position ── */}
+      <div className="card" style={{ padding: 32, marginBottom: 28 }}>
+        <div className="eyebrow" style={{ marginBottom: 10 }}>Quick check</div>
+        <h2
+          className="h-display"
+          style={{ fontSize: 24, marginBottom: 20, color: 'var(--fg-0)' }}
+        >
+          Test any password against your profile.
+        </h2>
+        <UserQuickCheck username={username} />
       </div>
 
       {/* ── Top row: 3 metric cards ── */}
@@ -282,19 +293,7 @@ const UserDashboardPage = () => {
           })}
         </div>
       </div>
-
-      {/* ── Quick check ── */}
-      <div className="card" style={{ padding: 28 }}>
-        <div className="eyebrow" style={{ marginBottom: 12 }}>Quick check</div>
-        <h2
-          className="h-display"
-          style={{ fontSize: 24, marginBottom: 16, color: 'var(--fg-0)' }}
-        >
-          Test any password against your profile.
-        </h2>
-        <UserQuickCheck username={username} />
-      </div>
-    </DesignAppShell>
+    </>
   );
 };
 

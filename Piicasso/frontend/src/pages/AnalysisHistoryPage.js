@@ -3,7 +3,7 @@ import axiosInstance from '../api/axios';
 import { ModeContext } from '../context/ModeContext';
 import { AlertTriangle, Clock, Database, RefreshCw, AlertCircle } from 'lucide-react';
 import { HistorySkeleton } from '../components/SkeletonLoader';
-import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
+
 
 const AnalysisHistoryPage = () => {
   const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
@@ -71,8 +71,7 @@ const AnalysisHistoryPage = () => {
   }
 
   return (
-    <DesignAppShell activeKey="passwords">
-      <div style={{ padding: '40px 24px', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ padding: '40px 24px', maxWidth: '1000px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', gap: '24px' }}>
           <div>
@@ -261,8 +260,7 @@ const AnalysisHistoryPage = () => {
             </div>
           </div>
         )}
-      </div>
-    </DesignAppShell>
+    </div>
   );
 };
 
