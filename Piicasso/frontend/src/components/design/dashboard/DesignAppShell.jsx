@@ -63,7 +63,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
   const handleModeChange = (m) => {
     switchMode(m);
-    navigate(m === 'security' ? '/dashboard' : '/user/dashboard');
+    navigate(m === 'security' ? '/security/dashboard' : '/user/dashboard');
   };
 
   const sidebar = (

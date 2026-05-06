@@ -11,31 +11,31 @@ const ModeManager = () => {
 
   useEffect(() => {
     if (loading) return;
-
-    const isAuthPage = ['/login', '/register', '/forgot-password'].includes(location.pathname);
-    const isPublicPage = location.pathname === '/';
-
-    if (isAuthenticated && !localStorage.getItem('app_mode') && !isAuthPage) {
+    if (!isAuthenticated && !localStorage.getItem('app_mode')) {
       localStorage.setItem('app_mode', 'user');
     }
-  }, [isAuthenticated, loading, location.pathname]);
+  }, [isAuthenticated, loading]);
 
   useEffect(() => {
-    if (loading) return;
-    if (!isAuthenticated) return;
+    if (loading || !isAuthenticated) return;
 
-    const isUserMode = mode === 'user';
-    const isSecurityPage = ['/security/dashboard', '/operation', '/dashboard', '/teams', '/workspace', '/darkweb', '/inbox', '/system-admin'].includes(location.pathname);
-    const isAuthPage = ['/login', '/register', '/forgot-password'].includes(location.pathname);
+    // Routes that only exist in security mode.
+    // /darkweb and /inbox are intentionally omitted — they serve both modes.
+    const securityOnlyPages = [
+      '/security/dashboard', '/operation', '/dashboard',
+      '/teams', '/workspace', '/system-admin',
+    ];
 
+    const isAuthPage = ['/login', '/register', '/forgot-password']
+      .includes(location.pathname);
     if (isAuthPage) return;
 
-    if (isUserMode && isSecurityPage) {
+    if (mode === 'user' && securityOnlyPages.includes(location.pathname)) {
       navigate('/user/dashboard', { replace: true });
     }
 
-    if (!isUserMode && location.pathname.startsWith('/user')) {
-      navigate('/dashboard', { replace: true });
+    if (mode === 'security' && location.pathname.startsWith('/user')) {
+      navigate('/security/dashboard', { replace: true }); // was '/dashboard' — fixed
     }
   }, [mode, isAuthenticated, loading, location.pathname, navigate]);
 
