@@ -242,7 +242,6 @@ const FinancialRiskPage = () => {
                 )}
             </div>
             </div>
-            </div>
         </DesignAppShell>
     );
 };

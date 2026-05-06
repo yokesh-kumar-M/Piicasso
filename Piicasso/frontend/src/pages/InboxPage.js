@@ -380,7 +380,6 @@ const InboxPage = () => {
                     </div>
                 </div>
             </div>
-            </div>
         </DesignAppShell>
     );
 };
