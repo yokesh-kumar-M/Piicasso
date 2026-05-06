@@ -1,84 +1,229 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext.js';
 import { scorePassword } from '../lib/piiEngine.js';
+import axiosInstance from '../api/axios.js';
 
 /* ─────────────────────────────────────────────
-   Mock account list — 5 entries matching the reference.
-   TODO: wire to /api/password/history/ + /api/operations/breach-search/
+   PII fields used for targeted password scoring
 ───────────────────────────────────────────── */
-const MOCK_ACCOUNTS = [
-  { site: 'github.com',       email: 'alex@nw.io',     score: 88, last: '2 weeks ago',  reused: false },
-  { site: 'northwind.io',     email: 'alex@nw.io',     score: 42, last: '8 months ago', reused: true  },
-  { site: 'amazon.com',       email: 'alex@gmail.com', score: 67, last: '3 months ago', reused: false },
-  { site: 'old-banking.com',  email: 'alex@nw.io',     score: 22, last: '2 years ago',  reused: true  },
-  { site: 'linkedin.com',     email: 'alex@gmail.com', score: 71, last: '1 month ago',  reused: false },
+const PII_FIELDS = [
+  { name: 'full_name',   label: 'Full Name',       placeholder: 'ex: Alex Johnson' },
+  { name: 'dob',         label: 'Birth Year',       placeholder: 'ex: 1990' },
+  { name: 'username',    label: 'Username',         placeholder: 'ex: alexj99' },
+  { name: 'pet_names',   label: 'Pet Name',         placeholder: 'ex: Rex' },
+  { name: 'spouse_name', label: 'Partner / Spouse', placeholder: 'ex: Jamie' },
+  { name: 'current_city',label: 'City',             placeholder: 'ex: Chennai' },
 ];
 
 /* ─────────────────────────────────────────────
-   UserQuickCheck — inline password tester
+   UserPasswordAnalyzer — PII form + backend scoring
 ───────────────────────────────────────────── */
-function UserQuickCheck({ username }) {
+function UserPasswordAnalyzer({ username }) {
+  const [pii, setPii] = useState({});
   const [pw, setPw] = useState('');
-  const profile = useMemo(() => ({ name: username || 'User', year: '1991' }), [username]);
-  const r = useMemo(() => scorePassword(pw, profile), [pw, profile]);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const scoreColor = r.score < 45
-    ? 'var(--accent-500)'
-    : r.score < 70
-    ? 'var(--warn)'
+  const piiProfile = useMemo(() => ({ ...pii, username }), [pii, username]);
+  const preview = useMemo(() => pw ? scorePassword(pw, piiProfile) : null, [pw, piiProfile]);
+
+  const previewColor = !preview ? 'var(--fg-3)'
+    : preview.score < 45 ? 'var(--accent-500)'
+    : preview.score < 70 ? 'var(--warn)'
+    : 'var(--good)';
+
+  const handleAnalyze = async () => {
+    if (!pw) return;
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const res = await axiosInstance.post('password/analyze/', {
+        password: pw,
+        pii_data: pii,
+      });
+      setResult(res.data);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Analysis failed. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resultColor = !result ? 'var(--fg-3)'
+    : result.strength_score < 45 ? 'var(--accent-500)'
+    : result.strength_score < 70 ? 'var(--warn)'
     : 'var(--good)';
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
-      <input
-        value={pw}
-        onChange={e => setPw(e.target.value)}
-        placeholder="Type a password to test…"
-        style={{
-          padding: '16px 18px',
-          background: 'var(--ink-3)',
-          border: '1px solid var(--ink-5)',
-          borderRadius: 8,
-          color: 'var(--fg-0)',
-          outline: 'none',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 15,
-          width: '100%',
-          transition: 'border-color .15s',
-        }}
-        onFocus={e => { e.target.style.borderColor = 'var(--accent-500)'; }}
-        onBlur={e => { e.target.style.borderColor = 'var(--ink-5)'; }}
-      />
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        padding: '0 18px',
-        background: 'var(--ink-1)',
-        borderRadius: 8,
-        border: '1px solid var(--ink-4)',
-      }}>
-        <div style={{ fontSize: 36, fontWeight: 500, color: pw ? scoreColor : 'var(--fg-3)' }}>
-          {pw ? r.score : '—'}
-        </div>
-        <div>
-          <div style={{ fontSize: 13, color: 'var(--fg-0)', fontWeight: 500 }}>
-            {pw ? r.rating : 'Waiting…'}
+    <div className="card" style={{ padding: 32, marginBottom: 28 }}>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>Password Resilience Test</div>
+      <h2 className="h-display" style={{ fontSize: 22, marginBottom: 24, color: 'var(--fg-0)' }}>
+        How well would your password hold up against someone who knows you?
+      </h2>
+
+      {/* PII grid — 3 columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+        {PII_FIELDS.map(f => (
+          <div key={f.name}>
+            <div style={{
+              fontSize: 10,
+              color: 'var(--fg-3)',
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              marginBottom: 4,
+            }}>
+              {f.label}
+            </div>
+            <input
+              value={pii[f.name] || ''}
+              onChange={e => setPii(prev => ({ ...prev, [f.name]: e.target.value }))}
+              placeholder={f.placeholder}
+              autoComplete="off"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                background: 'var(--ink-3)',
+                border: '1px solid var(--ink-5)',
+                borderRadius: 6,
+                color: 'var(--fg-0)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 13,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
           </div>
-          <div style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-            {r.entropy ? `${r.entropy} bits` : '—'} · {r.time}
-          </div>
-          {r.reasons.length > 0 && (
-            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {r.reasons.slice(0, 2).map((reason, i) => (
-                <div key={i} style={{ fontSize: 10, color: 'var(--accent-500)', fontFamily: 'var(--font-mono)' }}>
-                  ▲ {reason.label}
-                </div>
-              ))}
+        ))}
+      </div>
+
+      {/* Password row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'stretch', marginBottom: result || error ? 24 : 0 }}>
+        <div style={{ position: 'relative' }}>
+          <input
+            value={pw}
+            onChange={e => setPw(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
+            placeholder="Enter a password to test…"
+            type="text"
+            autoComplete="off"
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              paddingRight: preview ? 160 : 16,
+              background: 'var(--ink-3)',
+              border: '1px solid var(--ink-5)',
+              borderRadius: 8,
+              color: 'var(--fg-0)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 15,
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          {preview && (
+            <div style={{
+              position: 'absolute',
+              right: 12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: 11,
+              color: previewColor,
+              fontFamily: 'var(--font-mono)',
+              pointerEvents: 'none',
+            }}>
+              {preview.score} · {preview.rating}
             </div>
           )}
         </div>
+        <button
+          onClick={handleAnalyze}
+          disabled={loading || !pw}
+          style={{
+            padding: '14px 28px',
+            background: loading || !pw ? 'var(--ink-4)' : 'var(--accent-500)',
+            color: loading || !pw ? 'var(--fg-3)' : '#fff',
+            border: 'none',
+            borderRadius: 8,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            cursor: loading || !pw ? 'not-allowed' : 'pointer',
+            whiteSpace: 'nowrap',
+            transition: 'background 0.15s',
+          }}
+        >
+          {loading ? 'Analyzing…' : 'Analyze →'}
+        </button>
       </div>
+
+      {error && (
+        <div style={{ color: 'var(--accent-500)', fontFamily: 'var(--font-mono)', fontSize: 12, marginBottom: 16 }}>
+          ▲ {error}
+        </div>
+      )}
+
+      {/* Inline results */}
+      {result && (
+        <div style={{
+          borderTop: '1px solid var(--ink-4)',
+          paddingTop: 24,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: 24,
+        }}>
+          {/* Score */}
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+              Strength Score
+            </div>
+            <div style={{ fontSize: 52, fontWeight: 500, lineHeight: 1, color: resultColor, letterSpacing: '-0.04em' }}>
+              {result.strength_score}
+            </div>
+            <div style={{ height: 4, background: 'var(--ink-3)', borderRadius: 2, marginTop: 10, overflow: 'hidden' }}>
+              <div style={{ width: `${result.strength_score}%`, height: '100%', background: resultColor, transition: 'width 0.5s ease' }} />
+            </div>
+            <div style={{ marginTop: 8, fontSize: 12, color: resultColor, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.06em' }}>
+              {result.vulnerability_level?.toUpperCase()} RISK
+            </div>
+          </div>
+
+          {/* Crack time + breaches */}
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+              Crack Time
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 500, color: 'var(--fg-0)', marginBottom: 20 }}>
+              {result.crack_time_estimate}
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+              Data Breaches
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 500, color: result.breach_count > 0 ? 'var(--warn)' : 'var(--good)' }}>
+              {result.breach_count > 0 ? `Found in ${result.breach_count}` : 'Clean ✓'}
+            </div>
+          </div>
+
+          {/* Vulnerabilities */}
+          <div>
+            <div style={{ fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+              Issues Found
+            </div>
+            {(result.vulnerabilities || []).length === 0 ? (
+              <div style={{ fontSize: 12, color: 'var(--good)', fontFamily: 'var(--font-mono)' }}>✓ No issues detected</div>
+            ) : (
+              (result.vulnerabilities || []).slice(0, 3).map((v, i) => (
+                <div key={i} style={{ fontSize: 12, color: 'var(--accent-200)', fontFamily: 'var(--font-mono)', marginBottom: 5 }}>
+                  ▲ {v}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -91,25 +236,12 @@ const UserDashboardPage = () => {
   const username = user?.username || 'User';
   const displayName = username.charAt(0).toUpperCase() + username.slice(1);
 
-  const accounts = MOCK_ACCOUNTS;
-  const overall = Math.round(accounts.reduce((a, b) => a + b.score, 0) / accounts.length);
-  const reusedCount = accounts.filter(a => a.reused).length;
-
-  const overallColor = overall < 45
-    ? 'var(--accent-500)'
-    : overall < 70
-    ? 'var(--warn)'
-    : 'var(--good)';
-
   return (
     <>
-      {/* ── Header ── */}
+      {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div className="eyebrow" style={{ color: 'var(--accent-500)' }}>● Your security overview</div>
-        <h1
-          className="h-display"
-          style={{ fontSize: 38, marginTop: 4, color: 'var(--fg-0)' }}
-        >
+        <h1 className="h-display" style={{ fontSize: 38, marginTop: 4, color: 'var(--fg-0)' }}>
           Hi, {displayName}.
         </h1>
         <p style={{ color: 'var(--fg-2)', fontSize: 14, fontFamily: 'var(--font-mono)', marginTop: 4 }}>
@@ -117,182 +249,8 @@ const UserDashboardPage = () => {
         </p>
       </div>
 
-      {/* ── Quick check — CORE feature, top position ── */}
-      <div className="card" style={{ padding: 32, marginBottom: 28 }}>
-        <div className="eyebrow" style={{ marginBottom: 10 }}>Quick check</div>
-        <h2
-          className="h-display"
-          style={{ fontSize: 24, marginBottom: 20, color: 'var(--fg-0)' }}
-        >
-          Test any password against your profile.
-        </h2>
-        <UserQuickCheck username={username} />
-      </div>
-
-      {/* ── Top row: 3 metric cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
-
-        {/* Overall resilience — giant glow number */}
-        <div className="card" style={{ padding: 28, position: 'relative', overflow: 'hidden' }}>
-          <div style={{
-            position: 'absolute',
-            top: -50,
-            right: -50,
-            width: 200,
-            height: 200,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-          <div className="eyebrow" style={{ marginBottom: 12 }}>Overall resilience</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8 }}>
-            <div style={{
-              fontSize: 80,
-              fontWeight: 500,
-              letterSpacing: '-0.05em',
-              lineHeight: 1,
-              color: overallColor,
-              textShadow: `0 0 40px var(--accent-glow)`,
-            }}>
-              {overall}
-            </div>
-            <div style={{ color: 'var(--fg-2)', fontSize: 14 }}>/ 100</div>
-          </div>
-          <div style={{ height: 8, background: 'var(--ink-3)', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
-            <div style={{
-              width: `${overall}%`,
-              height: '100%',
-              background: overallColor,
-              transition: 'width 0.6s ease',
-            }} />
-          </div>
-          <div style={{ color: 'var(--fg-1)', fontSize: 13 }}>
-            You're <strong>moderate</strong>. Two accounts are dragging you down — fix those first.
-          </div>
-        </div>
-
-        {/* Reused passwords */}
-        <div className="card" style={{ padding: 24 }}>
-          <div className="eyebrow" style={{ marginBottom: 12 }}>Reused passwords</div>
-          <div style={{
-            fontSize: 56,
-            fontWeight: 500,
-            letterSpacing: '-0.04em',
-            lineHeight: 1,
-            color: reusedCount > 0 ? 'var(--accent-500)' : 'var(--good)',
-          }}>
-            {reusedCount}
-          </div>
-          <div style={{ color: 'var(--fg-2)', fontSize: 12, fontFamily: 'var(--font-mono)', marginTop: 6 }}>
-            across {accounts.length} accounts
-          </div>
-        </div>
-
-        {/* Found in leaks */}
-        <div className="card" style={{ padding: 24 }}>
-          <div className="eyebrow" style={{ marginBottom: 12 }}>Found in leaks</div>
-          <div style={{ fontSize: 56, fontWeight: 500, letterSpacing: '-0.04em', lineHeight: 1, color: 'var(--good)' }}>
-            0
-          </div>
-          <div style={{ color: 'var(--fg-2)', fontSize: 12, fontFamily: 'var(--font-mono)', marginTop: 6 }}>
-            last scan: 14 min ago
-          </div>
-        </div>
-      </div>
-
-      {/* ── Accounts table ── */}
-      <div className="card" style={{ overflow: 'hidden', marginBottom: 24 }}>
-        <div style={{
-          padding: '16px 24px',
-          borderBottom: '1px solid var(--ink-4)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <div className="eyebrow">Your accounts</div>
-          <button
-            className="btn btn-ghost"
-            style={{ padding: '6px 12px', fontSize: 12 }}
-          >
-            + Add account
-          </button>
-        </div>
-        <div>
-          {accounts.map((a, i) => {
-            const scoreColor = a.score < 45
-              ? 'var(--accent-500)'
-              : a.score < 70
-              ? 'var(--warn)'
-              : 'var(--good)';
-            return (
-              <div
-                key={i}
-                style={{
-                  padding: '16px 24px',
-                  borderBottom: i < accounts.length - 1 ? '1px solid var(--ink-4)' : 'none',
-                  display: 'grid',
-                  gridTemplateColumns: '2fr 2fr 1fr 1.5fr 1fr',
-                  alignItems: 'center',
-                  gap: 16,
-                }}
-              >
-                {/* Site + email */}
-                <div>
-                  <div style={{ fontWeight: 500, color: 'var(--fg-0)' }}>{a.site}</div>
-                  <div style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)' }}>{a.email}</div>
-                </div>
-
-                {/* Score bar */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ flex: 1, height: 4, background: 'var(--ink-3)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${a.score}%`,
-                      height: '100%',
-                      background: scoreColor,
-                      transition: 'width 0.4s ease',
-                    }} />
-                  </div>
-                  <span style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 12,
-                    color: scoreColor,
-                    width: 28,
-                    textAlign: 'right',
-                  }}>
-                    {a.score}
-                  </span>
-                </div>
-
-                {/* REUSED badge */}
-                <div>
-                  {a.reused && (
-                    <span
-                      className="badge"
-                      style={{
-                        background: 'color-mix(in oklab, var(--accent-500) 12%, transparent)',
-                        color: 'var(--accent-200)',
-                        borderColor: 'var(--accent-700)',
-                      }}
-                    >
-                      REUSED
-                    </span>
-                  )}
-                </div>
-
-                {/* Last changed */}
-                <div style={{ fontSize: 12, color: 'var(--fg-2)', fontFamily: 'var(--font-mono)' }}>
-                  last changed {a.last}
-                </div>
-
-                {/* Action */}
-                <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }}>
-                  Improve →
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      {/* Primary feature — password resilience test */}
+      <UserPasswordAnalyzer username={username} />
     </>
   );
 };
