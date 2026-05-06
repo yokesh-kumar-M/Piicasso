@@ -56,9 +56,14 @@ const Footer = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-slate-900 border border-slate-800 sm:rounded-l-lg rounded-lg sm:rounded-r-none text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-4 py-3 bg-slate-900 border border-slate-800 sm:rounded-l-lg rounded-lg sm:rounded-r-none text-sm text-white placeholder-slate-500 focus:outline-none"
                 />
-                <button className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white sm:rounded-r-lg rounded-lg sm:rounded-l-none transition-colors">
+                <button
+                  className="px-4 py-3 text-white sm:rounded-r-lg rounded-lg sm:rounded-l-none transition-colors"
+                  style={{ background: 'var(--accent-500)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-700)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent-500)'; }}
+                >
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
@@ -66,13 +71,21 @@ const Footer = () => {
 
             {/* Social Links */}
             <div className="flex items-center gap-3">
-              <a href="#" className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+              <a href="#"
+                className="w-11 h-11 rounded-lg bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white transition-all"
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-500)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = ''; }}
+              >
                 <Twitter className="w-5 h-5" />
               </a>
               <a href="#" className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
                 <Github className="w-5 h-5" />
               </a>
-              <a href="#" className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-blue-700 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+              <a href="#"
+                className="w-11 h-11 rounded-lg bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white transition-all"
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-700)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = ''; }}
+              >
                 <Linkedin className="w-5 h-5" />
               </a>
             </div>
@@ -153,7 +166,7 @@ const Footer = () => {
               </div>
               
               <div className="flex items-center gap-2 text-sm">
-                <Shield className="w-4 h-4 text-blue-500" />
+                <Shield className="w-4 h-4" style={{ color: 'var(--accent-500)' }} />
                 <span className="text-slate-500">SOC2 Certified</span>
               </div>
             </div>
