@@ -7,6 +7,7 @@ from .models import UserActivity
 from .serializers import UserActivitySerializer
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.core.cache import cache
 from datetime import timedelta
 import logging
 
@@ -28,6 +29,9 @@ class HelpBeaconView(APIView):
         message = request.data.get('message', '')
         if message == 'HELP':
             logger.debug(f"[BEACON] HELP signal received from {request.user.username}")
+            active = cache.get('globe:active', {})
+            active[str(request.user.id)] = timezone.now().isoformat()
+            cache.set('globe:active', active, timeout=3600)
         return Response({'status': 'received', 'echo': message}, status=status.HTTP_200_OK)
 
 
