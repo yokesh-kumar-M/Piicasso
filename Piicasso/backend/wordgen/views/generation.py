@@ -303,11 +303,7 @@ class PiiSubmitView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not os.environ.get("GEMINI_API_KEY"):
-            return Response(
-                {"error": "Generation service not configured."},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+        used_fallback = not bool(os.environ.get("GEMINI_API_KEY"))
 
         # Read max_wordlist_size from system settings if available (5.4 fix)
         from operations.models import SystemSetting
@@ -420,7 +416,7 @@ class PiiSubmitView(APIView):
                 f"Generation complete user={request.user.username} count={len(scored_list)}"
             )
             return Response(
-                {"wordlist": scored_list, "id": record.id, "status": "success"},
+                {"wordlist": scored_list, "id": record.id, "status": "success", "fallback": used_fallback},
                 status=status.HTTP_201_CREATED,
             )
 

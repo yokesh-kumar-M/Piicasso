@@ -138,7 +138,23 @@ class SuperAdminView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=404)
 
-        if action == "block":
+        if action == "promote_admin":
+            if target_user == request.user:
+                return Response({"error": "Cannot modify your own role."}, status=400)
+            target_user.is_superuser = True
+            target_user.is_staff = True
+            target_user.save()
+            return Response({"message": f"{target_user.username} promoted to administrator."})
+        elif action == "demote_admin":
+            if target_user == request.user:
+                return Response({"error": "Cannot demote yourself."}, status=400)
+            if User.objects.filter(is_superuser=True).count() <= 1:
+                return Response({"error": "Cannot demote the last administrator."}, status=400)
+            target_user.is_superuser = False
+            target_user.is_staff = False
+            target_user.save()
+            return Response({"message": f"{target_user.username} demoted to standard user."})
+        elif action == "block":
             target_user.is_active = False
             target_user.save()
             return Response(

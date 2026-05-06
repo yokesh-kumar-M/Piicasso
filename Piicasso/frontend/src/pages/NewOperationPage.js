@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
+import UnderDevRibbon from '../components/UnderDevRibbon.jsx';
 import KaliTerminal from '../components/KaliTerminal';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
@@ -29,7 +30,8 @@ const NewOperationPage = () => {
     return (
         <DesignAppShell activeKey="operation">
 
-            <div className="pt-20 md:pt-28 px-4 md:px-12 pb-20 max-w-7xl mx-auto w-full flex-1">
+            <div className="pt-20 md:pt-28 px-4 md:px-12 pb-20 max-w-7xl mx-auto w-full flex-1" style={{ position: 'relative', overflow: 'hidden' }}>
+                <UnderDevRibbon />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full responsive-dashboard-height">
 
                     {/* LEFT: Configuration Panel */}

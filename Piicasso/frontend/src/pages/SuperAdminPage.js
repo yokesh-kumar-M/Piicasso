@@ -133,6 +133,19 @@ const SuperAdminPage = () => {
         }
     };
 
+    const toggleAdminRole = async (u) => {
+        const action = u.is_superuser ? 'demote_admin' : 'promote_admin';
+        const label = u.is_superuser ? 'demote' : 'promote';
+        if (!window.confirm(`${label.charAt(0).toUpperCase() + label.slice(1)} ${u.username}?`)) return;
+        try {
+            const res = await axios.post('super-admin/', { action, user_id: u.id });
+            alert(res.data.message);
+            fetchAdminData();
+        } catch (err) {
+            alert(err.response?.data?.error || 'Action failed.');
+        }
+    };
+
     const handleChangePasswordSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -209,7 +222,8 @@ const SuperAdminPage = () => {
                             <ShieldAlert className="w-5 h-5" />
                             System Admin
                         </h2>
-                        <div className={`text-[10px] ${theme.textMuted} mt-2 uppercase tracking-widest font-mono`}>Administrative Access</div>
+                        <div className={`text-[11px] text-white font-semibold mt-2`}>{user?.username}</div>
+                        <div className={`text-[10px] ${theme.textMuted} mt-0.5 font-mono`}>{user?.email}</div>
                     </div>
 
                     <div className="flex flex-col gap-2 mt-6">
@@ -311,27 +325,36 @@ const SuperAdminPage = () => {
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
-                                                        {!u.is_superuser ? (
-                                                            <div className="flex justify-end gap-2 items-center">
-                                                                <button onClick={() => viewUserGenerations(u.id, u.username)} className={`text-white/40 hover:text-white p-2 ${theme.hoverBg} rounded-full transition-all`} title={`View Generations (${u.generation_count || 0})`}>
-                                                                    <Eye className="w-4 h-4" />
+                                                        <div className="flex justify-end gap-2 items-center">
+                                                            {!u.is_superuser && (
+                                                                <>
+                                                                    <button onClick={() => viewUserGenerations(u.id, u.username)} className={`text-white/40 hover:text-white p-2 ${theme.hoverBg} rounded-full transition-all`} title={`View Generations (${u.generation_count || 0})`}>
+                                                                        <Eye className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button onClick={() => { setSelectedUser(u); setShowPasswordModal(true); }} className={`text-white/40 hover:text-amber-400 p-2 hover:bg-amber-400/10 rounded-full transition-all`} title="Change Password">
+                                                                        <KeyRound className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button onClick={() => toggleUserBlock(u.id, u.username, u.is_active)} className={`p-2 rounded-full transition-all ${u.is_active ? 'text-white/40 hover:text-orange-500 hover:bg-orange-500/10' : 'text-white/40 hover:text-green-400 hover:bg-green-400/10'}`} title={u.is_active ? "Block" : "Unblock"}>
+                                                                        {u.is_active ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                                                                    </button>
+                                                                    <button onClick={() => window.location.href = `/inbox?recipient=${u.id}`} className={`text-white/40 hover:text-white p-2 ${theme.hoverBg} rounded-full transition-all`} title="Message">
+                                                                        <Mail className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button onClick={() => deleteUser(u.id, u.username)} className={`text-white/40 hover:text-red-500 p-2 hover:bg-red-500/10 rounded-full transition-all`} title="Delete">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {u.id !== user?.id && (
+                                                                <button
+                                                                    onClick={() => toggleAdminRole(u)}
+                                                                    className={`p-2 rounded-full transition-all text-xs font-bold px-3 border ${u.is_superuser ? 'text-yellow-400 border-yellow-400/30 hover:bg-yellow-400/10' : 'text-green-400 border-green-400/30 hover:bg-green-400/10'}`}
+                                                                    title={u.is_superuser ? 'Demote to user' : 'Promote to admin'}
+                                                                >
+                                                                    {u.is_superuser ? 'Demote' : 'Promote'}
                                                                 </button>
-                                                                <button onClick={() => { setSelectedUser(u); setShowPasswordModal(true); }} className={`text-white/40 hover:text-amber-400 p-2 hover:bg-amber-400/10 rounded-full transition-all`} title="Change Password">
-                                                                    <KeyRound className="w-4 h-4" />
-                                                                </button>
-                                                                <button onClick={() => toggleUserBlock(u.id, u.username, u.is_active)} className={`p-2 rounded-full transition-all ${u.is_active ? 'text-white/40 hover:text-orange-500 hover:bg-orange-500/10' : 'text-white/40 hover:text-green-400 hover:bg-green-400/10'}`} title={u.is_active ? "Block" : "Unblock"}>
-                                                                    {u.is_active ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                                                                </button>
-                                                                <button onClick={() => window.location.href = `/inbox?recipient=${u.id}`} className={`text-white/40 hover:text-white p-2 ${theme.hoverBg} rounded-full transition-all`} title="Message">
-                                                                    <Mail className="w-4 h-4" />
-                                                                </button>
-                                                                <button onClick={() => deleteUser(u.id, u.username)} className={`text-white/40 hover:text-red-500 p-2 hover:bg-red-500/10 rounded-full transition-all`} title="Delete">
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <span className={`text-[10px] uppercase font-mono tracking-widest ${theme.textMuted} opacity-50 block p-2`}>SYSADMIN</span>
-                                                        )}
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}

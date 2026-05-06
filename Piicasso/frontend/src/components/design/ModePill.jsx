@@ -18,8 +18,8 @@ export default function ModePill({ mode, onChange, compact = false }) {
       }}
     >
       {[
-        ['security', 'Security', 'var(--sec-500)'],
         ['user',     'User',     'var(--usr-500)'],
+        ['security', 'Security', 'var(--sec-500)'],
       ].map(([v, label, color]) => {
         const active = mode === v;
         return (

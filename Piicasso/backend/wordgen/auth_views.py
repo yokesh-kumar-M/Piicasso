@@ -1,5 +1,6 @@
 import logging
 import hmac
+import requests as _requests
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -23,6 +24,14 @@ logger = logging.getLogger("wordgen")
 
 # Google OAuth Client ID — centrally configured in settings.py with production fallback
 GOOGLE_CLIENT_ID = getattr(settings, "GOOGLE_CLIENT_ID", "")
+
+# Module-level session — reused across requests so Google JWK certs are cached
+# via HTTP cache-control headers, saving 300–800ms per OAuth login.
+try:
+    from google.auth.transport import requests as _google_requests
+    _google_session = _google_requests.Request(session=_requests.Session())
+except Exception:
+    _google_session = None
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -108,10 +117,13 @@ class GoogleLoginView(APIView):
             from google.oauth2 import id_token
             from google.auth.transport import requests as google_requests
 
+            # Use module-level cached session; fall back to new Request() if unavailable
+            _session = _google_session if _google_session is not None else google_requests.Request()
+
             # Verify Google OAuth2 ID token (frontend uses @react-oauth/google)
             payload = id_token.verify_oauth2_token(
                 token,
-                google_requests.Request(),
+                _session,
                 audience=GOOGLE_CLIENT_ID if GOOGLE_CLIENT_ID else None,
                 clock_skew_in_seconds=60,
             )

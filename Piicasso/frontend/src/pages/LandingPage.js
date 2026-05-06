@@ -784,13 +784,13 @@ export default function LandingPage() {
       <MarketingNav />
       <Hero />
       <Reveal variant="up"><LogoWall /></Reveal>
-      <Reveal variant="scale"><SplitModes /></Reveal>
-      <Reveal variant="up"><FeatureGrid /></Reveal>
+      <div id="solutions"><Reveal variant="scale"><SplitModes /></Reveal></div>
+      <div id="features"><Reveal variant="up"><FeatureGrid /></Reveal></div>
       <Reveal variant="left"><LiveDemo /></Reveal>
       <Reveal variant="right"><ApiSnippet /></Reveal>
       <Reveal variant="up"><Stats /></Reveal>
-      <Reveal variant="up"><Testimonials /></Reveal>
-      <Reveal variant="scale"><CtaBlock /></Reveal>
+      <div id="blog"><Reveal variant="up"><Testimonials /></Reveal></div>
+      <div id="pricing"><Reveal variant="scale"><CtaBlock /></Reveal></div>
       <Footer />
     </div>
   );

@@ -113,6 +113,7 @@ const TargetForm = ({ onFormUpdate }) => {
             if (res.status === 201) {
                 sessionStorage.setItem('generatedWordlist', JSON.stringify(res.data.wordlist));
                 sessionStorage.setItem('historyId', res.data.id);
+                sessionStorage.setItem('generationFallback', res.data.fallback ? 'true' : 'false');
                 navigate('/result');
             }
         } catch (err) {

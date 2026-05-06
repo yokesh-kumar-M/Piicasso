@@ -49,6 +49,7 @@ const UserModeLayout = React.lazy(() => import('./pages/UserModeLayout'));
 const UserDashboardPage = React.lazy(() => import('./pages/UserDashboardPage'));
 const SecurityDashboardPage = React.lazy(() => import('./pages/SecurityDashboardPage'));
 const AnalysisHistoryPage = React.lazy(() => import('./pages/AnalysisHistoryPage'));
+const LearnPage = React.lazy(() => import('./pages/LearnPage'));
 const FinancialRiskPage = React.lazy(() => import('./pages/FinancialRiskPage'));
 const ApiDocsPage = React.lazy(() => import('./pages/ApiDocsPage'));
 
@@ -89,6 +90,7 @@ function AppContent() {
                   }>
                     <Route path="dashboard" element={<UserDashboardPage />} />
                     <Route path="history" element={<AnalysisHistoryPage />} />
+                    <Route path="learn" element={<LearnPage />} />
                   </Route>
 
                   <Route path="/security/dashboard" element={

@@ -41,7 +41,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
     ['overview',  'Overview',     '◈', '/user/dashboard'],
     ['passwords', 'My Passwords', '≡', '/user/history'],
     ['leaks',     'Leak Monitor', '◉', '/darkweb'],
-    ['learn',     'Learn',        '☉', '/api'],
+    ['learn',     'Learn',        '☉', '/user/learn'],
   ];
 
   const items = isSecurityMode ? securityItems : userItems;
