@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import AuthShell from '../components/design/auth/AuthShell';
-import AttackVizSide from '../components/design/auth/AttackVizSide';
 import Field from '../components/design/auth/Field';
 
 const ForgotPasswordPage = () => {
@@ -70,14 +69,7 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <AuthShell
-      side={
-        <AttackVizSide
-          headline="Even password resets are an attack surface."
-          sub="We rate-limit, we challenge, we never email codes that resolve to PII tokens. The full audit trail is yours."
-        />
-      }
-    >
+    <AuthShell>
       {/* ── Stage: email ── */}
       {stage === 'email' && (
         <>

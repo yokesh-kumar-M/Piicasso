@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { ModeContext } from '../context/ModeContext';
 import AuthShell from '../components/design/auth/AuthShell';
-import AttackVizSide from '../components/design/auth/AttackVizSide';
 import Field from '../components/design/auth/Field';
 import SsoButtons from '../components/design/auth/SsoButtons';
 import Divider from '../components/design/auth/Divider';
@@ -103,14 +102,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <AuthShell
-      side={
-        <AttackVizSide
-          headline="The strongest passwords aren't created. They're tested."
-          sub="During sign-up, we check your password against the wordlist we'd build from your own profile. Live. While you type."
-        />
-      }
-    >
+    <AuthShell>
       {/* Progress bars */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 32 }}>
         {[1, 2, 3].map(s => (

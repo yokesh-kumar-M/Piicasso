@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import AuthShell from '../components/design/auth/AuthShell';
-import AttackVizSide from '../components/design/auth/AttackVizSide';
 import Field from '../components/design/auth/Field';
 import SsoButtons from '../components/design/auth/SsoButtons';
 import Divider from '../components/design/auth/Divider';
@@ -42,14 +41,7 @@ const LoginPage = () => {
   const handleSsoError = (msg) => setErr(msg || 'Google sign-in failed.');
 
   return (
-    <AuthShell
-      side={
-        <AttackVizSide
-          headline="Welcome back. The wordlist remembers."
-          sub="Resume your missions, review your fleet's resilience, and keep the engine warm."
-        />
-      }
-    >
+    <AuthShell>
       <h1 className="h-display" style={{ fontSize: 36, marginBottom: 8 }}>Sign in</h1>
       <p style={{ color: 'var(--fg-2)', marginBottom: 32, fontSize: 14 }}>
         New to PIIcasso?{' '}
