@@ -35,7 +35,7 @@ jobs:
       
       - name: Run backend tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
           DJANGO_SECRET_KEY: test-secret-key-not-for-production
           ENV: test
           GOOGLE_CLIENT_ID: test-google-client-id
