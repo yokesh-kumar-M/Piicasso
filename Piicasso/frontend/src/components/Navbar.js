@@ -125,7 +125,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className={`fixed top-0 w-full z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${themeConfig.navBg}`}>
+        <nav className={`fixed top-0 w-full z-50 transition-all duration-700 ease-spring ${themeConfig.navBg}`}>
             <div className="px-4 sm:px-5 md:px-10 lg:px-16 py-3 sm:py-4 flex items-center justify-between mx-auto max-w-screen-2xl">
 
                 {/* Left Side: Logo & Links */}

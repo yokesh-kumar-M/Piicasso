@@ -27,6 +27,11 @@ const [inboxOpen, setInboxOpen] = useState(false);
     axios.get('operations/notifications/').then(r => setNotifications(r.data.notifications || []));
   }, []);
 
+  const handleMarkAllRead = () => {
+    axios.patch('operations/notifications/', { mark_all_read: true }).catch(() => {});
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+  };
+
   const isSecurityMode = mode === 'security';
 
   const securityItems = [
@@ -174,7 +179,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
             background: 'var(--ink-1)',
           }}>
             <span className="eyebrow">Inbox</span>
-            <button style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', background: 'none', border: 0, cursor: 'pointer' }}>
+            <button onClick={handleMarkAllRead} style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', background: 'none', border: 0, cursor: 'pointer' }}>
               MARK READ
             </button>
           </div>

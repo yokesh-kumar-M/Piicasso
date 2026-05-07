@@ -146,7 +146,7 @@ const InboxPage = () => {
         setError('');
         try {
             await axios.post('operations/messages/', {
-                recipient_id: isSuperuser ? selectedUser.id : null,
+                recipient: isSuperuser ? selectedUser.id : null,
                 content: content,
             });
             setNewMessage('');

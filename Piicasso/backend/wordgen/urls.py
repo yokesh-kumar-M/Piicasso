@@ -1,7 +1,6 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
 from .views.generation import (
-    RegisterView, PiiSubmitView, HistoryView, delete_history_entry,
+    PiiSubmitView, HistoryView, delete_history_entry,
     download_wordlist, export_history_csv, download_report_pdf,
     user_profile, user_stats, generate_download_token,
     download_file_with_token, get_cached_wordlist,
@@ -10,20 +9,11 @@ from .views.admin import (
     admin_message_view, super_admin_view, admin_users_list,
 )
 from .views.system import SystemLogView, SimulatedTerminalView, health_check
-from .auth_views import (
-    MyTokenObtainPairView, GoogleLoginView, RequestPasswordResetView, VerifyResetOTPView
-)
-
 urlpatterns = [
-    # Auth Endpoints
-    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
-    path('auth/password/reset/', RequestPasswordResetView.as_view(), name='password_reset_request'),
-    path('auth/password/reset/verify/', VerifyResetOTPView.as_view(), name='password_reset_verify'),
+    # Auth Endpoints are routed via core/urls.py
+
 
     path('health/', health_check),
-    path('register/', RegisterView.as_view()),
     path('submit/', PiiSubmitView.as_view()),
     path('cached/<str:cache_key>/', get_cached_wordlist),
     path('history/', HistoryView.as_view()),

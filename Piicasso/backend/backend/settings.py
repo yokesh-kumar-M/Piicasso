@@ -290,8 +290,8 @@ SIMPLE_JWT = {
 }
 
 # ─── CORS ────────────────────────────────────────────────────────────────────
-# Production origins are always included even if the env var is not set.
-_default_cors = "http://localhost:3000,http://127.0.0.1:3000,https://pii-casso.vercel.app,https://piicasso-new.vercel.app"
+# Dev default: localhost only. Production MUST set CORS_ALLOWED_ORIGINS env var.
+_default_cors = "http://localhost:3000,http://127.0.0.1:3000"
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_cors).split(",")

@@ -23,7 +23,7 @@ const ModeManager = () => {
     // /darkweb and /inbox are intentionally omitted — they serve both modes.
     const securityOnlyPages = [
       '/security/dashboard', '/operation', '/dashboard',
-      '/teams', '/workspace', '/system-admin',
+      '/teams', '/workspace', '/system-admin', '/result',
     ];
 
     const isAuthPage = ['/login', '/register', '/forgot-password']

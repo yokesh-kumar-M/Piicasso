@@ -33,6 +33,7 @@ google-generativeai==0.8.3
 
 # HTTP clients
 requests==2.32.3
+urllib3>=2.2.0,<3
 
 # PDF / Report generation
 reportlab==4.2.5

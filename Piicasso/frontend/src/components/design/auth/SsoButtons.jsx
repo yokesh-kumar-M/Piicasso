@@ -25,6 +25,7 @@ export default function SsoButtons({ onError }) {
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{ position: 'relative', height: 46 }}>
+        {/* Visual button layer — pointer-events disabled so clicks pass through */}
         <div style={{
           position: 'absolute',
           inset: 0,
@@ -53,11 +54,11 @@ export default function SsoButtons({ onError }) {
             Continue with Google
           </span>
         </div>
+        {/* Google iframe — no overflow:hidden so the full iframe area is clickable */}
         <div style={{
           position: 'absolute',
           inset: 0,
           opacity: 0.01,
-          overflow: 'hidden',
           borderRadius: 10,
         }}>
           <GoogleLogin

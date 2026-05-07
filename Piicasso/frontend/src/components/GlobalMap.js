@@ -28,15 +28,18 @@ const GlobalMap = () => {
             }
         };
 
-        window.addEventListener('resize', updateSize);
-        setTimeout(updateSize, 100);
+        const observer = new ResizeObserver(updateSize);
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+        updateSize();
 
         fetch('https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
             .then(res => res.json())
             .then(setCountries)
             .catch(err => console.warn('Could not load country borders:', err));
 
-        return () => window.removeEventListener('resize', updateSize);
+        return () => observer.disconnect();
     }, []);
 
     useEffect(() => {

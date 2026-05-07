@@ -159,7 +159,7 @@ const ResultPage = () => {
         <p style={{ color:'var(--fg-3)', fontSize:13, textAlign:'center', maxWidth:320 }}>
           Submit target data from the dashboard to generate a wordlist.
         </p>
-        <button onClick={() => navigate('/dashboard')} style={{
+        <button onClick={() => navigate('/security/dashboard')} style={{
           padding:'12px 28px', borderRadius:6, fontFamily:'var(--font-mono)', fontSize:13,
           backgroundColor:'var(--accent-500)', color:'#fff', border:'none', cursor:'pointer',
         }}>
@@ -182,7 +182,7 @@ const ResultPage = () => {
                       letterSpacing:'0.05em', color:'var(--fg-0)' }}>
           GENERATION <span style={{ color:'var(--accent-500)' }}>COMPLETE</span>
         </div>
-        <button onClick={() => navigate('/dashboard')} style={{
+        <button onClick={() => navigate('/security/dashboard')} style={{
           fontSize:12, fontFamily:'var(--font-mono)', color:'var(--fg-2)',
           background:'none', border:'none', cursor:'pointer' }}
           onMouseEnter={e => e.target.style.color='var(--fg-0)'}

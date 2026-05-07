@@ -24,10 +24,14 @@ const useHelpBeacon = () => {
     if (!isAuthenticated || !user?.is_superuser) return;
 
     const sendBeacon = () => {
-      axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => { });
+      // Only send if the tab is currently visible
+      if (document.visibilityState === 'visible') {
+        axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => { });
+      }
     };
     sendBeacon();
-    const interval = setInterval(sendBeacon, 30000);
+    // Throttle to 5 minutes to prevent backend spam
+    const interval = setInterval(sendBeacon, 300000);
     return () => clearInterval(interval);
   }, [isAuthenticated, user]);
 };
@@ -139,13 +143,11 @@ function AppContent() {
                     </PrivateRoute>
                   } />
 
-                  <Route element={<Layout />}>
-                    <Route path="/result" element={
-                      <PrivateRoute>
-                        <ResultPage />
-                      </PrivateRoute>
-                    } />
-                  </Route>
+                  <Route path="/result" element={
+                    <PrivateRoute>
+                      <ResultPage />
+                    </PrivateRoute>
+                  } />
 
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
