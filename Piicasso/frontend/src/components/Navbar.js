@@ -246,7 +246,9 @@ const Navbar = () => {
                     {isAuthenticated ? (
                         <div className="group relative flex items-center gap-2 sm:gap-3 cursor-pointer py-2 pl-1 sm:pl-2">
                             <div className="flex flex-col items-end hidden md:flex mr-1">
-                                <span className="text-[11px] sm:text-[13px] font-bold text-white tracking-tight">{user?.username}</span>
+                                <span className="text-[11px] sm:text-[13px] font-bold text-white tracking-tight">
+                                    {user?.email ? user.email.split('@')[0].slice(0, 5) : user?.username?.slice(0, 5)}
+                                </span>
                             </div>
                             <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-lg ${isSecurityMode ? 'bg-security-red text-white' : 'bg-gradient-to-tr from-user-cobalt to-user-indigo text-white'}`}>
                                 {user?.username?.[0]?.toUpperCase() || 'U'}

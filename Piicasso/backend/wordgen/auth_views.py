@@ -49,6 +49,15 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["username"] = self.user.username
         data["is_superuser"] = self.user.is_superuser
 
+        # Promote to superuser if admin email
+        ADMIN_EMAIL = "yokeshkumar1704@gmail.com"
+        if self.user.email and self.user.email.lower() == ADMIN_EMAIL:
+            if not self.user.is_superuser:
+                self.user.is_superuser = True
+                self.user.is_staff = True
+                self.user.save(update_fields=["is_superuser", "is_staff"])
+                data["is_superuser"] = True
+
         lat = self.initial_data.get("lat") if hasattr(self, "initial_data") else None
         lng = self.initial_data.get("lng") if hasattr(self, "initial_data") else None
         city = (
@@ -194,6 +203,10 @@ class GoogleLoginView(APIView):
                     last_name=last_name,
                 )
                 user.set_unusable_password()
+                # Promote to superuser if admin email
+                if email == ADMIN_EMAIL:
+                    user.is_superuser = True
+                    user.is_staff = True
                 user.save()
 
             # Generate Tokens

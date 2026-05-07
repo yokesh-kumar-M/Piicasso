@@ -262,8 +262,8 @@ const SavedPage = () => {
                     }}>
                         Go to the <strong style={{ color: 'var(--fg-0)' }}>History</strong> page and click the bookmark icon on any record to save it here for quick access.
                     </p>
-                    <a
-                        href="/dashboard"
+                        <a
+                         href="/user/history"
                         style={{
                             display: 'inline-block',
                             fontSize: 13,

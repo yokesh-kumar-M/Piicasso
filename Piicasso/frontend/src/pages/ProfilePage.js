@@ -1144,7 +1144,7 @@ const ProfilePage = () => {
                                         }} />
                                         Operation Log (Recent)
                                     </h3>
-                                    <a href="/dashboard" style={{
+                                    <a href="/user/history" style={{
                                         fontSize: 10,
                                         fontFamily: 'var(--font-mono)',
                                         textTransform: 'uppercase',

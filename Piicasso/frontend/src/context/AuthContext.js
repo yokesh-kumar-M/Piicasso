@@ -84,12 +84,16 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
+      useEffect(() => {
     if (token) {
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       const decoded = parseJwt(token);
       if (decoded) {
         setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
+        // Fetch profile to get email
+        axiosInstance.get('profile/').then(res => {
+          setUser(prev => ({ ...prev, email: res.data.email }));
+        }).catch(() => {});
       }
       setLoading(false);
     } else {

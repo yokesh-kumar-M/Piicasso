@@ -37,6 +37,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
   const securityItems = [
     ['mission',   'Missions',     '◈', '/security/dashboard'],
+    ['history',   'History',      '≡', '/security/history'],
     ['wordlists', 'Wordlists',    '≡', '/workspace'],
     ['intel',     'Threat Intel', '◉', '/darkweb'],
     ['targets',   'Targets',      '◎', '/operation'],

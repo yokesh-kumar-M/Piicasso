@@ -132,11 +132,16 @@ function AppContent() {
                       <SuperAdminPage />
                     </PrivateRoute>
                   } />
-                  <Route path="/inbox" element={
-                    <PrivateRoute>
-                      <InboxPage />
-                    </PrivateRoute>
-                  } />
+                   <Route path="/security/history" element={
+                     <PrivateRoute>
+                       <AnalysisHistoryPage />
+                     </PrivateRoute>
+                   } />
+                   <Route path="/inbox" element={
+                     <PrivateRoute>
+                       <InboxPage />
+                     </PrivateRoute>
+                   } />
                   <Route path="/risk" element={
                     <PrivateRoute>
                       <FinancialRiskPage />

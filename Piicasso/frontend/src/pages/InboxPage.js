@@ -101,7 +101,7 @@ const InboxPage = () => {
 
     const fetchConversations = async () => {
         try {
-            const { data } = await axios.get('operations/messages/');
+            const { data } = await axios.get('messages/');
             setConversations(Array.isArray(data) ? data : []);
         } catch (e) {
             console.error('Failed to load conversations', e);
