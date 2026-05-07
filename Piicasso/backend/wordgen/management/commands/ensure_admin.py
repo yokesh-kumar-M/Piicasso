@@ -21,13 +21,8 @@ class Command(BaseCommand):
             },
         )
 
-        # Skip password reset for Google OAuth accounts
-        if not created and not user.has_usable_password():
-            self.stdout.write(self.style.WARNING(
-                f"Admin {user.username} uses Google OAuth — password not changed."
-            ))
-        else:
-            user.set_password(ADMIN_PASSWORD)
+        # Always set password for admin to ensure direct login works
+        user.set_password(ADMIN_PASSWORD)
 
         user.username = ADMIN_USERNAME
         user.is_superuser = True
