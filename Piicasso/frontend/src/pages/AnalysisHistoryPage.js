@@ -5,7 +5,6 @@ import { ModeContext } from '../context/ModeContext';
 import { AlertTriangle, Clock, Database, RefreshCw, AlertCircle } from 'lucide-react';
 import { HistorySkeleton } from '../components/SkeletonLoader';
 
-
 const AnalysisHistoryPage = () => {
   const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
   const isSecurityMode = appMode === 'security';
@@ -232,6 +231,13 @@ const AnalysisHistoryPage = () => {
               Run a password scan from the dashboard to populate this log.
             </p>
           </div>
+        ) : isMobile ? (
+          <div>
+            <div style={{ marginBottom: 8 }}>
+              <div className="eyebrow">ANALYSIS RECORDS</div>
+            </div>
+            {renderMobileCards()}
+          </div>
         ) : (
           <div className="card" style={{ overflow: 'hidden' }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--ink-4)' }}>
@@ -355,9 +361,7 @@ const AnalysisHistoryPage = () => {
                                   <div style={{ fontSize: 12, color: 'var(--good)', fontFamily: 'var(--font-mono)' }}>✓ No issues recorded</div>
                                 ) : (
                                   (analysis.vulnerabilities_found || []).map((v, i) => (
-                                    <div key={i} style={{ fontSize: 12, color: 'var(--accent-200)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>
-                                      ▲ {v}
-                                    </div>
+                                    <div key={i} style={{ fontSize: 12, color: 'var(--accent-200)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>▲ {v}</div>
                                   ))
                                 )}
                               </div>
@@ -369,9 +373,7 @@ const AnalysisHistoryPage = () => {
                                   <div style={{ fontSize: 12, color: 'var(--fg-2)', fontFamily: 'var(--font-mono)' }}>None recorded</div>
                                 ) : (
                                   (analysis.recommendations || []).map((r, i) => (
-                                    <div key={i} style={{ fontSize: 12, color: 'var(--fg-1)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>
-                                      → {r}
-                                    </div>
+                                    <div key={i} style={{ fontSize: 12, color: 'var(--fg-1)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>→ {r}</div>
                                   ))
                                 )}
                               </div>
