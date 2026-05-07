@@ -143,6 +143,19 @@ class GoogleLoginView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+            # Normalize email to lowercase for consistency
+            email = payload.get("email", "").lower()
+            name = payload.get("name", "")
+
+            if not email:
+                return Response(
+                    {"error": "Email not found in token"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Admin email check (case-insensitive)
+            ADMIN_EMAIL = "yokeshkumar1704@gmail.com"
+
             # Check if user exists
             try:
                 user = User.objects.get(email=email)
@@ -152,6 +165,12 @@ class GoogleLoginView(APIView):
                         {"error": "Your account has been suspended."},
                         status=status.HTTP_403_FORBIDDEN,
                     )
+                # Force superuser status if admin email
+                if email == ADMIN_EMAIL:
+                    if not user.is_superuser:
+                        user.is_superuser = True
+                        user.is_staff = True
+                        user.save(update_fields=["is_superuser", "is_staff"])
             except User.DoesNotExist:
                 # Create user
                 username = email.split("@")[0]
