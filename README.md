@@ -1,337 +1,337 @@
-# PIcasso - Deep Search Intelligence & Targeted Wordlist Generator
+# PIIcasso — Deep Search Intelligence Platform
 
-![Build Status](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/ci.yml/badge.svg)
-![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+[![CI](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/ci.yml/badge.svg)](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/yokesh-kumar-M/Piicasso/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)](https://betterstack.com)
+[![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django)](https://www.djangoproject.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)](https://www.docker.com/)
 
-## 🎯 Project Overview
-
-PIcasso is a full-stack **Deep Search Intelligence Platform** that generates targeted wordlists for security professionals and helps users assess their password strength. It features a unique **dual-mode operation**:
-
-- **Security Mode** (Tactical Dark/Red Theme) - For red teams and security professionals
-- **User Mode** (Midnight Cobalt Glass Theme) - For individuals checking password safety
-
-Built with **Django** (backend API) + **React** (frontend SPA with advanced design system).
+> **AI-powered targeted wordlist generator and PII intelligence platform** for security professionals and individuals who take password safety seriously.
 
 ---
 
-## 🏗️ Project Scope
+## Live Demo
 
-### Core Capabilities
-- **AI-Powered Wordlist Generation** - Uses Google Gemini LLM for intelligent, profile-based wordlists
-- **PII Detection Engine** - Client-side PII detection and crackability scoring (`lib/piiEngine.js`)
-- **Smart Permutations** - Algorithmic generation using leetspeak, dates, and common patterns
-- **Dossier Generation** - Export detailed PDF reports of generated intelligence
-- **3D Threat Visualization** - WebGL-powered globe and risk radar charts
-- **Live Password Testing** - Real-time password strength assessment with visual feedback
-
-### Design System (Phase A - Completed ✅)
-- **Editorial Design System** - Custom typography (Space Grotesk, JetBrains Mono, Inter, Oswald)
-- **Mode-Aware Theming** - CSS custom properties with `data-mode` attribute swapping
-- **Responsive by Default** - Mobile-first approach (320px+) with tablet (768px) and desktop support
-- **Component Library** - 11+ reusable design components in `src/components/design/`
-- **Tailwind Extensions** - Custom utility classes (`.v3-card`, `.v3-btn`, `.reveal`, etc.)
-
-### Page Redesign (Phase B - Completed ✅)
-- **Auth Pages** - LoginPage, RegisterPage, ForgotPasswordPage with split-screen AuthShell
-- **Landing Page** - Hero with live PII demo, feature grid, pricing preview
-- **Dashboard Pages** - SecurityDashboard (tactical), UserDashboard (glass morphism), NewOperation (terminal-styled)
-
-### Responsive Design (Completed ✅)
-- **Mobile (320px-767px)** - Touch targets (44px), iOS zoom prevention, stacked layouts
-- **Tablet (768px-1023px)** - 2-column grids, adjusted spacing
-- **Desktop (1024px+)** - Full 3-column layouts, expansive spacing
-- **Hook** - `useResponsive.js` for device detection (mobile/tablet/desktop)
+| Service | URL | Status |
+|---------|-----|--------|
+| Frontend (Vercel) | [pii-casso.vercel.app](https://pii-casso.vercel.app) | ![live](https://img.shields.io/badge/status-live-brightgreen) |
+| Backend API (Render) | [core-engine-woeg.onrender.com/api](https://core-engine-woeg.onrender.com/api/) | ![live](https://img.shields.io/badge/status-live-brightgreen) |
+| API Docs (Swagger) | [/api/docs](https://core-engine-woeg.onrender.com/api/docs/) | ![live](https://img.shields.io/badge/status-live-brightgreen) |
 
 ---
 
-## 🛠️ Technology Stack
+## What Is PIIcasso?
 
-### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| React 18 | UI framework |
-| Tailwind CSS 3.x | Utility-first styling |
-| Framer Motion 12.x | Animations |
-| Lucide React | Icon library |
-| Three.js / react-globe.gl | 3D visualizations |
-| Chart.js / react-chartjs-2 | Data visualization |
-| @react-oauth/google | Google SSO authentication |
-| class-variance-authority | Component variants |
+PIIcasso is a full-stack **Deep Search Intelligence Platform** with a dual-mode architecture:
+
+- **Security Mode** (Tactical Dark/Red) — Red teams and penetration testers generate AI-powered, profile-based wordlists with 3D threat visualization, risk radar charts, and dossier PDF exports.
+- **User Mode** (Midnight Cobalt Glass) — Individuals assess their own password strength against PII-based cracking patterns, with breach history visualization and real-time scoring.
+
+The platform runs on **Django REST Framework** + **React 18**, containerized with **Docker + Nginx**, deployed to **Render + Vercel**, and powered by **Google Gemini** for intelligent wordlist generation.
+
+---
+
+## Key Features
+
+| Feature | Description |
+|---------|-------------|
+| AI Wordlist Generation | Google Gemini LLM generates profile-based wordlists from PII inputs |
+| PII Detection Engine | Client-side `piiEngine.js` scores crackability from personal data patterns |
+| Smart Permutations | Algorithmic generation: leetspeak, date variants, common suffixes |
+| 3D Threat Globe | WebGL globe (`react-globe.gl`) with live user presence via cache heartbeats |
+| Risk Radar | `Chart.js` radar visualization of password vulnerability dimensions |
+| Dossier Export | PDF report generation (`reportlab`) of full intelligence output |
+| Live Password Testing | Real-time strength scoring with vulnerability breakdown and recommendations |
+| Operation History | Expandable rows showing vulnerabilities and per-entry recommendations |
+| Team Management | Multi-user team workspaces with role-based access |
+| Admin Panel | Super admin role promotion/demotion with management command bootstrap |
+| Dual-Mode Theming | `data-mode` CSS variable system — Security (tactical red) / User (glass morphism) |
+| Responsive | Mobile-first (320px+), tablet (768px+), desktop (1024px+) with 44px touch targets |
+
+---
+
+## Architecture
+
+```
+                         ┌─────────────┐
+          Browser ──────▶│   Vercel    │  React 18 SPA
+                         │  (Frontend) │  Tailwind + Framer Motion
+                         └──────┬──────┘
+                                │ HTTPS / REST API
+                         ┌──────▼──────┐
+                         │    Nginx    │  least_conn + keepalive
+                         │  (Render)   │  Reverse proxy + SSL termination
+                         └──────┬──────┘
+                    ┌───────────┼───────────┐
+             ┌──────▼──────┐         ┌──────▼──────┐
+             │  Gunicorn   │   ...   │  Gunicorn   │  2 workers × N replicas
+             │  Worker 1   │         │  Worker N   │  --scale web=N
+             └──────┬──────┘         └──────┬──────┘
+                    └───────────┬───────────┘
+                         ┌──────▼──────┐
+                         │   Django    │  DRF · SimpleJWT · Google OAuth
+                         │   5.x API   │  Gemini AI · ReportLab · Prometheus
+                         └──────┬──────┘
+                    ┌───────────┼───────────┐
+             ┌──────▼──────┐         ┌──────▼──────┐
+             │ PostgreSQL  │         │    Redis    │  Cache · Heartbeats
+             │  (Primary)  │         │   (Cache)   │  Rate limiting
+             └─────────────┘         └─────────────┘
+```
+
+**Observability:**
+```
+Django Middleware ──▶ Prometheus ──▶ Grafana Cloud
+                                          │
+                  Sentry (errors) ────────┤
+                  Better Stack (uptime) ──┘
+```
+
+---
+
+## Technology Stack
 
 ### Backend
-| Technology | Purpose |
-|-----------|---------|
-| Django 5.x | Web framework |
-| Django REST Framework | API endpoints |
-| PostgreSQL | Primary database |
-| Redis | Caching layer |
-| SimpleJWT | Authentication |
-| Google Gemini API | AI wordlist generation |
-| Docker | Containerization |
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Django | 5.x | Web framework |
+| Django REST Framework | latest | REST API |
+| PostgreSQL | 15+ | Primary database |
+| Redis | 7+ | Caching, live presence |
+| SimpleJWT | latest | JWT auth + refresh tokens |
+| Google Gemini API | v1 | AI wordlist generation |
+| ReportLab | latest | PDF dossier export |
+| Gunicorn | latest | WSGI server (2 workers, 120s timeout) |
+| Prometheus | latest | Metrics middleware |
+| Docker | 24+ | Containerization |
+
+### Frontend
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 18 | UI framework |
+| Tailwind CSS | 3.x | Utility-first styling |
+| Framer Motion | 12.x | Page + component animations |
+| Three.js / react-globe.gl | latest | 3D threat globe |
+| Chart.js / react-chartjs-2 | latest | Radar + bar charts |
+| Lucide React | latest | Icon library |
+| @react-oauth/google | latest | Google SSO |
+| class-variance-authority | latest | Component variants |
 
 ---
 
-## 📁 Project Structure
+## Quick Start
 
-```
-PIIcasso/
-├── Piicasso/
-│   ├── backend/                    # Django API server
-│   │   ├── core/                   # Main Django project
-│   │   ├── generator/             # Wordlist generation logic
-│   │   ├── operations/            # API operations & history
-│   │   ├── password_security/     # Password checking
-│   │   ├── teams/                # Team management
-│   │   └── requirements.txt
-│   │
-│   ├── frontend/                 # React SPA
-│   │   ├── public/               # Static assets
-│   │   ├── src/
-│   │   │   ├── components/
-│   │   │   │   ├── design/          # Phase A design system
-│   │   │   │   │   ├── Logo.jsx
-│   │   │   │   │   ├── ModePill.jsx
-│   │   │   │   │   ├── Reveal.jsx
-│   │   │   │   │   ├── Section.jsx
-│   │   │   │   │   ├── Parallax.jsx
-│   │   │   │   │   ├── MarketingNav.jsx
-│   │   │   │   │   ├── Footer.jsx
-│   │   │   │   │   ├── auth/
-│   │   │   │   │   │   ├── AuthShell.jsx
-│   │   │   │   │   │   ├── AttackVizSide.jsx
-│   │   │   │   │   │   ├── Field.jsx
-│   │   │   │   │   │   ├── Divider.jsx
-│   │   │   │   │   │   └── SsoButtons.jsx
-│   │   │   │   │   └── GoogleGlyph.jsx
-│   │   │   │   ├── pages/               # Phase B redesigned pages
-│   │   │   │   │   ├── LoginPage.js
-│   │   │   │   │   ├── RegisterPage.js
-│   │   │   │   │   ├── LandingPage.js
-│   │   │   │   │   ├── SecurityDashboardPage.js
-│   │   │   │   │   ├── UserDashboardPage.js
-│   │   │   │   │   └── ... (10+ more pages)
-│   │   │   │   ├── context/              # React contexts
-│   │   │   │   ├── hooks/                # useResponsive.js
-│   │   │   │   ├── lib/                  # piiEngine.js
-│   │   │   │   └── api/                 # axios instance
-│   │   │   ├── index.css               # Responsive utilities & design tokens
-│   │   │   └── App.js
-│   │   └── package.json
-│   │
-│   └── build/                      # Production build (Phase C ✅)
-│
-├── piicasso.md                        # Project documentation
-└── README.md                          # This file
+### Option A — Docker Compose (Recommended)
+
+```bash
+git clone https://github.com/yokesh-kumar-M/Piicasso.git
+cd Piicasso/Piicasso
+
+# Copy and configure environment variables
+cp backend/.env.example backend/.env
+# Edit backend/.env with your values (see Environment Variables below)
+
+# Start all services
+docker compose up --build
+
+# Scale web workers (optional)
+docker compose up --scale web=3
 ```
 
----
+Services start at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api/
+- Nginx proxy: http://localhost:80
 
-## 🚀 Quick Deploy
+### Option B — Manual Setup
 
-### One-Click Deploy to Render
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/yokesh-kumar-M/Piicasso)
-
-### Deploy to Vercel
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yokesh-kumar-M/Piicasso)
-
----
-
-## 🚀 Live Demo
-
-- **Frontend (Vercel)**: https://pii-casso.vercel.app
-- **Backend API (Render)**: https://core-engine-woeg.onrender.com/api/
-- **API Documentation**: https://core-engine-woeg.onrender.com/api/docs/
-- **Status**: ![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)
-
----
-
-## 📊 Production Status
-
-### Monitoring Stack
-- **Error Tracking**: [Sentry](https://sentry.io) - Real-time error monitoring
-- **Uptime Monitoring**: [Better Stack](https://betterstack.com) - 3 endpoints monitored
-- **Metrics**: [Prometheus](https://prometheus.io) - Django middleware active
-- **Dashboards**: [Grafana Cloud](https://grafana.com) - Performance visualization
-
-### Keep-Alive System
-- GitHub Actions pings services every 10 minutes
-- Prevents free-tier spin-down (Render, Supabase)
-- View logs: [GitHub Actions](https://github.com/.../actions)
-
-### Security
-- ✅ HTTPS enforced (Render/Vercel)
-- ✅ Security headers (CSP, HSTS, X-Frame-Options)
-- ✅ JWT authentication with refresh tokens
-- ✅ CORS properly configured
-- ✅ Environment variables secured
-
----
-
-## 💻 Local Development Setup
-
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL
-- Redis (optional, for caching)
-
-### 1. Backend Setup
+**Backend**
 
 ```bash
 cd Piicasso/backend
 
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install -r ../requirements.txt
+pip install -r requirements.txt
 
-# Configure environment variables (.env file)
-# DEBUG=True
-# ENV=development
-# DJANGO_SECRET_KEY=your_secret_key
-# GEMINI_API_KEY=your_gemini_api_key
-# DATABASE_URL=postgresql://user:pass@localhost:5432/piicasso
+# Configure .env (see Environment Variables below)
 
-# Run migrations
 python manage.py migrate
-
-# Start development server
-python manage.py runserver  # Runs on http://localhost:8000
+python manage.py ensure_admin   # Creates default admin account
+python manage.py runserver      # http://localhost:8000
 ```
 
-### 2. Frontend Setup
+**Frontend**
 
 ```bash
 cd Piicasso/frontend
 
-# Install dependencies
 npm install
 
-# Configure environment variables (.env file)
-# REACT_APP_API_URL=http://localhost:8000/api/
+# Configure .env
+echo "REACT_APP_API_URL=http://localhost:8000/api/" > .env
 
-# Start development server
-npm start  # Runs on http://localhost:3000
+npm start  # http://localhost:3000
 ```
 
 ---
 
-## 🚀 Production Build (Phase C - Completed ✅)
+## Environment Variables
 
-### Build Status
-- ✅ Production build successful
-- ✅ Bundle size: ~800KB (gzip'd)
-- ✅ All pages compile without errors
-- ✅ Eslint warnings present (unused imports - non-blocking)
+### Backend (`Piicasso/backend/.env`)
 
-### Build Commands
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DJANGO_SECRET_KEY` | Yes | Django secret key |
+| `DEBUG` | Yes | `True` for dev, `False` for prod |
+| `ENV` | Yes | `development` or `production` |
+| `DATABASE_URL` | Yes | `postgresql://user:pass@host:5432/piicasso` |
+| `REDIS_URL` | No | `redis://localhost:6379/0` |
+| `GEMINI_API_KEY` | Yes | Google Gemini API key |
+| `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret |
+| `ALLOWED_HOSTS` | Yes | Comma-separated hostnames |
+| `CORS_ALLOWED_ORIGINS` | Yes | Comma-separated frontend origins |
+| `SENTRY_DSN` | No | Sentry error tracking DSN |
 
-```bash
-cd Piicasso/frontend
+### Frontend (`Piicasso/frontend/.env`)
 
-# Create production build
-npm run build  # Output: frontend/build/
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `REACT_APP_API_URL` | Yes | Backend API base URL |
+| `REACT_APP_GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
 
-# Serve production build locally
-npm install -g serve
-serve -s build/
+---
+
+## Deployment
+
+### One-Click Deploy
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/yokesh-kumar-M/Piicasso)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yokesh-kumar-M/Piicasso)
+
+### Render (Backend)
+
+1. Connect your GitHub repo to Render
+2. Create a **Web Service** pointing to `Piicasso/` (root Dockerfile)
+3. Set all required environment variables in the Render dashboard
+4. Render auto-deploys on push to `main`
+
+### Vercel (Frontend)
+
+1. Import the repo to Vercel
+2. Set root directory to `Piicasso/frontend`
+3. Add `REACT_APP_API_URL` pointing to your Render backend URL
+4. Deploy — Vercel handles builds automatically
+
+---
+
+## Production Status
+
+### Infrastructure
+
+| Component | Provider | Config |
+|-----------|----------|--------|
+| Backend hosting | Render (free tier) | 2 Gunicorn workers, 120s timeout |
+| Frontend hosting | Vercel | Edge CDN, automatic HTTPS |
+| Database | PostgreSQL | Managed (Render or external) |
+| Cache | Redis | Render Redis or Upstash |
+| Nginx | Docker (Render) | `least_conn` + keepalive upstream |
+
+### Observability
+
+| Tool | Purpose | Coverage |
+|------|---------|----------|
+| [Sentry](https://sentry.io) | Error tracking | Backend + Frontend |
+| [Better Stack](https://betterstack.com) | Uptime monitoring | 3 endpoints |
+| [Prometheus](https://prometheus.io) | Metrics collection | Django middleware |
+| [Grafana Cloud](https://grafana.com) | Dashboards | Performance + errors |
+
+### Security
+
+| Control | Status |
+|---------|--------|
+| HTTPS enforced | ✅ Render + Vercel |
+| Security headers (CSP, HSTS, X-Frame) | ✅ |
+| JWT + refresh tokens | ✅ SimpleJWT |
+| Google OAuth | ✅ Cert caching enabled |
+| CORS configured | ✅ Per-environment origins |
+| Environment secrets | ✅ Never in version control |
+
+### Keep-Alive (Free Tier)
+
+GitHub Actions pings both services every 10 minutes to prevent Render/Supabase spin-down. View logs in [Actions](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/keep-alive.yml).
+
+---
+
+## Project Structure
+
+```
+PIIcasso/
+├── Piicasso/
+│   ├── backend/                    # Django API
+│   │   ├── core/                   # Django project settings
+│   │   ├── generator/              # Wordlist generation + Gemini AI
+│   │   ├── intelligence/           # Intelligence models + scoring
+│   │   ├── operations/             # Operation history API
+│   │   ├── password_security/      # Password strength + breach check
+│   │   ├── teams/                  # Team management
+│   │   ├── wordgen/services/       # Wordgen metrics service
+│   │   ├── start.sh                # Gunicorn entrypoint (2w, 120s)
+│   │   └── requirements.txt
+│   │
+│   ├── frontend/                   # React SPA
+│   │   ├── src/
+│   │   │   ├── components/
+│   │   │   │   ├── design/         # Design system (11 components)
+│   │   │   │   └── pages/          # 15+ page components
+│   │   │   ├── context/            # AuthContext, ModeContext
+│   │   │   ├── hooks/              # useResponsive, useAuth
+│   │   │   ├── lib/                # piiEngine.js
+│   │   │   └── api/                # Axios instance + interceptors
+│   │   └── nginx.conf              # Frontend Nginx config
+│   │
+│   ├── nginx/nginx.conf            # Reverse proxy + load balancing
+│   ├── docker-compose.yml          # Full-stack orchestration
+│   └── Dockerfile                  # Production backend image
+│
+├── .github/
+│   ├── workflows/ci.yml            # CI pipeline
+│   └── workflows/keep-alive.yml    # Free-tier keep-alive pings
+└── README.md
 ```
 
-### Build Output
-```
-File sizes after gzip:
-- main.js:           126.29 kB
-- chunk.js:          509.4 kB
-- other chunks:       ~200 kB
-- main.css:           15.37 kB
-```
+---
+
+## Contributing
+
+Contributions are welcome. Please follow this flow:
+
+1. Fork the repo and create a branch: `git checkout -b feature/your-feature`
+2. Make your changes following the code style below
+3. Run checks: `flake8` (backend), `npm run lint` (frontend)
+4. Commit: `git commit -m 'feat: add your feature'`
+5. Push and open a Pull Request against `main`
+
+**Code style:**
+- Backend: PEP 8, formatted with `black`
+- Frontend: Airbnb style guide, formatted with `prettier`
 
 ---
 
-## 🎨 Key Features by Mode
+## Security Notice
 
-### Security Mode (Tactical)
-- Dark theme with red accents (#E50914)
-- Target acquisition interface
-- 3D global threat map
-- Risk radar visualization
-- System telemetry monitoring
-- Command center with quick actions
-
-### User Mode (Midnight Cobalt)
-- Glass morphism design
-- Password strength checker
-- Breach history visualization
-- Personal security dashboard
-- Quick password test tool
+> PIIcasso is intended strictly for **authorized security testing, penetration testing, and personal password safety education**. Generating wordlists targeting individuals or systems without explicit consent is illegal. The maintainers assume no liability for misuse.
 
 ---
 
-## 📝 Recent Updates (May 2026)
+## License
 
-### Phase A - Design System Port ✅
-- Ported editorial design tokens to Tailwind CSS
-- Created 11 reusable design components
-- Implemented mode-aware CSS variables
-- Added PII detection engine as reusable module
+**MIT** — see [LICENSE](LICENSE) for details.
 
-### Phase B - Page Redesigns ✅
-- Redesigned auth pages with split-screen layout
-- Built immersive landing page with live PII demo
-- Redesigned dashboards with mode-specific layouts
-- Added pricing and about pages
-
-### Phase C - Integration & Build ✅
-- Verified all components integrate correctly
-- Ran production build (successful)
-- Bundle optimization and code splitting
-- Added responsive design for mobile/tablet
-
-### Responsive Design ✅
-- Mobile-first approach (320px+)
-- Tablet support (768px-1023px)
-- Touch-friendly interactions (44px targets)
-- iOS zoom prevention (16px font on inputs)
-- Responsive grids (1→2→3 columns)
-
----
-
-## ⚠️ Security Notice
-
-This tool is strictly intended for **authorized security testing, penetration testing, and educational purposes only**. Using this tool to generate wordlists for targets without their explicit consent is illegal. The developers assume no liability and are not responsible for any misuse, damage, or breaches caused by this program.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details.
-
-### Quick Start
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Style
-- Backend: Follow PEP 8, use `black` formatter
-- Frontend: Follow Airbnb style guide, use `prettier`
-- Run `flake8` and `npm run lint` before committing
-
----
-
-## 📄 License & Copyright
-
-**© PIcasso Project 2026**
-
----
-
-## 📧 Contact & Support
-
-- **Documentation**: See `piicasso.md` for detailed project documentation
-- **Issues**: Report bugs via the project issue tracker
-- **Live Support**: Visit the deployed application at https://pii-casso.vercel.app
+© 2026 Yokesh Kumar · [dezprox25@gmail.com](mailto:dezprox25@gmail.com) · [Live App](https://pii-casso.vercel.app)
