@@ -6,6 +6,7 @@ import ProfileAvatar from '../ProfileAvatar.jsx';
 import { AuthContext } from '../../../context/AuthContext.js';
 import { ModeContext } from '../../../context/ModeContext.js';
 import axios from '../../../api/axios';
+import MobileTabBar from './MobileTabBar';
 
 /**
  * DesignAppShell — sidebar + topbar wrapper for both security and user dashboards.
@@ -257,6 +258,9 @@ const [inboxOpen, setInboxOpen] = useState(false);
         @media (min-width: 1024px) {
           .dsh-mobile-bar { display: none !important; }
         }
+        @media (max-width: 639px) {
+          .dsh-page-body { padding-bottom: 57px !important; }
+        }
       `}</style>
 
       {/* Mobile top bar */}
@@ -404,11 +408,12 @@ const [inboxOpen, setInboxOpen] = useState(false);
           </div>
 
           {/* Page body */}
-          <div style={{ padding: '24px 32px' }}>
+          <div className="dsh-page-body" style={{ padding: '24px 32px' }}>
             {children}
           </div>
         </main>
       </div>
+      <MobileTabBar activeKey={active} />
     </>
   );
 }
