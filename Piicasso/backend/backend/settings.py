@@ -173,31 +173,24 @@ WSGI_APPLICATION = "backend.wsgi.application"
 ASGI_APPLICATION = "backend.asgi.application"
 
 # ─── DATABASE (with connection pooling) ──────────────────────────────────────
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL"),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-    if os.getenv("DATABASE_URL")
-    else {
-        "ENGINE": "django.db.backends.postgresql"
-        if ENV == "production"
-        else "django.db.backends.sqlite3",
-        "NAME": os.getenv(
-            "DATABASE_NAME", os.getenv("POSTGRES_DB", str(BASE_DIR / "db.sqlite3"))
-        ),
+DATABASES = {}
+_db_url = os.getenv("DATABASE_URL")
+if _db_url:
+    DATABASES["default"] = {
+        **dj_database_url.config(default=_db_url),
+        "CONN_MAX_AGE": 600,
+        "CONN_HEALTH_CHECKS": True,
+    }
+else:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql" if ENV == "production" else "django.db.backends.sqlite3",
+        "NAME": os.getenv("DATABASE_NAME", os.getenv("POSTGRES_DB", str(BASE_DIR / "db.sqlite3"))),
         "USER": os.getenv("DATABASE_USER", os.getenv("POSTGRES_USER", "")),
         "PASSWORD": os.getenv("DATABASE_PASSWORD", os.getenv("POSTGRES_PASSWORD", "")),
         "HOST": os.getenv("DATABASE_HOST", "db"),
         "PORT": os.getenv("DATABASE_PORT", "5432"),
-        "OPTIONS": {
-            "MAX_CONNS": 20,
-        }
-        if ENV == "production"
-        else {},
+        **({"OPTIONS": {"MAX_CONNS": 20}} if ENV == "production" else {}),
     }
-}
 
 # ─── CACHING ─────────────────────────────────────────────────────────────────
 if ENV == "production":

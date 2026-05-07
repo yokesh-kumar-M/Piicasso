@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -19,43 +19,51 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           cd Piicasso/backend
           pip install -r requirements.txt
           pip install flake8
-      
+
+      - name: Wait for Postgres
+        run: |
+          for i in $(seq 1 10); do
+            pg_isready -h postgres -p 5432 && break
+            echo "Waiting for Postgres... ($i)"
+            sleep 3
+          done
+
       - name: Run backend tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
+          DATABASE_URL: postgres://postgres:postgres@postgres:5432/test_db
           DJANGO_SECRET_KEY: test-secret-key-not-for-production
           ENV: test
           GOOGLE_CLIENT_ID: test-google-client-id
-          FIELD_ENCRYPTION_KEY: dGVzdC1maWVsZC1lbmNyeXB0aW9uLWtleS0xMjM0NTY=
+          FIELD_ENCRYPTION_KEY: dGVzdC1maWVsZC1lbmNyeXB0aW9uS0tleS0xMjM0NTY=
         run: |
           cd Piicasso/backend
           python manage.py test --verbosity=2
-      
+
       - name: Lint with flake8
         run: |
           cd Piicasso/backend
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         continue-on-error: true
-  
+
   frontend-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
@@ -64,17 +72,17 @@ jobs:
         run: |
           cd Piicasso/frontend
           npm install
-      
+
       - name: Run frontend tests
         run: |
           cd Piicasso/frontend
           npm test -- --watchAll=false --passWithNoTests
-      
+
       - name: Build production bundle
         run: |
           cd Piicasso/frontend
           npm run build
-      
+
       - name: Check bundle size
         run: |
           cd Piicasso/frontend/build/static/js
