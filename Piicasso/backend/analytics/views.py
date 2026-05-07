@@ -19,8 +19,9 @@ GLOBE_DATA_LIMIT = 200
 
 class HelpBeaconView(APIView):
     """
-    The iconic HELP beacon — the frontend sends 'HELP' every 10 seconds.
-    Now requires authentication to prevent anonymous spam pollution of UserActivity.
+    The iconic HELP beacon — the frontend sends 'HELP' every 10 seconds
+    with the user's geolocation (latitude/longitude).
+    Creates a UserActivity LOGIN record so the globe can show user locations.
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -28,10 +29,47 @@ class HelpBeaconView(APIView):
     def post(self, request):
         message = request.data.get('message', '')
         if message == 'HELP':
-            logger.debug(f"[BEACON] HELP signal received from {request.user.username}")
+            latitude = request.data.get('latitude')
+            longitude = request.data.get('longitude')
+            city = request.data.get('city', 'Unknown')
+            country_code = request.data.get('country_code', 'UNK')
+
+            # Validate and clamp coordinates
+            try:
+                lat = float(latitude) if latitude is not None else None
+                lng = float(longitude) if longitude is not None else None
+                if lat is not None and lng is not None:
+                    lat = max(-90.0, min(90.0, lat))
+                    lng = max(-180.0, min(180.0, lng))
+                else:
+                    lat = None
+                    lng = None
+            except (ValueError, TypeError):
+                lat = None
+                lng = None
+
+            # Create or update the user's LOGIN activity with real geolocation
+            if lat is not None and lng is not None:
+                UserActivity.objects.create(
+                    user=request.user,
+                    activity_type='LOGIN',
+                    description=f"Live beacon from {request.user.username}",
+                    latitude=lat,
+                    longitude=lng,
+                    city=city,
+                    country_code=country_code[:3] if country_code else 'UNK',
+                    color='#22c55e',
+                    intensity=0.4,
+                )
+                logger.debug(f"[BEACON] HELP signal with location ({lat}, {lng}) from {request.user.username}")
+            else:
+                logger.debug(f"[BEACON] HELP signal (no location) from {request.user.username}")
+
+            # Track active users in cache for live count
             active = cache.get('globe:active', {})
             active[str(request.user.id)] = timezone.now().isoformat()
-            cache.set('globe:active', active, timeout=3600)
+            cache.set('globe:active', active, timeout=90)
+
         return Response({'status': 'received', 'echo': message}, status=status.HTTP_200_OK)
 
 
