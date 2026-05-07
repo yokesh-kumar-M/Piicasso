@@ -17,7 +17,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-# UserRateThrottle removed: unused
+from rest_framework.throttling import UserRateThrottle
 
 from .hibp import k_anonymity_breach_count
 

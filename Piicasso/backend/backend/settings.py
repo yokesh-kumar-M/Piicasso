@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from django.core.exceptions import ImproperlyConfigured
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 # ─── SENTRY ERROR TRACKING ──────────────────────────────────────────────────
 sentry_dsn = os.getenv("SENTRY_DSN")

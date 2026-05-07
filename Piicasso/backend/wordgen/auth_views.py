@@ -124,7 +124,7 @@ class GoogleLoginView(APIView):
             payload = id_token.verify_oauth2_token(
                 token,
                 _session,
-                audience=GOOGLE_CLIENT_ID if GOOGLE_CLIENT_ID else None,
+                audience=GOOGLE_CLIENT_ID,
                 clock_skew_in_seconds=60,
             )
 

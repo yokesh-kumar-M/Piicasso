@@ -8,7 +8,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Footer from './components/Footer';
 import CinematicTransition from './components/CinematicTransition';
 import NetworkStatus from './components/NetworkStatus';
-import { AuthContext } from './context/AuthContext';
+import { AuthContext, AuthProvider } from './context/AuthContext';
 import { ModeProvider, ModeContext } from './context/ModeContext';
 import ModeSelectionModal from './components/ModeSelectionModal';
 import ModeManager from './components/ModeManager';
@@ -169,12 +169,14 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ''}>
       <BrowserRouter>
-        <ModeProvider>
-          <Analytics />
-          <NetworkStatus />
-          <ScrollToTop />
-          <AppContent />
-        </ModeProvider>
+        <AuthProvider>
+          <ModeProvider>
+            <Analytics />
+            <NetworkStatus />
+            <ScrollToTop />
+            <AppContent />
+          </ModeProvider>
+        </AuthProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
   );

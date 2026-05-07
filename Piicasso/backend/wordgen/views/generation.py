@@ -38,7 +38,7 @@ from ..report_generator import generate_report_pdf
 from analytics.models import UserActivity
 from backend.throttles import PiiSubmitRateThrottle
 from ..utils import safe_float
-from .llm_handler import mask_pii_for_api
+from ..llm_handler import mask_pii_for_api
 
 logger = logging.getLogger("wordgen")
 
@@ -577,11 +577,12 @@ def export_history_csv(request):
             ]
             yield ",".join([f'"{v}"' for v in row]) + "\n"
 
-    return StreamingHttpResponse(
-        _row_generator(),
-        content_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=history.csv"},
-    )
+    try:
+        return StreamingHttpResponse(
+            _row_generator(),
+            content_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=history.csv"},
+        )
     except Exception as e:
         logger.error(f"CSV export error: {e}")
         return Response(
