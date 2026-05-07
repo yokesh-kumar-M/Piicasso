@@ -51,7 +51,9 @@ const [inboxOpen, setInboxOpen] = useState(false);
   ];
 
   const items = isSecurityMode ? securityItems : userItems;
-  const active = activeKey || items[0][0];
+  // Safety check: ensure activeKey is valid for current mode
+  const validKeys = items.map(([k]) => k);
+  const active = validKeys.includes(activeKey) ? activeKey : items[0][0];
 
   const relativeTime = (ts) => {
     if (!ts) return '';
