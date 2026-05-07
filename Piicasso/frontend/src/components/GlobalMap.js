@@ -15,10 +15,46 @@ const GlobalMap = () => {
     const { isAuthenticated } = useContext(AuthContext);
     const { isMobile } = useResponsive();
 
+    // User's own geolocation
+    const [userLocation, setUserLocation] = useState(null); // {latitude, longitude, city, country_code}
+    const [geoError, setGeoError] = useState(false);
+
     // Tracks the server timestamp of the last response — used for incremental fetches
     const lastServerTimeRef = useRef(null);
     // One beacon per active user — keyed by user_id, replaced on every poll
     const beaconMapRef = useRef(new Map()); // key: user_id → value: point object
+
+    // Get user's geolocation on mount
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            setGeoError(true);
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                // Reverse-geocode via a lightweight lookup (city/country from coords)
+                fetch(`https://secure.geonames.org/countrySubdivisionJSON?lat=${latitude}&lng=${longitude}&username=demo&radius=10`)
+                    .then(r => r.json())
+                    .then(data => {
+                        setUserLocation({
+                            latitude,
+                            longitude,
+                            city: data.geonames?.[0]?.name || 'Unknown',
+                            country_code: data.geonames?.[0]?.countryCode || 'UNK',
+                        });
+                    })
+                    .catch(() => {
+                        setUserLocation({ latitude, longitude, city: 'Unknown', country_code: 'UNK' });
+                    });
+            },
+            (err) => {
+                console.warn('Geolocation denied or unavailable:', err.message);
+                setGeoError(true);
+            },
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+        );
+    }, []);
 
     useEffect(() => {
         const updateSize = () => {
@@ -44,6 +80,23 @@ const GlobalMap = () => {
         return () => observer.disconnect();
     }, []);
 
+    // Send HELP beacon with user's geolocation
+    const sendBeacon = useCallback(async () => {
+        if (!isAuthenticated) return;
+        try {
+            const payload = { message: 'HELP' };
+            if (userLocation) {
+                payload.latitude = userLocation.latitude;
+                payload.longitude = userLocation.longitude;
+                payload.city = userLocation.city;
+                payload.country_code = userLocation.country_code;
+            }
+            await axiosInstance.post('analytics/beacon/', payload);
+        } catch (e) {
+            console.warn('Beacon send failed:', e.message);
+        }
+    }, [isAuthenticated, userLocation]);
+
     useEffect(() => {
         if (globeEl.current) {
             globeEl.current.controls().autoRotate = true;
@@ -54,20 +107,41 @@ const GlobalMap = () => {
     }, []);
 
     const mergePoints = useCallback((newPoints, newLiveCount) => {
-        // Replace entire map on every poll — removes beacons of users who went offline
-        beaconMapRef.current = new Map(newPoints.map(p => [String(p.user_id), p]));
+        // Build map from incoming points (replaces all — removes offline users)
+        const newMap = new Map(newPoints.map(p => [String(p.user_id), p]));
+
+        // Add the current user's own location with a special "self" marker
+        if (userLocation && isAuthenticated) {
+            const selfPoint = {
+                user_id: 'self',
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+                city: userLocation.city || 'You',
+                country_code: userLocation.country_code || 'UNK',
+                color: '#22c55e',
+                intensity: 1.0,
+                activity_type: 'LOGIN',
+            };
+            newMap.set('self', selfPoint);
+        }
+
+        beaconMapRef.current = newMap;
         setPoints([...beaconMapRef.current.values()]);
         if (newLiveCount !== undefined) setLiveCount(newLiveCount);
-    }, []);
+    }, [userLocation, isAuthenticated]);
 
     useEffect(() => {
         if (!isAuthenticated) return;
 
         let intervalId;
+        let beaconIntervalId;
         let destroyed = false;
 
         const fetchInitial = async () => {
             try {
+                // Send beacon first so backend records our location
+                await sendBeacon();
+
                 const res = await axiosInstance.get('analytics/globe-data/');
                 if (destroyed) return;
 
@@ -78,6 +152,7 @@ const GlobalMap = () => {
                 }
             } catch (e) {
                 console.error('Globe init error', e);
+                setIsLive(false);
             }
         };
 
@@ -92,7 +167,6 @@ const GlobalMap = () => {
                 if (res.data?.points !== undefined) {
                     mergePoints(res.data.points, res.data.live_count);
                 }
-                // Always advance the cursor even if no new points
                 if (res.data?.server_time) {
                     lastServerTimeRef.current = res.data.server_time;
                 }
@@ -103,15 +177,19 @@ const GlobalMap = () => {
 
         fetchInitial().then(() => {
             if (!destroyed) {
+                // Poll for new globe data every 30s
                 intervalId = setInterval(fetchIncremental, 30000);
+                // Re-send beacon every 30s to stay "active"
+                beaconIntervalId = setInterval(sendBeacon, 30000);
             }
         });
 
         return () => {
             destroyed = true;
             clearInterval(intervalId);
+            clearInterval(beaconIntervalId);
         };
-    }, [mergePoints, isAuthenticated]);
+    }, [mergePoints, isAuthenticated, sendBeacon]);
 
     return (
         <div
