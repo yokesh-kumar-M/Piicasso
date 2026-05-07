@@ -57,3 +57,5 @@ refer/
 
 # ─── Local Development Docker ──────────────────────────────────────────────────
 *Dockerfile.dev
+
+_worktrees/
