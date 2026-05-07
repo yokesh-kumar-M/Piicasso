@@ -12,6 +12,8 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -56,12 +58,12 @@ jobs:
       
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      
+          node-version: '20'
+
       - name: Install dependencies
         run: |
           cd Piicasso/frontend
-          npm ci
+          npm install
       
       - name: Run frontend tests
         run: |
