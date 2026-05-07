@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { ModeContext } from '../context/ModeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -7,18 +7,31 @@ const ModeTearTransition = () => {
     const [prevMode, setPrevMode] = useState(mode);
     const [isAnimating, setIsAnimating] = useState(false);
     const [transitionTo, setTransitionTo] = useState(null);
+    const timeoutRef = useRef(null);
 
     useEffect(() => {
         if (mode !== prevMode) {
             setTransitionTo(mode);
             setIsAnimating(true);
             
+            // Clear any pending timeout to avoid stale updates
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            
             // Wait for animation to finish before allowing normal interaction
-            setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
                 setIsAnimating(false);
                 setPrevMode(mode);
-            }, 1200); // 1.2s total transition time
+                timeoutRef.current = null;
+            }, 1300); // Extended to cover full animation (1.3s total)
         }
+        
+        // Cleanup timeout on unmount or dependency change
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+        };
     }, [mode, prevMode]);
 
     if (!isAnimating) return null;
