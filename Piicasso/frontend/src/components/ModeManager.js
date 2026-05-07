@@ -22,7 +22,7 @@ const ModeManager = () => {
     // Routes that only exist in security mode.
     // /darkweb and /inbox are intentionally omitted — they serve both modes.
     const securityOnlyPages = [
-      '/security/dashboard', '/operation', '/dashboard',
+      '/security/dashboard', '/operation',
       '/teams', '/workspace', '/system-admin', '/result',
     ];
 

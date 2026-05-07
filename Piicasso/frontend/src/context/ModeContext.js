@@ -28,10 +28,20 @@ export const ModeProvider = ({ children }) => {
 
   // Apply server preference ONCE on mount. The ref guard ensures switchMode calls
   // never trigger a re-fetch that could revert a user's explicit mode selection.
+  // IMPORTANT: Only use server preference if user hasn't explicitly set a mode
+  // (i.e., localStorage doesn't have app_mode set by user action).
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (!token || hasFetchedPrefs.current) return;
     hasFetchedPrefs.current = true;
+
+    // Check if user has an explicit mode set in localStorage
+    const storedMode = localStorage.getItem('app_mode');
+    if (storedMode) {
+      // User has explicit mode - don't override it with server preference
+      return;
+    }
+
     axiosInstance.get('password/preferences/')
       .then(res => {
         const { last_mode } = res.data;
