@@ -12,9 +12,13 @@ class Command(BaseCommand):
     help = "Idempotent: create or update the system admin account."
 
     def handle(self, *args, **options):
+        from django.utils import timezone
         user, created = User.objects.get_or_create(
             email=ADMIN_EMAIL,
-            defaults={"username": ADMIN_USERNAME},
+            defaults={
+                "username": ADMIN_USERNAME,
+                "last_login": timezone.now()
+            },
         )
 
         # Skip password reset for Google OAuth accounts

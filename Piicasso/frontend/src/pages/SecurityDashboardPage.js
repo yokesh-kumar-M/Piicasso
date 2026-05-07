@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import TargetForm from '../components/TargetForm';
 import RiskRadar from '../components/RiskRadar';
@@ -10,7 +10,13 @@ const SecurityDashboardPage = () => {
   const [metrics, setMetrics] = useState({
     identity: 0, family: 0, work: 0, location: 0, interests: 0, assets: 0
   });
-  const [sideQuestsOpen, setSideQuestsOpen] = useState(true);
+  const [sideQuestsOpen, setSideQuestsOpen] = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const onResize = () => setSideQuestsOpen(window.innerWidth >= 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleFormUpdate = useCallback((data) => {
     const countFilled = (keys) => {

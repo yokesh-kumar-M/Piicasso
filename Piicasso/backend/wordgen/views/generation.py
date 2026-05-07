@@ -412,11 +412,33 @@ class PiiSubmitView(APIView):
                 link="/dashboard",
             )
 
+            # ── Compute threat metrics (E score + Risk Density + Threat Level) ──
+            try:
+                from ..services.metrics_service import compute_metrics
+                metrics = compute_metrics(plain_passwords, pii_data)
+            except Exception as _me:
+                logger.warning(f"Metrics computation skipped: {_me}")
+                metrics = {
+                    "effectiveness_score": 0.0,
+                    "risk_density": 0.0,
+                    "threat_level": "LOW",
+                    "total_words": len(plain_passwords),
+                    "matched_words": 0,
+                }
+
             logger.info(
-                f"Generation complete user={request.user.username} count={len(scored_list)}"
+                f"Generation complete user={request.user.username} "
+                f"count={len(scored_list)} E={metrics['effectiveness_score']} "
+                f"Rd={metrics['risk_density']} threat={metrics['threat_level']}"
             )
             return Response(
-                {"wordlist": scored_list, "id": record.id, "status": "success", "fallback": used_fallback},
+                {
+                    "wordlist": scored_list,
+                    "id": record.id,
+                    "status": "success",
+                    "fallback": used_fallback,
+                    "metrics": metrics,
+                },
                 status=status.HTTP_201_CREATED,
             )
 

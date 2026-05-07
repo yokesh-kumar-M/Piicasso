@@ -114,6 +114,9 @@ const TargetForm = ({ onFormUpdate }) => {
                 sessionStorage.setItem('generatedWordlist', JSON.stringify(res.data.wordlist));
                 sessionStorage.setItem('historyId', res.data.id);
                 sessionStorage.setItem('generationFallback', res.data.fallback ? 'true' : 'false');
+                if (res.data.metrics) {
+                    sessionStorage.setItem('generationMetrics', JSON.stringify(res.data.metrics));
+                }
                 navigate('/result');
             }
         } catch (err) {
