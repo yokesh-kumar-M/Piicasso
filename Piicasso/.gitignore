@@ -44,3 +44,6 @@ backend/media/
 *.crt
 *.p12
 backend/rockyou.txt
+
+# Internal tooling — never commit
+.superpowers/
