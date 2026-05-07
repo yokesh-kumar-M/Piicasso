@@ -12,10 +12,13 @@ const AnalysisHistoryPage = () => {
   const [analyses, setAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     fetchHistory();
   }, []);
+
+  const toggleExpand = (id) => setExpandedId(prev => prev === id ? null : id);
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -175,17 +178,20 @@ const AnalysisHistoryPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {analyses.map((analysis, idx) => {
+                  {analyses.map((analysis) => {
                     const levelColor = getLevelColor(analysis.vulnerability_level);
                     const scoreColor = getScoreColor(analysis.strength_score);
                     const levelBg = getLevelBg(analysis.vulnerability_level);
+                    const isExpanded = expandedId === analysis.id;
 
                     return (
+                      <React.Fragment key={analysis.id}>
                       <tr
-                        key={analysis.id}
+                        onClick={() => toggleExpand(analysis.id)}
                         style={{
                           borderBottom: '1px solid var(--ink-4)',
                           transition: 'background-color 0.2s',
+                          cursor: 'pointer',
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--ink-2)')}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -253,6 +259,43 @@ const AnalysisHistoryPage = () => {
                           </div>
                         </td>
                       </tr>
+                      {isExpanded && (
+                        <tr style={{ background: 'var(--ink-1)' }}>
+                          <td colSpan={6} style={{ padding: '16px 24px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                              <div>
+                                <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                                  Issues Found
+                                </div>
+                                {(analysis.vulnerabilities_found || []).length === 0 ? (
+                                  <div style={{ fontSize: 12, color: 'var(--good)', fontFamily: 'var(--font-mono)' }}>✓ No issues recorded</div>
+                                ) : (
+                                  (analysis.vulnerabilities_found || []).map((v, i) => (
+                                    <div key={i} style={{ fontSize: 12, color: 'var(--accent-200)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>
+                                      ▲ {v}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                                  Recommendations
+                                </div>
+                                {(analysis.recommendations || []).length === 0 ? (
+                                  <div style={{ fontSize: 12, color: 'var(--fg-2)', fontFamily: 'var(--font-mono)' }}>None recorded</div>
+                                ) : (
+                                  (analysis.recommendations || []).map((r, i) => (
+                                    <div key={i} style={{ fontSize: 12, color: 'var(--fg-1)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>
+                                      → {r}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>

@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import TargetForm from '../components/TargetForm';
 import RiskRadar from '../components/RiskRadar';
@@ -10,7 +10,13 @@ const SecurityDashboardPage = () => {
   const [metrics, setMetrics] = useState({
     identity: 0, family: 0, work: 0, location: 0, interests: 0, assets: 0
   });
-  const [sideQuestsOpen, setSideQuestsOpen] = useState(true);
+  const [sideQuestsOpen, setSideQuestsOpen] = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const onResize = () => setSideQuestsOpen(window.innerWidth >= 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleFormUpdate = useCallback((data) => {
     const countFilled = (keys) => {
@@ -129,20 +135,6 @@ const SecurityDashboardPage = () => {
             {sideQuestsOpen && (
               <div className="flex flex-col gap-4 flex-1 min-h-0">
 
-                {/* Profiling Matrix */}
-                <div className="sec-card overflow-hidden shadow-2xl flex flex-col relative group flex-1 min-h-[240px]">
-                  <div className="px-4 py-3 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-3.5 h-3.5 text-security-red" />
-                      <span className="font-display font-bold uppercase tracking-widest text-[10px] text-white">Profiling Matrix</span>
-                    </div>
-                    <div className="text-[10px] font-mono text-white/50 uppercase">Score: <span className="text-white font-bold">{totalCompletenessScore}%</span></div>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center p-4 relative z-10">
-                    <RiskRadar inputData={metrics} />
-                  </div>
-                </div>
-
                 {/* Geospatial Routing */}
                 <div className="sec-card overflow-hidden shadow-2xl flex flex-col relative flex-1 min-h-[240px]">
                   <div className="px-4 py-3 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0 z-20">
@@ -164,6 +156,20 @@ const SecurityDashboardPage = () => {
                     }>
                       <GlobalMap />
                     </Suspense>
+                  </div>
+                </div>
+
+                {/* Profiling Matrix */}
+                <div className="sec-card overflow-hidden shadow-2xl flex flex-col relative group flex-1 min-h-[240px]">
+                  <div className="px-4 py-3 border-b border-white/10 bg-black/60 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-3.5 h-3.5 text-security-red" />
+                      <span className="font-display font-bold uppercase tracking-widest text-[10px] text-white">Profiling Matrix</span>
+                    </div>
+                    <div className="text-[10px] font-mono text-white/50 uppercase">Score: <span className="text-white font-bold">{totalCompletenessScore}%</span></div>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center p-4 relative z-10">
+                    <RiskRadar inputData={metrics} />
                   </div>
                 </div>
 

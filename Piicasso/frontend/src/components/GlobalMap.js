@@ -7,6 +7,7 @@ const GlobalMap = () => {
     const globeEl = useRef();
     const containerRef = useRef();
     const [points, setPoints] = useState([]);
+    const [liveCount, setLiveCount] = useState(0);
     const [countries, setCountries] = useState({ features: [] });
     const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
     const [isLive, setIsLive] = useState(false);
@@ -14,8 +15,8 @@ const GlobalMap = () => {
 
     // Tracks the server timestamp of the last response — used for incremental fetches
     const lastServerTimeRef = useRef(null);
-    // Tracks the per-user beacon map so we never show duplicates
-    const beaconMapRef = useRef(new Map()); // key: description → value: point object
+    // One beacon per active user — keyed by user_id, replaced on every poll
+    const beaconMapRef = useRef(new Map()); // key: user_id → value: point object
 
     useEffect(() => {
         const updateSize = () => {
@@ -47,12 +48,11 @@ const GlobalMap = () => {
         }
     }, []);
 
-    const mergePoints = useCallback((newPoints) => {
-        newPoints.forEach(p => {
-            // One beacon per user: description is the unique key ("Operator X authenticated.")
-            beaconMapRef.current.set(p.description, p);
-        });
+    const mergePoints = useCallback((newPoints, newLiveCount) => {
+        // Replace entire map on every poll — removes beacons of users who went offline
+        beaconMapRef.current = new Map(newPoints.map(p => [String(p.user_id), p]));
         setPoints([...beaconMapRef.current.values()]);
+        if (newLiveCount !== undefined) setLiveCount(newLiveCount);
     }, []);
 
     useEffect(() => {
@@ -67,7 +67,7 @@ const GlobalMap = () => {
                 if (destroyed) return;
 
                 if (res.data?.points) {
-                    mergePoints(res.data.points);
+                    mergePoints(res.data.points, res.data.live_count);
                     lastServerTimeRef.current = res.data.server_time;
                     setIsLive(true);
                 }
@@ -84,8 +84,8 @@ const GlobalMap = () => {
                 );
                 if (destroyed) return;
 
-                if (res.data?.points?.length > 0) {
-                    mergePoints(res.data.points);
+                if (res.data?.points !== undefined) {
+                    mergePoints(res.data.points, res.data.live_count);
                 }
                 // Always advance the cursor even if no new points
                 if (res.data?.server_time) {
@@ -115,7 +115,7 @@ const GlobalMap = () => {
                 <div className="bg-zinc-950/80 backdrop-blur-sm border border-zinc-800 p-3 rounded shadow-2xl">
                     <div className="flex flex-col gap-1 text-right font-mono">
                         <span className="text-[9px] text-zinc-600 uppercase tracking-[0.2em]">Live Connections</span>
-                        <span className="text-xl text-zinc-200 font-light tracking-tighter">{points.length}</span>
+                        <span className="text-xl text-zinc-200 font-light tracking-tighter">{liveCount}</span>
                         <div className="h-[1px] w-full bg-zinc-800 my-1" />
                         <span className="text-[8px] flex items-center gap-1 justify-end italic" style={{ color: isLive ? '#22c55e' : '#71717a' }}>
                             {isLive ? '● LIVE' : 'CONNECTING...'}
