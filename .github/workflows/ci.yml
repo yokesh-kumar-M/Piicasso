@@ -90,3 +90,4 @@ jobs:
           ls -lh *.js
           echo "Total JS size:"
           du -sh *.js
+# trigger CI
