@@ -1,4 +1,4 @@
-# PIcasso - Deep Search Intelligence & Targeted Wordlist Generator
+# Pllcasso - Deep Search Intelligence & Targeted Wordlist Generator
 
 ![Build Status](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/ci.yml/badge.svg)
 ![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)
