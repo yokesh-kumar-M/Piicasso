@@ -25,17 +25,21 @@ from django.core.exceptions import ImproperlyConfigured
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 # ─── SENTRY ERROR TRACKING ──────────────────────────────────────────────────
-sentry_dsn = os.getenv("SENTRY_DSN")
-if sentry_dsn:
-    import sentry_sdk
+sentry_dsn = os.getenv(
+    "SENTRY_DSN",
+    "https://d305093cdc0991075d5571abaa032ddf@o4511350635233280.ingest.de.sentry.io/4511350644473936",
+)
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
-    sentry_sdk.init(
-        dsn=sentry_dsn,
-        integrations=[sentry_sdk.integrations.django.DjangoIntegration()],
-        traces_sample_rate=0.1,
-        send_default_pii=False,
-        environment=os.getenv("ENV", "development"),
-    )
+sentry_sdk.init(
+    dsn=sentry_dsn,
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+    enable_logs=True,
+    environment=os.getenv("ENV", "production"),
+)
 
 # ─── BASE ────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent

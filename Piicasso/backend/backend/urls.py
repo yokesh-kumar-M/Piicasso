@@ -47,6 +47,9 @@ urlpatterns = [
 
     # Observability
     path('', include('django_prometheus.urls')),
+
+    # Sentry debug route
+    path('sentry-debug/', lambda request: 1 / 0),
 ]
 
 if settings.DEBUG:
