@@ -254,6 +254,9 @@ class BreachSearchView(APIView):
                 {"error": "Query too long (max 254 characters)."}, status=400
             )
 
+        # Validate email format for HIBP lookup
+        if "@" in query and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", query):
+            return Response({"error": "Invalid email format."}, status=400)
         # Prevent injection in URL path
         if any(c in query for c in ["\n", "\r", "\x00", "/", "\\", "..", "<", ">"]):
             return Response({"error": "Invalid characters in query."}, status=400)
@@ -277,9 +280,10 @@ class BreachSearchView(APIView):
                     # URL-encode the query to prevent injection
                     from urllib.parse import quote
 
-                    safe_query = quote(query, safe="@.")
+                    safe_query = quote(query, safe="")
                     resp = http_requests.get(
-                        f"https://haveibeenpwned.com/api/v3/breachedaccount/{safe_query}?truncateResponse=true",
+                        "https://haveibeenpwned.com/api/v3/breachedaccount/",
+                        params={"truncateResponse": "true", "account": query},
                         headers=headers,
                         timeout=10,
                     )
@@ -316,26 +320,9 @@ class BreachSearchView(APIView):
             results["password_exposures"] = exposure_count
 
         # 3. Check internal generation history (restricted to user's own data for non-admins)
-        from generator.models import GenerationHistory
-        from django.db.models import Q
-
-        if request.user.is_superuser:
-            internal_count = GenerationHistory.objects.filter(
-                Q(pii_data__full_name__icontains=query)
-                | Q(pii_data__username__icontains=query)
-                | Q(pii_data__email__icontains=query)
-            ).count()
-        else:
-            internal_count = (
-                GenerationHistory.objects.filter(user=request.user)
-                .filter(
-                    Q(pii_data__full_name__icontains=query)
-                    | Q(pii_data__username__icontains=query)
-                    | Q(pii_data__email__icontains=query)
-                )
-                .count()
-            )
-        results["internal_matches"] = internal_count
+        # Note: pii_data is EncryptedJSONField — cannot search encrypted fields.
+        # Count is always 0 for encrypted-field searches; removed invalid lookups.
+        results["internal_matches"] = 0
 
         # Calculate risk score
         breach_count = len(results["breaches"])

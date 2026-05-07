@@ -1,11 +1,15 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password, make_password
+import random
+import string
 
 User = get_user_model()
 
 # Dummy password hash to use for timing-safe comparison when user doesn't exist
-_DUMMY_HASH = make_password('dummy-password-for-timing-safety')
+# Generated at module load to avoid predictable hash values
+_DUMMY_PASSWORD = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+_DUMMY_HASH = make_password(_DUMMY_PASSWORD)
 
 
 class EmailOrUsernameModelBackend(ModelBackend):

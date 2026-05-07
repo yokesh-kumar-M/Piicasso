@@ -138,7 +138,7 @@ class SimulatedTerminalView(APIView):
 
             if is_god:
                 output.append(
-                    f"[22][ssh] host: 10.10.1.5   login: {target_user}   password: password123"
+                    f"[22][ssh] host: 10.10.1.5   login: {target_user}   password: ********"
                 )
                 output.append(f"[SUCCESS] 1 valid password found")
             else:

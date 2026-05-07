@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from generator.fields import EncryptedJSONField
 
 User = get_user_model()
 
@@ -32,8 +33,8 @@ class PasswordAnalysis(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_analyses')
-    pii_data = models.JSONField(default=dict, blank=True)
-    password_hash = models.CharField(max_length=128)
+    pii_data = EncryptedJSONField()
+    password_hash = models.CharField(max_length=128, help_text="SHA-256 of password for duplicate detection only (not for auth)")
     vulnerability_level = models.CharField(max_length=20, choices=VULNERABILITY_LEVELS)
     strength_score = models.PositiveIntegerField(default=0)
     crack_time_estimate = models.CharField(max_length=100, blank=True)
@@ -46,6 +47,9 @@ class PasswordAnalysis(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Password Analysis'
         verbose_name_plural = 'Password Analyses'
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+        ]
 
     def __str__(self):
         return f"{self.user.username} - {self.vulnerability_level} - {self.created_at}"

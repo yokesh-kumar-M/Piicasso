@@ -55,7 +55,7 @@ class SuperAdminView(APIView):
             if not User.objects.filter(id=target_id).exists():
                 return Response({"error": "User not found."}, status=404)
             gens = list(
-                GenerationHistory.objects.filter(user_id=target_id)
+                GenerationHistory.objects.filter(user_id=target_id).select_related('user')
                 .order_by("-timestamp")
                 .values("id", "timestamp", "ip_address", "wordlist")[
                     :100

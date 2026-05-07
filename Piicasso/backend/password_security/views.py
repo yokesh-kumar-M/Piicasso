@@ -1,6 +1,7 @@
 import hashlib
 import re
 import logging
+import math
 
 from django.contrib.auth import get_user_model
 
@@ -16,7 +17,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from rest_framework.throttling import UserRateThrottle
+# UserRateThrottle removed: unused
 
 from .hibp import k_anonymity_breach_count
 
@@ -112,7 +113,7 @@ def calculate_entropy(password):
     if charset_size == 0:
         return 0
 
-    entropy = len(password) * (charset_size**0.5)
+    entropy = int(len(password) * math.log2(charset_size)) if charset_size > 0 else 0
     return min(entropy, 128)
 
 

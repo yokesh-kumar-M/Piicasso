@@ -25,6 +25,9 @@ class EncryptedJSONField(models.TextField):
     def get_prep_value(self, value):
         if value is None:
             return None
+        if isinstance(value, str):
+            # Already encrypted string — pass through without double-encoding
+            return value
         return _get_fernet().encrypt(json.dumps(value, ensure_ascii=False).encode()).decode()
 
     def to_python(self, value):

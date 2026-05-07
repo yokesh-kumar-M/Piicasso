@@ -37,13 +37,15 @@ class UserActivity(models.Model):
         ordering = ['-timestamp']
         indexes = [
             models.Index(fields=['timestamp']),
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['activity_type', 'timestamp']),
         ]
 
     def save(self, *args, **kwargs):
         # Fall back to invalid sentinel if coords missing
         if self.latitude is None or self.longitude is None:
-            self.latitude = 999.0
-            self.longitude = 999.0
+            self.latitude = None
+            self.longitude = None
 
         # Always set color/intensity based on activity type
         if self.activity_type == 'BREACH':

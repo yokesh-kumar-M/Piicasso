@@ -99,6 +99,9 @@ class SystemSetting(models.Model):
             return cls.objects.get(key=key).value
         except cls.DoesNotExist:
             return default
+        except Exception:
+            # Let DB errors propagate — don't silently swallow them
+            raise
 
     @classmethod
     def set(cls, key, value, user=None, description=''):

@@ -247,7 +247,7 @@ def team_chat_messages(request):
 
     if request.method == "GET":
         after_id = int(request.query_params.get("after", 0))
-        msgs = TeamMessage.objects.filter(team=team, id__gt=after_id).order_by(
+        msgs = TeamMessage.objects.filter(team=team, id__gt=after_id).select_related('sender').order_by(
             "timestamp"
         )[:100]
         return Response(

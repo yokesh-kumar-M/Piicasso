@@ -6,7 +6,9 @@ from .fields import EncryptedJSONField
 User = get_user_model()
 
 class GenerationHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, db_index=True, related_name='generation_history')
+    # Backward-compatible alias so u.team_membership still works for legacy code
+    team_membership = property(lambda self: self.user.generation_history if self.user else None)
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     pii_data = EncryptedJSONField()  # Fernet-encrypted at rest; never stored as plaintext
     wordlist = models.JSONField()

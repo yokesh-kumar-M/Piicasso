@@ -93,6 +93,11 @@ def calculate_risk_density(credential: str, pii_tokens: list[str]) -> float:
     Rd for a single credential = (number of distinct PII tokens found) / len(credential).
 
     Higher Rd → more PII packed into a shorter string → higher risk.
+
+    Edge cases:
+    - Empty credential or empty tokens → returns 0.0
+    - Matching is case-insensitive
+    - Each token counted once per credential (not per occurrence)
     """
     if not credential or not pii_tokens:
         return 0.0

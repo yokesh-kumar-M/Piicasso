@@ -7,7 +7,7 @@ import string
 User = get_user_model()
 
 class Team(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     invite_code = models.CharField(max_length=12, unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_teams')
@@ -22,11 +22,13 @@ class Team(models.Model):
         if not self.invite_code:
             # Generate unique code using cryptographically secure random (8 chars)
             alphabet = string.ascii_uppercase + string.digits
-            while True:
+            for _ in range(100):
                 code = ''.join(secrets.choice(alphabet) for _ in range(8))
                 if not Team.objects.filter(invite_code=code).exists():
                     self.invite_code = code
                     break
+            else:
+                raise RuntimeError("Failed to generate unique invite code after 100 attempts")
         super().save(*args, **kwargs)
 
     def __str__(self):
