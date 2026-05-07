@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useContext } from 'rea
 import Globe from 'react-globe.gl';
 import axiosInstance from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
+import useResponsive from '../hooks/useResponsive';
 
 const GlobalMap = () => {
     const globeEl = useRef();
@@ -12,6 +13,7 @@ const GlobalMap = () => {
     const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
     const [isLive, setIsLive] = useState(false);
     const { isAuthenticated } = useContext(AuthContext);
+    const { isMobile } = useResponsive();
 
     // Tracks the server timestamp of the last response — used for incremental fetches
     const lastServerTimeRef = useRef(null);
@@ -112,7 +114,11 @@ const GlobalMap = () => {
     }, [mergePoints, isAuthenticated]);
 
     return (
-        <div ref={containerRef} className="w-full h-full relative group flex items-center justify-center bg-transparent overflow-hidden">
+        <div
+          ref={containerRef}
+          className="w-full relative group flex items-center justify-center bg-transparent overflow-hidden"
+          style={isMobile ? { height: 'min(50vw, 280px)' } : { height: '100%' }}
+        >
             {/* Overlay stats */}
             <div className="absolute top-4 right-4 z-10 flex flex-col items-end pointer-events-none">
                 <div className="bg-zinc-950/80 backdrop-blur-sm border border-zinc-800 p-3 rounded shadow-2xl">
@@ -157,7 +163,8 @@ const GlobalMap = () => {
                 pointLat="latitude"
                 pointLng="longitude"
                 pointColor="color"
-                pointAltitude={0.02}
+                pointAltitude={isMobile ? 0.01 : 0.02}
+                enablePointerInteraction={true}
                 pointRadius={0.6}
 
                 labelsData={points}
