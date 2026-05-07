@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
+import useResponsive from '../hooks/useResponsive';
 import axiosInstance from '../api/axios';
 import { ModeContext } from '../context/ModeContext';
 import { AlertTriangle, Clock, Database, RefreshCw, AlertCircle } from 'lucide-react';
@@ -8,6 +9,7 @@ import { HistorySkeleton } from '../components/SkeletonLoader';
 const AnalysisHistoryPage = () => {
   const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
   const isSecurityMode = appMode === 'security';
+  const { isMobile } = useResponsive();
 
   const [analyses, setAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,88 @@ const AnalysisHistoryPage = () => {
     if (score >= 25) return 'var(--warn)';
     return 'var(--accent-500)';
   };
+
+  const renderMobileCards = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {analyses.map((analysis) => {
+        const levelColor = getLevelColor(analysis.vulnerability_level);
+        const scoreColor = getScoreColor(analysis.strength_score);
+        const isExpanded = expandedId === analysis.id;
+        return (
+          <div
+            key={analysis.id}
+            className="card"
+            onClick={() => toggleExpand(analysis.id)}
+            style={{ padding: '14px 16px', cursor: 'pointer' }}
+          >
+            {/* Card header row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: isExpanded ? 12 : 0 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', marginBottom: 4 }}>
+                  {formatDate(analysis.created_at)}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{
+                    display: 'inline-flex',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    fontSize: 9,
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    color: levelColor,
+                    background: `color-mix(in oklab, ${levelColor} 12%, var(--ink-1))`,
+                    border: `1px solid color-mix(in oklab, ${levelColor} 30%, transparent)`,
+                  }}>
+                    {analysis.vulnerability_level.toUpperCase()}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: scoreColor, fontWeight: 700 }}>
+                    {analysis.strength_score}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--fg-3)' }}>
+                    {analysis.vulnerabilities_count} issues
+                  </span>
+                </div>
+              </div>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--fg-3)', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                ›
+              </span>
+            </div>
+
+            {/* Expanded detail */}
+            {isExpanded && (
+              <div style={{ borderTop: '1px solid var(--ink-4)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                    Issues Found
+                  </div>
+                  {(analysis.vulnerabilities_found || []).length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'var(--good)', fontFamily: 'var(--font-mono)' }}>✓ No issues</div>
+                  ) : (
+                    (analysis.vulnerabilities_found || []).map((v, i) => (
+                      <div key={i} style={{ fontSize: 12, color: 'var(--accent-200)', fontFamily: 'var(--font-mono)', marginBottom: 3 }}>▲ {v}</div>
+                    ))
+                  )}
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                    Recommendations
+                  </div>
+                  {(analysis.recommendations || []).length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'var(--fg-2)', fontFamily: 'var(--font-mono)' }}>None recorded</div>
+                  ) : (
+                    (analysis.recommendations || []).map((r, i) => (
+                      <div key={i} style={{ fontSize: 12, color: 'var(--fg-1)', fontFamily: 'var(--font-mono)', marginBottom: 3 }}>→ {r}</div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   if (loading) {
     return <HistorySkeleton />;
