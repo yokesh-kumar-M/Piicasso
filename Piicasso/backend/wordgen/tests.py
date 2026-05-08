@@ -88,6 +88,7 @@ class AuthTokenTest(TestCase):
             username="authuser", password="StrongPass1!", email="auth@test.com"
         )
         self.client = APIClient()
+        cache.clear()
 
     def test_login_success(self):
         response = self.client.post(
@@ -142,6 +143,29 @@ class AuthTokenTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn("access", response.data)
+
+    def test_login_lockout_applies_to_active_user_token_route(self):
+        for _ in range(5):
+            response = self.client.post(
+                "/api/user/token/",
+                {
+                    "username": "authuser",
+                    "password": "wrong",
+                },
+                format="json",
+            )
+            self.assertEqual(response.status_code, 401)
+
+        lockout_response = self.client.post(
+            "/api/user/token/",
+            {
+                "username": "authuser",
+                "password": "wrong",
+            },
+            format="json",
+        )
+        self.assertEqual(lockout_response.status_code, 429)
+        self.assertEqual(lockout_response.data["code"], "account_locked")
 
 
 class PasswordResetTest(TestCase):
