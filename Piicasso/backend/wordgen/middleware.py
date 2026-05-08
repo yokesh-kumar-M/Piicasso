@@ -19,6 +19,17 @@ from django.core.cache import cache
 
 logger = logging.getLogger('wordgen.security')
 
+AUTH_EXEMPT_PREFIXES = (
+    '/api/token/',
+    '/api/auth/',
+    '/api/user/token/',
+    '/api/user/auth/',
+)
+LOGIN_ENDPOINTS = frozenset({
+    '/api/token/',
+    '/api/user/token/',
+})
+
 
 class RequestIDMiddleware(MiddlewareMixin):
     """
@@ -43,9 +54,7 @@ class PolicyViolationMiddleware(MiddlewareMixin):
     auth and messaging endpoints so they can still appeal or communicate.
     """
     # Paths that suspended users are still allowed to access
-    EXEMPT_PREFIXES = (
-        '/api/token/',
-        '/api/auth/',
+    EXEMPT_PREFIXES = AUTH_EXEMPT_PREFIXES + (
         '/api/operations/messages/',
         '/api/health/',
     )
@@ -76,9 +85,8 @@ class MaintenanceModeMiddleware(MiddlewareMixin):
     """
     EXEMPT_PREFIXES = (
         '/api/health/',
-        '/api/token/',
         '/admin/',
-    )
+    ) + AUTH_EXEMPT_PREFIXES
 
     def process_request(self, request):
         # Only check if the app is loaded (avoid import errors during startup)
@@ -132,8 +140,12 @@ class AccountLockoutMiddleware(MiddlewareMixin):
     MAX_ATTEMPTS = 5
     LOCKOUT_SECONDS = 900  # 15 minutes
 
+    @staticmethod
+    def _is_login_request(request):
+        return request.method == 'POST' and request.path in LOGIN_ENDPOINTS
+
     def process_request(self, request):
-        if request.path != '/api/token/' or request.method != 'POST':
+        if not self._is_login_request(request):
             return None
 
         try:
@@ -160,7 +172,7 @@ class AccountLockoutMiddleware(MiddlewareMixin):
             )
 
     def process_response(self, request, response):
-        if request.path != '/api/token/' or request.method != 'POST':
+        if not self._is_login_request(request):
             return response
 
         try:
@@ -251,7 +263,7 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
             self._log_pii_submission(request, response, duration, request_id)
 
         # Audit: auth attempts
-        if request.path == '/api/token/' and request.method == 'POST':
+        if request.method == 'POST' and request.path in LOGIN_ENDPOINTS:
             self._log_auth_attempt(request, response, duration, request_id)
 
         # Monitor: 4xx/5xx
