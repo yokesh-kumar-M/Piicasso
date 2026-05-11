@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 import html as html_module
 import re
+from urllib.parse import quote
 from .models import Message, Notification, SystemSetting
 from .serializers import (
     MessageSerializer,
@@ -279,8 +280,8 @@ class BreachSearchView(APIView):
                         "hibp-api-key": hibp_api_key,
                     }
                     resp = http_requests.get(
-                        "https://haveibeenpwned.com/api/v3/breachedaccount/",
-                        params={"truncateResponse": "true", "account": query},
+                        f"https://haveibeenpwned.com/api/v3/breachedaccount/{quote(query, safe='')}",
+                        params={"truncateResponse": "true"},
                         headers=headers,
                         timeout=10,
                     )
