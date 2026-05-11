@@ -8,6 +8,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from operations.models import Notification, Message, SystemSetting
+from unittest.mock import patch
 
 
 class NotificationTest(TestCase):
@@ -111,6 +112,17 @@ class BreachSearchTest(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    @patch("operations.views.k_anonymity_breach_count", return_value=0)
+    def test_breach_search_valid_email_does_not_500(self, mock_breach_count):
+        response = self.client.post(
+            "/api/operations/breach-search/",
+            {"query": "person@example.com"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("risk_score", response.data)
+        self.assertEqual(response.data["internal_matches"], 0)
+
     def test_breach_search_password_check(self):
         """Test password hash lookup (free API, no key needed)."""
         response = self.client.post(
@@ -120,6 +132,17 @@ class BreachSearchTest(TestCase):
         self.assertIn("password_exposures", response.data)
         # 'password123' should definitely be in breaches
         self.assertGreater(response.data["password_exposures"], 0)
+
+    @patch("operations.views.k_anonymity_breach_count", return_value=0)
+    def test_breach_search_non_email_uses_internal_matches_safely(
+        self, mock_breach_count
+    ):
+        response = self.client.post(
+            "/api/operations/breach-search/", {"query": "password123"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["internal_matches"], 0)
+        self.assertEqual(response.data["risk_score"], 0)
 
     def test_unauthenticated_breach_search(self):
         client = APIClient()
