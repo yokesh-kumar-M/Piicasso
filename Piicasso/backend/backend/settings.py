@@ -41,7 +41,7 @@ if not invalid_sentry_dsn and os.getenv("ENV", "development") != "test":
         integrations=[DjangoIntegration()],
         traces_sample_rate=1.0,
         send_default_pii=True,
-        environment=os.getenv("ENV", "production"),
+        environment=os.getenv("ENV", "development"),
     )
 
 # ─── BASE ────────────────────────────────────────────────────────────────────

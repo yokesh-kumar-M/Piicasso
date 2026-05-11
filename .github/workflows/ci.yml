@@ -10,6 +10,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
         ports:
@@ -37,20 +38,23 @@ jobs:
         run: |
           cd Piicasso/backend
           python -c "
-          import time, psycopg2
+          import time, psycopg2, sys
           for i in range(10):
               try:
-                  psycopg2.connect(host='postgres', port=5432, user='postgres', password='postgres', dbname='test_db').close()
+                  psycopg2.connect(host='localhost', port=5432, user='postgres', password='postgres', dbname='test_db').close()
                   print('Postgres is ready!')
                   break
               except Exception as e:
-                  print(f'Waiting for Postgres... ({i+1})')
+                  print(f'Waiting for Postgres... ({i+1}): {e}')
                   time.sleep(3)
+          else:
+              print('ERROR: Postgres never became ready')
+              sys.exit(1)
           "
 
       - name: Run backend tests
         env:
-          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           DJANGO_SECRET_KEY: test-secret-key-not-for-production
           ENV: test
           GOOGLE_CLIENT_ID: test-google-client-id
