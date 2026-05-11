@@ -8,6 +8,8 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from operations.models import Notification, Message, SystemSetting
+from unittest.mock import patch
+import os
 
 
 class NotificationTest(TestCase):
@@ -111,15 +113,64 @@ class BreachSearchTest(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
-    def test_breach_search_password_check(self):
-        """Test password hash lookup (free API, no key needed)."""
+    @patch.dict(os.environ, {}, clear=False)
+    @patch("operations.views.k_anonymity_breach_count", return_value=0)
+    def test_breach_search_valid_email_does_not_500(self, mock_breach_count):
+        os.environ.pop("HIBP_API_KEY", None)
+        response = self.client.post(
+            "/api/operations/breach-search/",
+            {"query": "person@example.com"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("risk_score", response.data)
+        self.assertEqual(response.data["internal_matches"], 0)
+
+    @patch.dict(os.environ, {"HIBP_API_KEY": "test-key"}, clear=False)
+    @patch("requests.get")
+    @patch("operations.views.k_anonymity_breach_count", return_value=0)
+    def test_breach_search_email_uses_hibp_account_path(
+        self, mock_breach_count, mock_get
+    ):
+        mock_get.return_value.status_code = 404
+
+        response = self.client.post(
+            "/api/operations/breach-search/",
+            {"query": "person@example.com"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        mock_get.assert_called_once_with(
+            "https://haveibeenpwned.com/api/v3/breachedaccount/person%40example.com",
+            params={"truncateResponse": "true"},
+            headers={
+                "User-Agent": "PIIcasso-SecurityAudit",
+                "hibp-api-key": "test-key",
+            },
+            timeout=10,
+        )
+
+    @patch("operations.views.k_anonymity_breach_count", return_value=42)
+    def test_breach_search_password_check(self, mock_breach_count):
+        """Test password exposure handling without relying on the live HIBP API."""
         response = self.client.post(
             "/api/operations/breach-search/", {"query": "password123"}, format="json"
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn("password_exposures", response.data)
-        # 'password123' should definitely be in breaches
-        self.assertGreater(response.data["password_exposures"], 0)
+        self.assertEqual(response.data["password_exposures"], 42)
+
+    @patch("operations.views.k_anonymity_breach_count", return_value=0)
+    def test_breach_search_non_email_uses_internal_matches_safely(
+        self, mock_breach_count
+    ):
+        response = self.client.post(
+            "/api/operations/breach-search/", {"query": "password123"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["internal_matches"], 0)
+        self.assertEqual(response.data["risk_score"], 0)
 
     def test_unauthenticated_breach_search(self):
         client = APIClient()

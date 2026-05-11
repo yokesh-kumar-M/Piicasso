@@ -7,6 +7,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 import html as html_module
+import re
+from urllib.parse import quote
 from .models import Message, Notification, SystemSetting
 from .serializers import (
     MessageSerializer,
@@ -277,13 +279,9 @@ class BreachSearchView(APIView):
                         "User-Agent": "PIIcasso-SecurityAudit",
                         "hibp-api-key": hibp_api_key,
                     }
-                    # URL-encode the query to prevent injection
-                    from urllib.parse import quote
-
-                    safe_query = quote(query, safe="")
                     resp = http_requests.get(
-                        "https://haveibeenpwned.com/api/v3/breachedaccount/",
-                        params={"truncateResponse": "true", "account": query},
+                        f"https://haveibeenpwned.com/api/v3/breachedaccount/{quote(query, safe='')}",
+                        params={"truncateResponse": "true"},
                         headers=headers,
                         timeout=10,
                     )
@@ -330,7 +328,7 @@ class BreachSearchView(APIView):
             100,
             (breach_count * 15)
             + (min(results["password_exposures"], 100) * 0.5)
-            + (internal_count * 5),
+            + (results["internal_matches"] * 5),
         )
         results["risk_score"] = round(risk_score)
 
