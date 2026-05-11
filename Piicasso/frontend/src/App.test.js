@@ -2,6 +2,15 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
+jest.mock('./api/axios', () => ({
+  __esModule: true,
+  default: {
+    defaults: { headers: { common: {} } },
+    get: jest.fn(() => Promise.resolve({ data: {} })),
+    post: jest.fn(),
+  },
+}));
+
 // Smoke test: App renders without crashing
 test('renders without crashing', () => {
   // Minimal render — just verify the provider + router don't throw

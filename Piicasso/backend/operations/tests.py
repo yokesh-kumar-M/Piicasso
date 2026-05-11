@@ -106,6 +106,11 @@ class BreachSearchTest(TestCase):
         self.user = User.objects.create_user("breachuser", password="Pass1234!")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+        self.get_throttles_patcher = patch(
+            "operations.views.BreachSearchView.get_throttles", return_value=[]
+        )
+        self.get_throttles_patcher.start()
+        self.addCleanup(self.get_throttles_patcher.stop)
 
     def test_breach_search_empty_query(self):
         response = self.client.post(
