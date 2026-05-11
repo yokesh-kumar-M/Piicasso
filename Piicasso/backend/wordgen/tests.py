@@ -229,9 +229,9 @@ class PiiSubmitTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
     @patch(
-        "wordgen.views.call_gemini_api", return_value="password1\npassword2\npassword3"
+        "wordgen.views.generation.call_gemini_api", return_value="password1\npassword2\npassword3"
     )
-    @patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}, format="json")
+    @patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"})
     def test_submit_success(self, mock_gemini):
         response = self.client.post(
             "/api/submit/",
@@ -246,19 +246,19 @@ class PiiSubmitTest(TestCase):
         self.assertEqual(response.data["status"], "processing")
 
     def test_submit_empty_data(self):
-        response = self.client.post("/api/submit/", {}, format="json")
+        response = self.client.post("/api/submit/", {})
         self.assertEqual(response.status_code, 400)
 
     def test_submit_unauthenticated(self):
         client = APIClient()  # No auth
-        response = client.post("/api/submit/", {"full_name": "Test"}, format="json")
+        response = client.post("/api/submit/", {"full_name": "Test"})
         self.assertEqual(response.status_code, 401)
 
     def test_submit_sanitizes_html(self):
         """1.6 fix: HTML tags should be escaped in stored PII data."""
-        with patch("wordgen.views.call_gemini_api", return_value="pass1"):
+        with patch("wordgen.views.generation.call_gemini_api", return_value="pass1"):
             with patch.dict(
-                "os.environ", {"GEMINI_API_KEY": "test-key"}, format="json"
+                "os.environ", {"GEMINI_API_KEY": "test-key"}
             ):
                 response = self.client.post(
                     "/api/submit/",
@@ -431,7 +431,7 @@ class SimulatedTerminalTest(TestCase):
 
     def test_unauthenticated_access(self):
         client = APIClient()
-        response = client.post("/api/terminal/", {"command": "help"}, format="json")
+        response = client.post("/api/terminal/", {"command": "help"})
         self.assertEqual(response.status_code, 401)
 
 
