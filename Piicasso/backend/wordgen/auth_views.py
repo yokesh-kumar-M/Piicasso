@@ -48,25 +48,27 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         username = attrs.get(self.username_field)
         password = attrs.get("password")
 
-        if username and password:
-            if "@" in username:
-                user = User.objects.filter(email__iexact=username).first()
-            else:
-                user = User.objects.filter(username=username).first()
+        try:
+            data = super().validate(attrs)
+        except AuthenticationFailed as exc:
+            if username and password:
+                if "@" in username:
+                    user = User.objects.filter(email__iexact=username).first()
+                else:
+                    user = User.objects.filter(username=username).first()
 
-            if user is None:
-                raise AuthenticationFailed(
-                    "No account found for this email/username.",
-                    code="account_not_found",
-                )
+                if user is None:
+                    raise AuthenticationFailed(
+                        "No account found for this email/username.",
+                        code="account_not_found",
+                    )
 
-            if not user.check_password(password):
-                raise AuthenticationFailed(
-                    "Incorrect password.",
-                    code="incorrect_password",
-                )
-
-        data = super().validate(attrs)
+                if not user.check_password(password):
+                    raise AuthenticationFailed(
+                        "Incorrect password.",
+                        code="incorrect_password",
+                    )
+            raise exc
 
         data["username"] = self.user.username
         data["is_superuser"] = self.user.is_superuser
