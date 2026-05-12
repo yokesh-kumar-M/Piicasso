@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -44,6 +45,27 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        username = attrs.get(self.username_field)
+        password = attrs.get("password")
+
+        if username and password:
+            if "@" in username:
+                user = User.objects.filter(email__iexact=username).first()
+            else:
+                user = User.objects.filter(username=username).first()
+
+            if user is None:
+                raise AuthenticationFailed(
+                    "No account found for this email/username.",
+                    code="account_not_found",
+                )
+
+            if not user.check_password(password):
+                raise AuthenticationFailed(
+                    "Incorrect password.",
+                    code="incorrect_password",
+                )
+
         data = super().validate(attrs)
 
         data["username"] = self.user.username

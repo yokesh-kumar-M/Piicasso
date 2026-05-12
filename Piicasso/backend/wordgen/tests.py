@@ -114,6 +114,37 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data.get("detail"), "Incorrect password.")
+
+    def test_login_nonexistent_account(self):
+        response = self.client.post(
+            "/api/user/token/",
+            {
+                "username": "missing-user",
+                "password": "StrongPass1!",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(
+            response.data.get("detail"),
+            "No account found for this email/username.",
+        )
+
+    def test_login_nonexistent_email(self):
+        response = self.client.post(
+            "/api/user/token/",
+            {
+                "username": "missing@example.com",
+                "password": "StrongPass1!",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(
+            response.data.get("detail"),
+            "No account found for this email/username.",
+        )
 
     def test_login_inactive_user(self):
         """1.3 fix: inactive users should NOT get valid tokens."""
