@@ -130,6 +130,20 @@ class AuthTokenTest(TestCase):
             response.data["detail"], "No account found for this email/username."
         )
 
+    def test_login_unknown_username(self):
+        response = self.client.post(
+            "/api/user/token/",
+            {
+                "username": "missinguser",
+                "password": "wrong",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(
+            response.data["detail"], "No account found for this email/username."
+        )
+
     def test_login_inactive_user(self):
         """1.3 fix: inactive users should NOT get valid tokens."""
         self.user.is_active = False
