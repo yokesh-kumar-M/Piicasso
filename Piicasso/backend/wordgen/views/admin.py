@@ -76,7 +76,7 @@ class SuperAdminView(APIView):
         )
 
         users_qs = User.objects.annotate(
-            generated=Count("generationhistory"),
+            generated=Count("generation_history"),
             latest_city=Subquery(latest_activity_sq),
         ).order_by("-date_joined")
 

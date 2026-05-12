@@ -25,20 +25,24 @@ from django.core.exceptions import ImproperlyConfigured
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 # ─── SENTRY ERROR TRACKING ──────────────────────────────────────────────────
-sentry_dsn = os.getenv(
-    "SENTRY_DSN",
-    "https://d305093cdc0991075d5571abaa032ddf@o4511350635233280.ingest.de.sentry.io/4511350644473936",
+sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
+invalid_sentry_dsn = (
+    not sentry_dsn
+    or "your-sentry-dsn" in sentry_dsn
+    or "your-project-id" in sentry_dsn
 )
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
-sentry_sdk.init(
-    dsn=sentry_dsn,
-    integrations=[DjangoIntegration()],
-    traces_sample_rate=1.0,
-    send_default_pii=True,
-    environment=os.getenv("ENV", "production"),
-)
+if not invalid_sentry_dsn and os.getenv("ENV", "development") != "test":
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+        send_default_pii=True,
+        environment=os.getenv("ENV", "development"),
+    )
 
 # ─── BASE ────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,7 +83,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SECURE_SSL_REDIRECT = False
 
 # Production-only hardened security
-if not DEBUG:
+if ENV == "production" and not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
