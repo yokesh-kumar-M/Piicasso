@@ -114,6 +114,35 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data["detail"], "Incorrect password.")
+
+    def test_login_unknown_email(self):
+        response = self.client.post(
+            "/api/user/token/",
+            {
+                "username": "missing@test.com",
+                "password": "wrong",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(
+            response.data["detail"], "No account found for this email/username."
+        )
+
+    def test_login_unknown_username(self):
+        response = self.client.post(
+            "/api/user/token/",
+            {
+                "username": "missinguser",
+                "password": "wrong",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(
+            response.data["detail"], "No account found for this email/username."
+        )
 
     def test_login_inactive_user(self):
         """1.3 fix: inactive users should NOT get valid tokens."""
@@ -128,6 +157,7 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data["detail"], "Your account has been suspended.")
 
     def test_token_refresh(self):
         login = self.client.post(

@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -17,7 +18,9 @@ from django.core.cache import cache
 import secrets
 import string
 from analytics.models import UserActivity
+from .backends import _DUMMY_HASH
 from .utils import safe_float
+from django.contrib.auth.hashers import check_password
 
 User = get_user_model()
 logger = logging.getLogger("wordgen")
@@ -44,7 +47,33 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        data = super().validate(attrs)
+        username = attrs.get(self.username_field)
+        password = attrs.get("password")
+
+        if not username or not password:
+            raise AuthenticationFailed("Username/email and password are required.")
+
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            user = User.objects.filter(email__iexact=username).first()
+
+        if not user:
+            # Keep timing similar when the account does not exist.
+            check_password(password, _DUMMY_HASH)
+            raise AuthenticationFailed("No account found for this email/username.")
+
+        if not user.check_password(password):
+            raise AuthenticationFailed("Incorrect password.")
+
+        if not user.is_active:
+            raise AuthenticationFailed("Your account has been suspended.")
+
+        self.user = user
+        refresh = self.get_token(user)
+        data = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
 
         data["username"] = self.user.username
         data["is_superuser"] = self.user.is_superuser
