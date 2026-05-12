@@ -4,6 +4,7 @@ PIIcasso Backend Tests — wordgen app
 Tests for auth, registration, PII submission, history, admin, terminal, and health.
 """
 
+import json
 from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -165,7 +166,7 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         self.assertEqual(lockout_response.status_code, 429)
-        self.assertEqual(lockout_response.data["code"], "account_locked")
+        self.assertEqual(json.loads(lockout_response.content)["code"], "account_locked")
 
 
 class PasswordResetTest(TestCase):
@@ -178,7 +179,9 @@ class PasswordResetTest(TestCase):
     def test_request_reset_existing_email(self):
         with patch("wordgen.auth_views.send_mail") as mock_mail:
             response = self.client.post(
-                "/api/auth/password/reset/", {"email": "reset@test.com"}, format="json"
+                "/api/user/auth/password/reset/",
+                {"email": "reset@test.com"},
+                format="json",
             )
         self.assertEqual(response.status_code, 200)
         # Should not reveal if email exists
@@ -186,7 +189,7 @@ class PasswordResetTest(TestCase):
 
     def test_request_reset_nonexistent_email(self):
         response = self.client.post(
-            "/api/auth/password/reset/", {"email": "no@test.com"}, format="json"
+            "/api/user/auth/password/reset/", {"email": "no@test.com"}, format="json"
         )
         # Same response to mask email existence
         self.assertEqual(response.status_code, 200)
@@ -194,7 +197,7 @@ class PasswordResetTest(TestCase):
     def test_verify_reset_otp(self):
         cache.set("pwd_reset_otp_reset@test.com", "123456", timeout=600)
         response = self.client.post(
-            "/api/auth/password/reset/verify/",
+            "/api/user/auth/password/reset/verify/",
             {
                 "email": "reset@test.com",
                 "otp": "123456",
@@ -209,7 +212,7 @@ class PasswordResetTest(TestCase):
     def test_verify_reset_wrong_otp(self):
         cache.set("pwd_reset_otp_reset@test.com", "123456", timeout=600)
         response = self.client.post(
-            "/api/auth/password/reset/verify/",
+            "/api/user/auth/password/reset/verify/",
             {
                 "email": "reset@test.com",
                 "otp": "000000",
@@ -229,7 +232,7 @@ class PiiSubmitTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
     @patch(
-        "wordgen.views.generation.call_gemini_api", return_value="password1\npassword2\npassword3"
+        "wordgen.llm_handler.call_gemini_api", return_value="password1\npassword2\npassword3"
     )
     @patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"})
     def test_submit_success(self, mock_gemini):
@@ -241,9 +244,10 @@ class PiiSubmitTest(TestCase):
             },
             format="json",
         )
-        self.assertEqual(response.status_code, 202)
-        self.assertIn("cache_key", response.data)
-        self.assertEqual(response.data["status"], "processing")
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("id", response.data)
+        self.assertIn("wordlist", response.data)
+        self.assertEqual(response.data["status"], "success")
 
     def test_submit_empty_data(self):
         response = self.client.post("/api/submit/", {})
@@ -256,7 +260,7 @@ class PiiSubmitTest(TestCase):
 
     def test_submit_sanitizes_html(self):
         """1.6 fix: HTML tags should be escaped in stored PII data."""
-        with patch("wordgen.views.generation.call_gemini_api", return_value="pass1"):
+        with patch("wordgen.llm_handler.call_gemini_api", return_value="pass1"):
             with patch.dict(
                 "os.environ", {"GEMINI_API_KEY": "test-key"}
             ):
@@ -267,7 +271,7 @@ class PiiSubmitTest(TestCase):
                     },
                     format="json",
                 )
-        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.status_code, 201)
         record = GenerationHistory.objects.filter(user=self.user).last()
         self.assertIsNotNone(record)
         self.assertNotIn("<script>", record.pii_data.get("full_name", ""))
