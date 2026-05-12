@@ -53,11 +53,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not username or not password:
             raise AuthenticationFailed("Username/email and password are required.")
 
-        user = (
-            User.objects.filter(email__iexact=username).first()
-            if "@" in username
-            else User.objects.filter(username=username).first()
-        )
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            user = User.objects.filter(email__iexact=username).first()
 
         if not user:
             # Keep timing similar when the account does not exist.
