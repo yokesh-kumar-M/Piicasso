@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell';
 import {
-  Book, Code, Key, Shield, Zap, Database,
+  Book, Code, Key, Shield, Database,
   Copy, Check, ChevronRight, Terminal, Globe,
   FileText, Users, Lock, Play, ExternalLink,
-  Wifi, Cpu, History, Download, MessageSquare,
+  Wifi, Cpu, History, MessageSquare,
   BarChart3, Settings, Search, Eye, Trash2
 } from 'lucide-react';
 
@@ -62,7 +62,6 @@ const MethodBadge = ({ method }) => {
   const isGet = method === 'GET';
   const isPost = method === 'POST';
   const isDelete = method === 'DELETE';
-  const isPut = method === 'PUT';
   const borderColor = isGet ? 'border-green-500/40' : isPost ? 'border-blue-500/40' : isDelete ? 'border-red-500/40' : 'border-amber-500/40';
   const textColor = isGet ? 'text-green-400' : isPost ? 'text-blue-400' : isDelete ? 'text-red-400' : 'text-amber-400';
   const bgColor = isGet ? 'bg-green-500/10' : isPost ? 'bg-blue-500/10' : isDelete ? 'bg-red-500/10' : 'bg-amber-500/10';

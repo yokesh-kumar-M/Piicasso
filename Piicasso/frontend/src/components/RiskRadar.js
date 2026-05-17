@@ -20,16 +20,17 @@ ChartJS.register(
 );
 
 const RiskRadar = ({ inputData }) => {
-    const scores = inputData || {};
-
-    const dataValues = useMemo(() => [
-        Math.max(0, Math.min(10, (scores.identity || 2))),
-        Math.max(0, Math.min(10, (scores.family || 1))),
-        Math.max(0, Math.min(10, (scores.work || 1))),
-        Math.max(0, Math.min(10, (scores.location || 1))),
-        Math.max(0, Math.min(10, (scores.interests || 1))),
-        Math.max(0, Math.min(10, (scores.assets || 1)))
-    ], [scores]);
+    const dataValues = useMemo(() => {
+        const scores = inputData || {};
+        return [
+            Math.max(0, Math.min(10, (scores.identity || 2))),
+            Math.max(0, Math.min(10, (scores.family || 1))),
+            Math.max(0, Math.min(10, (scores.work || 1))),
+            Math.max(0, Math.min(10, (scores.location || 1))),
+            Math.max(0, Math.min(10, (scores.interests || 1))),
+            Math.max(0, Math.min(10, (scores.assets || 1)))
+        ];
+    }, [inputData]);
 
     const data = {
         labels: ['IDENTITY', 'FAMILY', 'WORK', 'LOCATION', 'INTERESTS', 'ASSETS'],

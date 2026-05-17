@@ -4,7 +4,7 @@ import DesignAppShell from '../components/design/dashboard/DesignAppShell';
 import axiosInstance from '../api/axios';
 import { ModeContext as ModeContextImport } from '../context/ModeContext';
 import {
-  Download, Terminal, FileText, CheckCircle, ShieldCheck,
+  Terminal, FileText, CheckCircle, ShieldCheck,
   ArrowRight, Database, Activity, Zap, AlertTriangle, TrendingUp
 } from 'lucide-react';
 
@@ -23,34 +23,6 @@ const scoreColor = (s) => {
   if (s >= 20) return { bg: 'rgba(99,102,241,0.1)', color: '#818cf8' };
   return        { bg: 'rgba(255,255,255,0.04)',     color: '#6b7280' };
 };
-
-/* ─── small stat card ───────────────────────────────────────────────────── */
-const StatCard = ({ label, value, sub, accent }) => (
-  <div style={{
-    background: 'var(--ink-1)',
-    border: '1px solid var(--ink-4)',
-    borderRadius: 8,
-    padding: '16px 20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-    borderLeft: `3px solid ${accent || 'var(--accent-500)'}`,
-  }}>
-    <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)',
-                  textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-      {label}
-    </div>
-    <div style={{ fontSize: 28, fontWeight: 700, color: accent || 'var(--fg-0)',
-                  lineHeight: 1.1, fontFamily: 'var(--font-mono)' }}>
-      {value}
-    </div>
-    {sub && (
-      <div style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)' }}>
-        {sub}
-      </div>
-    )}
-  </div>
-);
 
 /* ─── progress bar ──────────────────────────────────────────────────────── */
 const ProgressBar = ({ value, max = 100, color }) => (
@@ -75,8 +47,7 @@ const ResultPage = () => {
   const [loading, setLoading]     = useState(true);
   const [visibleCount, setVisibleCount] = useState(200);
 
-  const { mode } = useContext(ModeContextImport);
-  const isSecurityMode = mode === 'security';
+  useContext(ModeContextImport);
   const navigate = useNavigate();
 
   useEffect(() => {

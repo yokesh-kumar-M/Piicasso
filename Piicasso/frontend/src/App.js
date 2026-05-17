@@ -1,9 +1,8 @@
 import React, { useContext, useEffect, Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import axios from './api/axios';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
-import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Footer from './components/Footer';
 import CinematicTransition from './components/CinematicTransition';
@@ -56,6 +55,7 @@ const AnalysisHistoryPage = React.lazy(() => import('./pages/AnalysisHistoryPage
 const LearnPage = React.lazy(() => import('./pages/LearnPage'));
 const FinancialRiskPage = React.lazy(() => import('./pages/FinancialRiskPage'));
 const ApiDocsPage = React.lazy(() => import('./pages/ApiDocsPage'));
+const TerminalPage = React.lazy(() => import('./pages/TerminalPage'));
 
 function AppContent() {
   useHelpBeacon();
@@ -83,6 +83,7 @@ function AppContent() {
                 <Routes location={locationToRender} key={locationToRender.pathname}>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/api" element={<ApiDocsPage />} />
+                  <Route path="/terminal" element={<TerminalPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/register" element={<RegisterPage />} />

@@ -30,7 +30,6 @@ const SuperAdminPage = () => {
     };
 
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('users');
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -70,9 +69,8 @@ const SuperAdminPage = () => {
         try {
             const res = await axios.get('super-admin/');
             setData(res.data);
-            setError('');
         } catch (err) {
-            setError('Connection dropped or unauthorized.');
+            console.warn('Admin data fetch failed:', err.message);
         } finally {
             setLoading(false);
         }

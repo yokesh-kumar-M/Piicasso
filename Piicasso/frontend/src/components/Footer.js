@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
-import { Github, Twitter, Linkedin, Mail, Shield, ArrowRight } from 'lucide-react';
+import { Github, Twitter, Linkedin, Shield, ArrowRight } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -71,17 +71,21 @@ const Footer = () => {
 
             {/* Social Links */}
             <div className="flex items-center gap-3">
-              <a href="#"
+              <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer"
+                aria-label="Twitter"
                 className="w-11 h-11 rounded-lg bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white transition-all"
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-500)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = ''; }}
               >
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+              <a href="https://github.com/yokesh-kumar-M/Piicasso" target="_blank" rel="noopener noreferrer"
+                aria-label="GitHub"
+                className="w-11 h-11 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
                 <Github className="w-5 h-5" />
               </a>
-              <a href="#"
+              <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer"
+                aria-label="LinkedIn"
                 className="w-11 h-11 rounded-lg bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white transition-all"
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-700)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = ''; }}

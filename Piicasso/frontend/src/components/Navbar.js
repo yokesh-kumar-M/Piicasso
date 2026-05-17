@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Bell, Menu, X, User, Mail, ChevronDown, Lock, Target } from 'lucide-react';
+import { Search, Bell, Menu, X, User, Mail, ChevronDown, TerminalSquare } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import axiosInstance from '../api/axios';
@@ -267,6 +267,9 @@ const Navbar = () => {
                                     </Link>
                                     <Link to="/inbox" className="px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white font-medium flex items-center gap-2 sm:gap-3">
                                         <Mail className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] text-gray-400" strokeWidth={2} /> Inbox
+                                    </Link>
+                                    <Link to="/terminal" className={`px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white font-medium flex items-center gap-2 sm:gap-3 ${isSecurityMode ? 'font-mono uppercase tracking-widest' : ''}`}>
+                                        <TerminalSquare className={`w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] ${isSecurityMode ? 'text-security-red' : 'text-user-cobalt'}`} strokeWidth={2} /> Terminal
                                     </Link>
                                     <div className={`h-px my-1.5 sm:my-2 ${isSecurityMode ? 'bg-security-border' : 'bg-user-border'}`}></div>
                                     <button onClick={logout} className={`w-full text-left px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm transition-colors font-medium flex items-center gap-2 sm:gap-3 ${isSecurityMode ? 'text-security-red hover:bg-security-red/10' : 'text-red-400 hover:bg-red-500/10'}`}>

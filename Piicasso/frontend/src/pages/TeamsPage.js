@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import axiosInstance from '../api/axios';
-import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -11,7 +10,6 @@ import {
 } from 'lucide-react';
 
 const TeamsPage = () => {
-    const { user } = useContext(AuthContext);
     const [team, setTeam] = useState(null);
   const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
   const isSecurityMode = appMode === 'security';

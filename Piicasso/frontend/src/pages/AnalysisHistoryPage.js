@@ -1,13 +1,10 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import useResponsive from '../hooks/useResponsive';
 import axiosInstance from '../api/axios';
-import { ModeContext } from '../context/ModeContext';
 import { AlertTriangle, Clock, Database, RefreshCw, AlertCircle } from 'lucide-react';
 import { HistorySkeleton } from '../components/SkeletonLoader';
 
 const AnalysisHistoryPage = () => {
-  const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
-  const isSecurityMode = appMode === 'security';
   const { isMobile } = useResponsive();
 
   const [analyses, setAnalyses] = useState([]);

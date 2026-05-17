@@ -39,7 +39,7 @@ const CinematicTransition = ({ children }) => {
                 setIsTransitioning(false);
             }, 50); // Almost invisible loader
         }
-    }, [location.pathname, displayLocation.pathname, isTransitioning]);
+    }, [location, displayLocation.pathname, isTransitioning]);
 
     const label = PAGE_LABELS[location.pathname] || 'Loading';
 

@@ -17,7 +17,6 @@ const GlobalMap = () => {
 
     // User's own geolocation
     const [userLocation, setUserLocation] = useState(null); // {latitude, longitude, city, country_code}
-    const [geoError, setGeoError] = useState(false);
 
     // Tracks the server timestamp of the last response — used for incremental fetches
     const lastServerTimeRef = useRef(null);
@@ -27,7 +26,6 @@ const GlobalMap = () => {
     // Get user's geolocation on mount
     useEffect(() => {
         if (!navigator.geolocation) {
-            setGeoError(true);
             return;
         }
         navigator.geolocation.getCurrentPosition(
@@ -50,7 +48,6 @@ const GlobalMap = () => {
             },
             (err) => {
                 console.warn('Geolocation denied or unavailable:', err.message);
-                setGeoError(true);
             },
             { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
         );

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell';
 import axiosInstance from '../api/axios';
-import { ModeContext } from '../context/ModeContext';
-import { useContext } from 'react';
 import { Bookmark, BookmarkCheck, Download, FileDown, Search, FileText, RefreshCw } from 'lucide-react';
 
 const SAVED_KEY = 'piicasso_saved_ids';
@@ -30,8 +28,6 @@ const toggleSaved = (id) => {
 
 const SavedPage = () => {
     const [savedIds, setSavedIds] = useState(getSavedIds());
-    const { mode } = useContext(ModeContext);
-    const isSecurityMode = mode === 'security';
 
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);

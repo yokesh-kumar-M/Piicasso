@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
-import UnderDevRibbon from '../components/UnderDevRibbon.jsx';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import axiosInstance from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, ShieldAlert, Database, Globe,
-    AlertTriangle, Loader2, Eye, Shield,
-    CheckCircle, XCircle, Lock
+    AlertTriangle, Loader2, Shield,
+    CheckCircle, Lock
 } from 'lucide-react';
 
 const DarkWebPage = () => {
@@ -97,7 +96,6 @@ const DarkWebPage = () => {
     return (
         <DesignAppShell activeKey={isSecurityMode ? 'intel' : 'leaks'}>
             <div style={{ paddingTop: 24, paddingBottom: 80, paddingLeft: 16, paddingRight: 16, position: 'relative', overflow: 'hidden' }}>
-            <UnderDevRibbon />
             <div style={{ maxWidth: 1100, marginLeft: 'auto', marginRight: 'auto' }}>
 
                 {/* Header */}

@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
 import axiosInstance from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import {
     User, Heart, Briefcase, MapPin, Film, CreditCard,
-    Shield, Check, Hash, Zap, Lock
+    Shield, Hash, Zap, Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

@@ -13,7 +13,7 @@ export const PII_PATTERNS = [
   { type: 'PHONE', label: 'phone',  re: /(?:\+?\d{1,3}[\s-]?)?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}/g, weight: 0.16 },
   { type: 'SSN',   label: 'ssn',    re: /\b\d{3}-\d{2}-\d{4}\b/g, weight: 0.30 },
   { type: 'CARD',  label: 'card',   re: /\b(?:\d[ -]*?){13,16}\b/g, weight: 0.30 },
-  { type: 'DOB',   label: 'dob',    re: /\b(?:0?[1-9]|1[0-2])[/\-](?:0?[1-9]|[12]\d|3[01])[/\-](?:19|20)\d{2}\b/g, weight: 0.22 },
+  { type: 'DOB',   label: 'dob',    re: /\b(?:0?[1-9]|1[0-2])[/-](?:0?[1-9]|[12]\d|3[01])[/-](?:19|20)\d{2}\b/g, weight: 0.22 },
   { type: 'IP',    label: 'ip',     re: /\b\d{1,3}(?:\.\d{1,3}){3}\b/g, weight: 0.10 },
   { type: 'ADDR',  label: 'address', re: /\b\d{1,5}\s+[A-Z][a-z]+\s(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Lane|Ln|Drive|Dr)\b/g, weight: 0.14 },
   { type: 'ZIP',   label: 'zip',    re: /\b\d{5}(?:-\d{4})?\b/g, weight: 0.06 },
@@ -25,12 +25,13 @@ export function detectEntities(text) {
   const found = [];
   for (const { type, label, re, weight } of PII_PATTERNS) {
     const r = new RegExp(re.source, re.flags);
-    let m;
-    while ((m = r.exec(text)) !== null) {
-      if (found.some(f => f.start === m.index && f.type === type)) continue;
-      const inside = found.some(f => m.index >= f.start && (m.index + m[0].length) <= f.end);
-      if (inside) continue;
-      found.push({ type, label, weight, start: m.index, end: m.index + m[0].length, text: m[0] });
+    let match;
+    while ((match = r.exec(text)) !== null) {
+      const start = match.index;
+      const end = match.index + match[0].length;
+      if (found.some(f => f.start === start && f.type === type)) continue;
+      if (found.some(f => start >= f.start && end <= f.end)) continue;
+      found.push({ type, label, weight, start, end, text: match[0] });
     }
   }
   found.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));

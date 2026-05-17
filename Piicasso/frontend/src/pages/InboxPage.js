@@ -3,10 +3,10 @@ import axios from '../api/axios';
 import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ModeContext } from '../context/ModeContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-    Send, Mail, Users, ChevronRight, Search,
-    AlertCircle, MessageCircle, ArrowLeft, Circle
+    Send, Mail, ChevronRight, Search,
+    AlertCircle, MessageCircle
 } from 'lucide-react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 

@@ -10,7 +10,7 @@ export const ModeProvider = ({ children }) => {
   });
 
   const [showModeModal, setShowModeModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const hasFetchedPrefs = useRef(false);
 
   // Sync mode to DOM and localStorage on every change.

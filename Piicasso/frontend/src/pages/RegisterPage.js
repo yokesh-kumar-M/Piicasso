@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axios';
-import { ModeContext } from '../context/ModeContext';
 import AuthShell from '../components/design/auth/AuthShell';
 import Field from '../components/design/auth/Field';
 import SsoButtons from '../components/design/auth/SsoButtons';
@@ -31,7 +30,6 @@ const ROLES = [
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { mode: appMode } = useContext(ModeContext) || { mode: 'security' };
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');

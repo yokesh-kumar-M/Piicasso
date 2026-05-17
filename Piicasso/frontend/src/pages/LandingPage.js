@@ -419,7 +419,7 @@ function FeatureGrid() {
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-2)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--ink-1)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent-500)', marginBottom: 12 }}>// {f.eb}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent-500)', marginBottom: 12 }}>{`// ${f.eb}`}</div>
             <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 10, letterSpacing: '-0.01em' }}>{f.t}</div>
             <div style={{ color: 'var(--fg-2)', fontSize: 14, lineHeight: 1.55 }}>{f.d}</div>
           </div>

@@ -38,3 +38,12 @@ services:
         value: '15'
       - key: REFRESH_TOKEN_DAYS
         value: '1'
+      # Gunicorn tuning — must match start.sh defaults (free plan: 512MB RAM)
+      - key: WEB_CONCURRENCY
+        value: '2'
+      - key: GUNICORN_WORKERS
+        value: '2'
+      - key: GUNICORN_THREADS
+        value: '2'
+      - key: PYTHONUNBUFFERED
+        value: '1'
