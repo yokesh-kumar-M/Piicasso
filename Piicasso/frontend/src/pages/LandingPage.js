@@ -270,6 +270,186 @@ function Hero() {
   );
 }
 
+/* ─── CliInstall ─────────────────────────────────────────────── */
+function CopyBlock({ label, command, hint }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(command).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  };
+  return (
+    <div style={{
+      position: 'relative',
+      background: 'var(--ink-0)',
+      border: '1px solid var(--ink-4)',
+      borderRadius: 14,
+      overflow: 'hidden',
+      boxShadow: '0 18px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02) inset',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 14, pointerEvents: 'none',
+        background: 'radial-gradient(120% 80% at 50% 0%, var(--accent-glow) 0%, transparent 55%)',
+        opacity: 0.6,
+      }} />
+      <div style={{
+        position: 'relative',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 16px', borderBottom: '1px solid var(--ink-4)',
+        background: 'var(--ink-1)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{
+            width: 8, height: 8, borderRadius: 4, background: 'var(--accent-500)',
+            boxShadow: '0 0 12px var(--accent-500)',
+          }} />
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em',
+            color: 'var(--fg-2)', textTransform: 'uppercase',
+          }}>{label}</span>
+        </div>
+        <button
+          onClick={handleCopy}
+          style={{
+            fontFamily: 'var(--font-mono)', fontSize: 11,
+            color: copied ? 'var(--good)' : 'var(--fg-2)',
+            background: 'var(--ink-2)', border: '1px solid var(--ink-4)',
+            cursor: 'pointer', padding: '4px 10px', borderRadius: 6,
+            transition: 'color .2s, background .2s',
+          }}
+        >{copied ? 'copied ✓' : 'copy'}</button>
+      </div>
+      <div style={{
+        position: 'relative',
+        padding: '22px 22px',
+        fontFamily: 'var(--font-mono)', fontSize: 16, lineHeight: 1.5,
+        color: 'var(--fg-0)',
+      }}>
+        <span style={{ color: 'var(--accent-500)', userSelect: 'none' }}>$&nbsp;</span>
+        <span>{command}</span>
+      </div>
+      {hint && (
+        <div style={{
+          position: 'relative',
+          padding: '10px 22px 16px',
+          fontFamily: 'var(--font-mono)', fontSize: 12,
+          color: 'var(--fg-3)',
+          borderTop: '1px dashed var(--ink-4)',
+        }}>
+          <span style={{ color: 'var(--fg-4)' }}># </span>{hint}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CliInstall() {
+  const examples = [
+    'piicasso analyze "john@example.com"',
+    'piicasso wordgen -p name=John -p dob=1998',
+    'piicasso score "Tr0ub4dor&3"',
+    'piicasso login',
+    'piicasso darkweb "acme corp"',
+    'piicasso',
+  ];
+  return (
+    <Section style={{ padding: '80px var(--gutter) 56px' }}>
+      <div style={{
+        position: 'relative',
+        padding: '48px 40px',
+        borderRadius: 20,
+        background: 'linear-gradient(180deg, var(--ink-1) 0%, var(--ink-2) 100%)',
+        border: '1px solid var(--ink-4)',
+        boxShadow: '0 30px 80px rgba(0,0,0,0.35)',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)',
+          width: 700, height: 360, borderRadius: '50%',
+          background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 65%)',
+          pointerEvents: 'none', opacity: 0.55,
+        }} />
+
+        <div style={{ position: 'relative', textAlign: 'center', marginBottom: 36 }}>
+          <div className="eyebrow" style={{ color: 'var(--accent-500)', marginBottom: 14 }}>
+            ● INSTALL THE CLI
+          </div>
+          <h2 className="h-display" style={{
+            fontSize: 'clamp(32px, 5vw, 52px)', maxWidth: 760, margin: '0 auto', letterSpacing: '-0.02em',
+          }}>
+            PIIcasso,{' '}
+            <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400, color: 'var(--accent-500)' }}>
+              in your terminal.
+            </span>
+          </h2>
+          <p style={{
+            color: 'var(--fg-2)', fontSize: 16, maxWidth: 620,
+            margin: '18px auto 0', lineHeight: 1.55,
+          }}>
+            One line on npm or PyPI. Local PII analysis runs instantly — no network, no login.
+            Hosted features unlock with <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--fg-1)' }}>piicasso login</span>.
+          </p>
+        </div>
+
+        <div style={{
+          position: 'relative',
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20,
+        }} className="cli-install-grid">
+          <CopyBlock
+            label="npm — node ≥ 18"
+            command="npm install -g piicasso"
+            hint="adds the `piicasso` binary to your PATH"
+          />
+          <CopyBlock
+            label="pip — python ≥ 3.9"
+            command="pip install piicasso"
+            hint="installs the `piicasso` entrypoint script"
+          />
+        </div>
+
+        <div style={{
+          position: 'relative',
+          marginTop: 28,
+          display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center',
+        }}>
+          {examples.map(cmd => (
+            <span key={cmd} style={{
+              fontFamily: 'var(--font-mono)', fontSize: 12,
+              padding: '6px 12px',
+              background: 'var(--ink-0)',
+              border: '1px solid var(--ink-4)',
+              borderRadius: 999,
+              color: 'var(--fg-1)',
+              whiteSpace: 'nowrap',
+            }}>
+              <span style={{ color: 'var(--accent-500)' }}>$ </span>{cmd}
+            </span>
+          ))}
+        </div>
+
+        <div style={{
+          position: 'relative',
+          marginTop: 28, textAlign: 'center',
+          color: 'var(--fg-3)', fontSize: 13,
+        }}>
+          <a href="https://www.npmjs.com/package/piicasso" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-500)', textDecoration: 'none' }}>
+            npmjs.com/piicasso
+          </a>
+          <span style={{ margin: '0 10px', color: 'var(--ink-5)' }}>·</span>
+          <a href="https://pypi.org/project/piicasso/" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-500)', textDecoration: 'none' }}>
+            pypi.org/project/piicasso
+          </a>
+          <span style={{ margin: '0 10px', color: 'var(--ink-5)' }}>·</span>
+          <a href="/terminal" style={{ color: 'var(--fg-1)', textDecoration: 'none' }}>
+            try the in-browser terminal →
+          </a>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
 /* ─── LogoWall ───────────────────────────────────────────────── */
 function LogoWall() {
   const logos = ['NORTHWIND', 'AXIOM', 'HELIX', 'MERIDIAN', 'BLACKBIRD', 'QUANTA', 'STRATUM', 'CYPHERON'];
@@ -763,6 +943,7 @@ export default function LandingPage() {
         @media (max-width: 768px) {
           .hero-demo-grid { grid-template-columns: 1fr !important; }
           .hero-demo-grid > *:first-child { border-right: none !important; border-bottom: 1px solid var(--ink-4); }
+          .cli-install-grid { grid-template-columns: 1fr !important; }
           .logo-wall-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .split-modes-grid { grid-template-columns: 1fr !important; }
           .split-modes-grid > *:first-child { border-right: none !important; border-bottom: 1px solid var(--ink-4); }
@@ -783,6 +964,7 @@ export default function LandingPage() {
 
       <MarketingNav />
       <Hero />
+      <Reveal variant="scale"><CliInstall /></Reveal>
       <Reveal variant="up"><LogoWall /></Reveal>
       <div id="solutions"><Reveal variant="scale"><SplitModes /></Reveal></div>
       <div id="features"><Reveal variant="up"><FeatureGrid /></Reveal></div>
