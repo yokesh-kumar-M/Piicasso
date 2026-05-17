@@ -176,8 +176,22 @@ const SuperAdminPage = () => {
             alert('Confirmation did not match. Aborted.');
             return;
         }
-        // This would need a backend endpoint — for now show a message
-        alert('This feature requires additional server-side implementation for safety. Contact your system administrator.');
+        try {
+            const res = await axios.post('admin/purge-all/', { confirm: 'DELETE ALL DATA' });
+            const d = res.data?.deleted || {};
+            alert(
+                `Purge complete.\n\n` +
+                `Users removed: ${d.users ?? 0}\n` +
+                `Generations: ${d.generations ?? 0}\n` +
+                `Activities: ${d.activities ?? 0}\n` +
+                `System logs: ${d.system_logs ?? 0}\n` +
+                `Messages: ${d.messages ?? 0}\n` +
+                `Notifications: ${d.notifications ?? 0}`
+            );
+            fetchAdminData();
+        } catch (err) {
+            alert(err.response?.data?.error || 'Purge failed.');
+        }
     };
 
     if (!isAuthenticated || !user?.is_superuser) {

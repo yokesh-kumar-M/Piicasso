@@ -1,3 +1,6 @@
+import re
+import html as html_module
+from urllib.parse import quote
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,9 +9,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-import html as html_module
-import re
-from urllib.parse import quote
 from .models import Message, Notification, SystemSetting
 from .serializers import (
     MessageSerializer,
@@ -317,9 +317,9 @@ class BreachSearchView(APIView):
         if exposure_count >= 0:
             results["password_exposures"] = exposure_count
 
-        # 3. Check internal generation history (restricted to user's own data for non-admins)
-        # Note: pii_data is EncryptedJSONField — cannot search encrypted fields.
-        # Count is always 0 for encrypted-field searches; removed invalid lookups.
+        # 3. Internal generation history check is intentionally disabled.
+        # pii_data is stored via EncryptedJSONField (Fernet ciphertext) and
+        # cannot be searched at the DB layer without decrypting every row.
         results["internal_matches"] = 0
 
         # Calculate risk score
@@ -332,12 +332,10 @@ class BreachSearchView(APIView):
         )
         results["risk_score"] = round(risk_score)
 
-        # Create notification for the user (truncate query for safety)
-        safe_display = query[:20] + ("..." if len(query) > 20 else "")
         Notification.objects.create(
             user=request.user,
             notification_type="SECURITY",
-            title=f"Breach scan completed",
+            title="Breach scan completed",
             description=f"Found {breach_count} breaches, {results['password_exposures']} password exposures.",
             link="/darkweb",
         )
@@ -357,3 +355,158 @@ def create_notification(user, notification_type, title, description="", link="")
         description=_html.escape(str(description)[:500], quote=True),
         link=link[:255] if link else "",
     )
+
+
+class FinancialRiskView(APIView):
+    """
+    Continuous Threat Exposure Management snapshot.
+
+    Computes a coarse monetary-impact estimate from the signals already
+    present in the database: the user's password analyses, their generation
+    history, and any breach exposures detected during scans. The numbers
+    are conservative reference values modelled on published GDPR / CCPA
+    settlement ranges — they are not a substitute for professional
+    actuarial advice.
+    """
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    # Reference fine ceilings (rough public-record averages, USD).
+    GDPR_PER_CRITICAL = 250_000
+    GDPR_PER_HIGH = 60_000
+    CCPA_PER_BREACH = 7_500
+    REMEDIATION_PER_RECORD = 12
+
+    def get(self, request):
+        from password_security.models import PasswordAnalysis
+        from generator.models import GenerationHistory
+        from django.db.models import Sum, Count, Avg
+
+        analyses = PasswordAnalysis.objects.filter(user=request.user)
+        history = GenerationHistory.objects.filter(user=request.user)
+
+        # Severity buckets
+        critical = analyses.filter(vulnerability_level="critical").count()
+        high = analyses.filter(vulnerability_level="high").count()
+        medium = analyses.filter(vulnerability_level="medium").count()
+        low = analyses.filter(vulnerability_level="low").count()
+        total_analyses = critical + high + medium + low
+
+        breach_hits = (
+            analyses.aggregate(total=Sum("breach_count"))["total"] or 0
+        )
+        avg_strength = (
+            analyses.aggregate(avg=Avg("strength_score"))["avg"] or 0
+        )
+        total_generated = (
+            history.aggregate(total=Sum("wordlist_count"))["total"] or 0
+        )
+
+        gdpr_fines = (
+            critical * self.GDPR_PER_CRITICAL + high * self.GDPR_PER_HIGH
+        )
+        ccpa_fines = breach_hits * self.CCPA_PER_BREACH
+        remediation_cost = total_generated * self.REMEDIATION_PER_RECORD
+        total_exposure = gdpr_fines + ccpa_fines + remediation_cost
+
+        # Breach probability — heuristic mixing weak-password share and
+        # known-breach hits, normalised to a 0–100 scale.
+        weak_share = (
+            ((critical + high) / total_analyses) if total_analyses else 0.0
+        )
+        breach_pressure = min(1.0, breach_hits / 25.0)
+        breach_probability = round(
+            min(100, weak_share * 70 + breach_pressure * 30)
+        )
+
+        if total_exposure >= 1_000_000 or breach_probability >= 70:
+            severity = "HIGH"
+        elif total_exposure >= 250_000 or breach_probability >= 40:
+            severity = "MEDIUM"
+        else:
+            severity = "LOW"
+
+        recommendations = []
+        if critical:
+            recommendations.append({
+                "level": "critical",
+                "title": "Enforce mandatory rotation on critical accounts",
+                "detail": (
+                    f"{critical} password(s) analysed are in the critical band. "
+                    "Trigger a forced reset and pair it with mandatory 2FA."
+                ),
+            })
+        if breach_hits:
+            recommendations.append({
+                "level": "warning",
+                "title": "Replace breached credentials",
+                "detail": (
+                    f"{breach_hits} credential(s) appear in known breach corpora. "
+                    "Rotate them before another credential-stuffing sweep."
+                ),
+            })
+        if high:
+            recommendations.append({
+                "level": "warning",
+                "title": "Strengthen high-risk passwords",
+                "detail": (
+                    f"{high} password(s) sit just above the critical line. "
+                    "Add length and entropy, then re-test."
+                ),
+            })
+        if not recommendations:
+            recommendations.append({
+                "level": "info",
+                "title": "Maintain quarterly password hygiene reviews",
+                "detail": (
+                    "No critical findings on file. Keep your review cadence "
+                    "to stay ahead of new breach corpora."
+                ),
+            })
+
+        # Trajectory: last six months of detected weak passwords as a rough
+        # exposure proxy. Each weak finding contributes one notional fine
+        # ceiling; the curve smooths the value to millions.
+        from django.utils import timezone
+        from datetime import timedelta
+
+        now = timezone.now()
+        trajectory = []
+        for offset in range(5, -1, -1):
+            window_end = now - timedelta(days=offset * 30)
+            window_start = window_end - timedelta(days=30)
+            month_critical = analyses.filter(
+                created_at__gte=window_start,
+                created_at__lt=window_end,
+                vulnerability_level__in=["critical", "high"],
+            ).count()
+            month_value = round(
+                (month_critical * self.GDPR_PER_HIGH) / 1_000_000, 2
+            )
+            trajectory.append({
+                "label": window_start.strftime("%b"),
+                "value": month_value,
+            })
+
+        return Response({
+            "total_exposure": total_exposure,
+            "gdpr_fines": gdpr_fines,
+            "ccpa_fines": ccpa_fines,
+            "remediation_cost": remediation_cost,
+            "breach_probability": breach_probability,
+            "severity": severity,
+            "breakdown": {
+                "critical": critical,
+                "high": high,
+                "medium": medium,
+                "low": low,
+                "total_analyses": total_analyses,
+                "breach_hits": breach_hits,
+                "average_strength": round(float(avg_strength), 1),
+                "passwords_generated": total_generated,
+            },
+            "recommendations": recommendations[:4],
+            "trajectory": trajectory,
+            "generated_at": timezone.now().isoformat(),
+        })

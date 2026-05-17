@@ -121,7 +121,7 @@ const InboxPage = () => {
 
     const fetchThread = async (userId) => {
         try {
-            const url = userId ? `operations/messages/?user_id=${userId}` : `operations/messages/`;
+            const url = userId ? `messages/?user_id=${userId}` : `messages/`;
             const { data } = await axios.get(url);
             // API returns newest-first (ORDER BY -timestamp) so we reverse
             // before setting state to keep oldest-at-top, newest-at-bottom.
@@ -145,10 +145,10 @@ const InboxPage = () => {
         setSending(true);
         setError('');
         try {
-            await axios.post('operations/messages/', {
-                recipient: isSuperuser ? selectedUser.id : null,
-                content: content,
-            });
+            const payload = isSuperuser
+                ? { recipient_id: selectedUser.id, content }
+                : { content };
+            await axios.post('messages/', payload);
             setNewMessage('');
             if (isSuperuser) {
                 await fetchThread(selectedUser.id);

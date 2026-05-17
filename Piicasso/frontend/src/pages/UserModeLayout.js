@@ -4,6 +4,7 @@ import DesignAppShell from '../components/design/dashboard/DesignAppShell';
 
 const getActiveKey = (pathname) => {
   if (pathname === '/user/history') return 'passwords';
+  if (pathname === '/user/learn') return 'learn';
   return 'overview';
 };
 

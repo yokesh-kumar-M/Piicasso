@@ -25,11 +25,19 @@ const [inboxOpen, setInboxOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    axios.get('operations/notifications/').then(r => setNotifications(r.data.notifications || []));
+    let cancelled = false;
+    const load = () => {
+      axios.get('operations/notifications/')
+        .then(r => { if (!cancelled) setNotifications(r.data.notifications || []); })
+        .catch(() => {});
+    };
+    load();
+    const interval = setInterval(load, 30000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
   const handleMarkAllRead = () => {
-    axios.patch('operations/notifications/', { mark_all_read: true }).catch(() => {});
+    axios.post('operations/notifications/', { action: 'mark_all_read' }).catch(() => {});
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 

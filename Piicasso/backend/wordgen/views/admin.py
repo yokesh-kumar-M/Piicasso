@@ -411,3 +411,63 @@ def admin_users_list(request):
         .values("id", "username", "email", "is_active")
     )
     return Response(list(users))
+
+
+# ─── DANGER ZONE: PURGE ALL OPERATIONAL DATA ─────────────────────────────────
+
+
+@api_view(["POST", "DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_purge_all(request):
+    """
+    Superuser-only destructive endpoint that wipes every piece of operational
+    data: generation history, activity logs, system logs, notifications,
+    messages, and all non-admin users. Requires an explicit confirmation
+    token in the request body to prevent accidental triggering.
+    """
+    if not request.user.is_superuser:
+        return Response({"error": "Access denied."}, status=403)
+
+    confirm = (request.data.get("confirm") or "").strip()
+    if confirm != "DELETE ALL DATA":
+        return Response(
+            {"error": 'Confirmation token must equal "DELETE ALL DATA".'},
+            status=400,
+        )
+
+    from operations.models import Message, Notification
+    from django.db import transaction
+
+    deleted = {}
+    with transaction.atomic():
+        deleted["generations"] = GenerationHistory.objects.all().delete()[0]
+        deleted["activities"] = UserActivity.objects.all().delete()[0]
+        deleted["system_logs"] = SystemLog.objects.all().delete()[0]
+        deleted["messages"] = Message.objects.all().delete()[0]
+        deleted["notifications"] = Notification.objects.all().delete()[0]
+        deleted["users"] = (
+            User.objects.filter(is_superuser=False).delete()[0]
+        )
+
+    SystemLog.objects.create(
+        message=(
+            f"PURGE executed by admin {request.user.username}: "
+            f"generations={deleted['generations']} "
+            f"activities={deleted['activities']} "
+            f"system_logs={deleted['system_logs']} "
+            f"messages={deleted['messages']} "
+            f"notifications={deleted['notifications']} "
+            f"users={deleted['users']}"
+        ),
+        level="CRITICAL",
+        source="ADMIN",
+    )
+
+    logger.warning(
+        "PURGE executed by %s: %s",
+        request.user.username,
+        deleted,
+    )
+
+    return Response({"message": "Purge complete.", "deleted": deleted})

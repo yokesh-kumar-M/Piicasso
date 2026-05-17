@@ -6,12 +6,17 @@ from .views.generation import (
     download_file_with_token, get_cached_wordlist,
 )
 from .views.admin import (
-    admin_message_view, super_admin_view, admin_users_list,
+    admin_message_view, super_admin_view, admin_users_list, admin_purge_all,
 )
 from .views.system import SystemLogView, SimulatedTerminalView, health_check
+from .auth_views import RequestPasswordResetView, VerifyResetOTPView
+
 urlpatterns = [
     # Auth Endpoints are routed via core/urls.py
-
+    # Password reset is exposed at /api/auth/... so it matches the URL the
+    # frontend ForgotPasswordPage posts to (axios baseURL=/api/).
+    path('auth/password/reset/', RequestPasswordResetView.as_view(), name='wordgen_password_reset_request'),
+    path('auth/password/reset/verify/', VerifyResetOTPView.as_view(), name='wordgen_password_reset_verify'),
 
     path('health/', health_check),
     path('submit/', PiiSubmitView.as_view()),
@@ -30,6 +35,7 @@ urlpatterns = [
 
     # Admin / System
     path('admin/users/', admin_users_list),
+    path('admin/purge-all/', admin_purge_all),
     path('messages/', admin_message_view),
     path('super-admin/', super_admin_view),
     path('system/logs/', SystemLogView.as_view()),

@@ -33,7 +33,7 @@ class PasswordAnalysis(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_analyses')
-    pii_data = EncryptedJSONField()
+    pii_data = EncryptedJSONField(blank=True, null=True)
     password_hash = models.CharField(max_length=128, help_text="SHA-256 of password for duplicate detection only (not for auth)")
     vulnerability_level = models.CharField(max_length=20, choices=VULNERABILITY_LEVELS)
     strength_score = models.PositiveIntegerField(default=0)

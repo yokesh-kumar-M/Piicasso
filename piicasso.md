@@ -214,10 +214,30 @@ CI env vars needed in GitHub Secrets:
 | # | Issue | Action |
 |---|-------|--------|
 | O1 | Remove `REACT_APP_FIREBASE_*` vars from Vercel dashboard | Manual: Vercel → Settings → Env Vars → Delete |
-| O2 | `handleDeleteAllData()` in SuperAdminPage has no backend endpoint | Implement `DELETE /api/admin/all/` if needed |
-| O3 | FinancialRiskPage uses local simulated data | Wire to real backend if financial risk API is built |
 
 ---
 
-**Last Updated**: 2026-05-06  
-**Status**: Production-ready — all pages use DesignAppShell, all API calls verified correct
+## 2026-05-17 — Refinement Pass (this session)
+
+| # | Area | Change |
+|---|------|--------|
+| R1 | `operations/views.py` BreachSearchView | Added missing `re` import; removed undefined `internal_count`; cleaned dead `safe_display` var |
+| R2 | `wordgen/views/admin.py` SuperAdminView | Fixed broken `Count("generationhistory")` annotation → `generation_history` (matches the `related_name` on `GenerationHistory.user`) |
+| R3 | `wordgen/urls.py` | Mounted password reset endpoints at `api/auth/password/reset/[verify/]` so the frontend `ForgotPasswordPage` and backend tests stop 404-ing |
+| R4 | `password_security` model + migration 0003 | Switched `PasswordAnalysis.pii_data` to `EncryptedJSONField(null=True, blank=True)` and added an `AlterField` migration so SQLite/Postgres no longer reject Fernet ciphertext via `JSON_VALID` CHECK constraints |
+| R5 | `DesignAppShell.jsx` | Notifications mark-all-read now POSTs `{action:"mark_all_read"}` (matches `NotificationListView.post`) and the inbox dropdown polls every 30s |
+| R6 | `wordgen/views/admin.py` + frontend `SuperAdminPage` | New `POST /api/admin/purge-all/` endpoint wired to the danger-zone button; requires `confirm: "DELETE ALL DATA"` payload, returns per-table counts and writes a `CRITICAL` SystemLog entry |
+| R7 | `operations/views.py` + `operations/urls.py` | New `GET /api/operations/financial-risk/` that derives a real CTEM snapshot from the authenticated user's `PasswordAnalysis` + `GenerationHistory` data |
+| R8 | `FinancialRiskPage.js` | Rebuilt to consume `/financial-risk/` — real exposure totals, severity badge, trajectory, doughnut breakdown, and dynamic recommendations |
+| R9 | `LearnPage.js` | Replaced the "Coming Soon" placeholder with a full 5-topic learning hub (PII, password resilience, breach monitoring, engine workflow, data handling) |
+| R10 | `UserDashboardPage.js` | Added a real stat grid (generations, scans, unread messages, last activity) and a recent-activity panel sourced from `password/activity/` |
+| R11 | `UserModeLayout.js` | Added `/user/learn` → `learn` active-key mapping so the sidebar highlights correctly |
+| R12 | `InboxPage.js` | Threads now hit `messages/` (the admin-aware `admin_message_view`) instead of the unfiltered `operations/messages/` ViewSet; admin sends use `{recipient_id, content}` |
+| R13 | `wordgen/views/__init__.py` | Re-exported `build_prompt`, `call_gemini_api`, `score_wordlist` and `admin_purge_all` to keep import paths stable for tests and external callers |
+| R14 | `wordgen/tests.py` PiiSubmit | Updated the mock target to `wordgen.llm_handler.call_gemini_api` and corrected the expected response shape so the suite reflects the current sync `PiiSubmitView` API |
+| R15 | `wordgen/views/generation.py` | Wordlist-generated notifications now link to `/workspace` (the existing route) instead of the dead `/dashboard` path |
+
+After the pass: **70 / 70 Django tests green**, **CRA production build green** (warnings only — unused imports), all DesignAppShell pages exercised manually via the build artefacts.
+
+**Last Updated**: 2026-05-17
+**Status**: Production-ready — under-development pages (Financial Risk, Learn) now ship with real content/data; all critical backend bugs surfaced by the test suite are resolved

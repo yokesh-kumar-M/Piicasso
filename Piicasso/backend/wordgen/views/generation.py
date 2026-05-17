@@ -414,7 +414,7 @@ class PiiSubmitView(APIView):
                     notification_type="SYSTEM",
                     title="Wordlist Generated",
                     description=f"Generated {len(scored_list)} password candidates.",
-                    link="/dashboard",
+                    link="/workspace",
                 )
 
             # ── Compute threat metrics (E score + Risk Density + Threat Level) ──
