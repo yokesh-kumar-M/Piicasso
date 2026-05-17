@@ -1,0 +1,45 @@
+{
+  "name": "piicasso",
+  "version": "0.1.0",
+  "description": "Command-line interface for PIIcasso — PII exposure intelligence and adversarial wordlist platform.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "bin": {
+    "piicasso": "./bin/piicasso.js"
+  },
+  "scripts": {
+    "start": "node ./bin/piicasso.js",
+    "test": "node ./bin/piicasso.js --version"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pii",
+    "security",
+    "cli",
+    "redaction",
+    "wordlist"
+  ],
+  "author": "PIIcasso",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yokesh-kumar-M/Piicasso.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yokesh-kumar-M/Piicasso/issues"
+  },
+  "homepage": "https://github.com/yokesh-kumar-M/Piicasso#readme",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0"
+  }
+}

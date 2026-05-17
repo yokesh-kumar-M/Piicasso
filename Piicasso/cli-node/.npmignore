@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.gitignore
+.DS_Store
+*.log
+tests/
+*.test.js
+.editorconfig
+.eslintrc*
+.prettierrc*
