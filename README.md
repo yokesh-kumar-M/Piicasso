@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/piicasso?label=npm&color=cb3837&logo=npm)](https://www.npmjs.com/package/piicasso)
 [![PyPI](https://img.shields.io/pypi/v/piicasso?label=pypi&color=3776AB&logo=python)](https://pypi.org/project/piicasso/)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/yokesh-kumar-M/Piicasso/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)](https://betterstack.com)
 [![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django)](https://www.djangoproject.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev/)
@@ -467,8 +467,17 @@ gh pr create
 
 ---
 
+## Related projects
+
+PIIcasso pairs naturally with the offensive side of an authorised pentest:
+
+- [SprayMaster](https://github.com/yokesh-kumar-M/SprayMaster) — multi-protocol password sprayer. Feed it the wordlists PIIcasso generates.
+- [Clavis](https://github.com/yokesh-kumar-M/clavis) — HSM key-migration testbed with built-in VAPT suite (defender side of the same toolkit).
+
 ## License
 
-**MIT** — see [LICENSE](LICENSE).
+**Apache License 2.0** — see [LICENSE](LICENSE).
 
-© 2026 Yokesh Kumar · [dezprox25@gmail.com](mailto:dezprox25@gmail.com) · [Live app](https://pii-casso.vercel.app) · [npm](https://www.npmjs.com/package/piicasso) · [PyPI](https://pypi.org/project/piicasso/)
+> Earlier published versions on npm / PyPI may have shipped under MIT. From the next release onward the project is under Apache 2.0 (adds an explicit patent grant; remains permissive).
+
+© 2024-2026 Yokesh Kumar M · [dezprox25@gmail.com](mailto:dezprox25@gmail.com) · [Live app](https://pii-casso.vercel.app) · [npm](https://www.npmjs.com/package/piicasso) · [PyPI](https://pypi.org/project/piicasso/)
