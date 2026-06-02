@@ -111,18 +111,16 @@ jobs:
       - name: Run frontend tests
         run: |
           cd Piicasso/frontend
-          npm test -- --watchAll=false --passWithNoTests
+          npm test
 
       - name: Build production bundle
-        env:
-          CI: 'false'
         run: |
           cd Piicasso/frontend
           npm run build
 
       - name: Check bundle size
         run: |
-          cd Piicasso/frontend/build/static/js
+          cd Piicasso/frontend/build/assets
           echo "Bundle sizes:"
           ls -lh *.js
           echo "Total JS size:"
