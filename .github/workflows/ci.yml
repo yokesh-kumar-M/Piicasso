@@ -58,6 +58,17 @@ jobs:
               sys.exit(1)
           "
 
+      - name: Check for missing migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          DJANGO_SECRET_KEY: test-secret-key-not-for-production
+          ENV: test
+          GOOGLE_CLIENT_ID: test-google-client-id
+          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo=
+        run: |
+          cd Piicasso/backend
+          python manage.py makemigrations --check --dry-run
+
       - name: Run backend tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
