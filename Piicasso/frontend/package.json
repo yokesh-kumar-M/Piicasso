@@ -9,7 +9,7 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-toast": "^1.2.15",
-    "@react-oauth/google": "^0.13.4",
+    "@react-oauth/google": "^0.13.5",
     "@vercel/analytics": "^2.0.1",
     "axios": "^1.16.1",
     "chart.js": "^4.5.1",
