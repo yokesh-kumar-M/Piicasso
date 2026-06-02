@@ -47,7 +47,7 @@ pillow==12.2.0  # security: PYSEC-2026-165 + CVE-2026-25990/40192/42310/42311
 python-dotenv==1.2.2  # security: CVE-2026-28684
 
 # Server
-gunicorn==23.0.0
+gunicorn==26.0.0
 
 # Error tracking
 sentry-sdk[django]==2.30.0
