@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for PIIcasso Backend
-FROM python:3.11-slim-bullseye AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
-FROM python:3.11-slim-bullseye
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
@@ -26,7 +26,6 @@ RUN pip install --no-cache /wheels/*
 
 COPY . .
 
-# Run static file collection
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -34,4 +33,6 @@ RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "2", "--worker-class", "gthread", "backend.wsgi:application"]
+# Single source of truth for the runtime command — start.sh runs migrations
+# then exec's gunicorn with the same 2-worker tuning used in production.
+CMD ["sh", "./start.sh"]

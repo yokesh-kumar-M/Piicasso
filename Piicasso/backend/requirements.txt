@@ -13,11 +13,11 @@ drf-spectacular==0.28.0
 
 # Database
 dj-database-url==2.3.0
-psycopg2-binary>=2.9.9
+psycopg2-binary>=2.9.9,<3
 
 # Caching & sessions
 django-redis==5.4.0
-redis==5.2.1
+redis>=5.2.1,<6
 
 # Static files & storage
 whitenoise==6.8.2
@@ -25,7 +25,9 @@ whitenoise==6.8.2
 # Security & auth
 PyJWT==2.10.1
 cryptography>=43.0.0,<44
-django-cryptography
+# django-cryptography was unused (only `cryptography.fernet.Fernet` is imported
+# directly by generator/fields.py) and the upstream package is unmaintained
+# since 2023 — dropping it removes a stale, vulnerable transitive surface.
 
 # AI / LLM (Google Gemini)
 google-auth==2.37.0
@@ -45,10 +47,10 @@ pillow==11.0.0
 python-dotenv==1.0.1
 
 # Server
-gunicorn==20.1.0
+gunicorn==23.0.0
 
 # Error tracking
-sentry-sdk[django]==2.20.0
+sentry-sdk[django]==2.30.0
 
 # Utilities
 PyYAML==6.0.2
@@ -57,6 +59,6 @@ django-prometheus==2.3.1
 
 # Async & Real-time Processing (Added for Enterprise Scale)
 celery==5.4.0
-channels==4.1.0
-channels-redis==4.2.0
+channels==4.2.2
+channels-redis==4.2.1
 daphne==4.1.2
