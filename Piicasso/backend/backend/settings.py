@@ -36,12 +36,17 @@ if not invalid_sentry_dsn and os.getenv("ENV", "development") != "test":
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 
+    # send_default_pii is hard-disabled: PIIcasso is a PII-handling platform, so
+    # shipping request bodies / user emails to a third-party error tracker would
+    # contradict the product's purpose. Keep this False even if the env says otherwise.
     sentry_sdk.init(
         dsn=sentry_dsn,
         integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
-        send_default_pii=True,
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
+        send_default_pii=False,
         environment=os.getenv("ENV", "development"),
+        release=os.getenv("SENTRY_RELEASE") or None,
     )
 
 # ─── BASE ────────────────────────────────────────────────────────────────────

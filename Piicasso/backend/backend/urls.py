@@ -4,6 +4,7 @@ PIIcasso Enterprise URL Configuration
 Includes OpenAPI schema, Swagger UI, and ReDoc for API documentation.
 API documentation requires admin authentication.
 """
+import os
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -44,13 +45,14 @@ urlpatterns = [
     path('api/analytics/', include('analytics.urls')),
     path('api/operations/', include('operations.urls')),
     path('api/', include('wordgen.urls')),
-
-    # Observability
-    path('', include('django_prometheus.urls')),
-
-    # Sentry debug route
-    path('sentry-debug/', lambda request: 1 / 0),
 ]
 
+# Observability — /metrics must not be public; only mount when DEBUG or
+# when EXPOSE_PROMETHEUS=1 is set (and front it with an auth proxy / IP allow-list).
+if settings.DEBUG or os.getenv('EXPOSE_PROMETHEUS') == '1':
+    urlpatterns += [path('', include('django_prometheus.urls'))]
+
+# Sentry verification route — DEBUG-only so it cannot be abused as a free 500 generator in prod.
 if settings.DEBUG:
+    urlpatterns += [path('sentry-debug/', lambda request: 1 / 0)]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
