@@ -22,7 +22,7 @@
     "react-dom": "^18.2.0",
     "react-globe.gl": "^2.37.0",
     "react-router-dom": "^6.30.4",
-    "tailwind-merge": "^3.5.0",
+    "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7"
   },
   "scripts": {
