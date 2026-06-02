@@ -50,7 +50,7 @@ python-dotenv==1.2.2  # security: CVE-2026-28684
 gunicorn==23.0.0
 
 # Error tracking
-sentry-sdk[django]==2.30.0
+sentry-sdk[django]==2.61.1
 
 # Utilities
 PyYAML==6.0.2
