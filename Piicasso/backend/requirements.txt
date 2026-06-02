@@ -60,7 +60,7 @@ django-prometheus==2.3.1
 # Async & Real-time Processing (Added for Enterprise Scale)
 celery==5.4.0
 channels==4.2.2
-channels-redis==4.2.1
+channels-redis==4.3.0
 daphne==4.1.2
 
 # Transitive deps of the daphne/channels websocket stack, pinned to patched
