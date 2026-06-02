@@ -16,6 +16,7 @@ Required Production Environment Variables:
 """
 
 import os
+import sys
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
@@ -551,8 +552,6 @@ else:
 
 
 # Eager execution for testing
-import sys
-
 if "test" in sys.argv:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_STORE_EAGER_RESULT = True

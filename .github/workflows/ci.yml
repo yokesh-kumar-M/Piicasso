@@ -69,11 +69,16 @@ jobs:
           cd Piicasso/backend
           python manage.py test --verbosity=2
 
-      - name: Lint with flake8
+      - name: Lint with flake8 (hard fail on syntax / undefined names)
         run: |
           cd Piicasso/backend
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        continue-on-error: true
+
+      - name: pip-audit (advisory)
+        run: |
+          cd Piicasso/backend
+          pip install pip-audit
+          pip-audit --strict --requirement requirements.txt || true
 
   frontend-tests:
     runs-on: ubuntu-latest
@@ -111,3 +116,8 @@ jobs:
           ls -lh *.js
           echo "Total JS size:"
           du -sh *.js
+
+      - name: npm audit (advisory)
+        run: |
+          cd Piicasso/frontend
+          npm audit --audit-level=high || true

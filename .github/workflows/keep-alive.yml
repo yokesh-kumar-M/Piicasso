@@ -16,7 +16,7 @@ jobs:
           echo "Pinging Render backend..."
           curl -f -s -o /dev/null -w "%{http_code}" \
             --max-time 30 \
-            -H "User-Agent: PIcasso-KeepAlive" \
+            -H "User-Agent: PIIcasso-KeepAlive" \
             "https://core-engine-woeg.onrender.com/api/health/" \
             && echo "✓ Render backend is alive" \
             || (echo "✗ Render backend ping failed" && exit 1)
@@ -31,7 +31,7 @@ jobs:
           curl -f -s -o /dev/null -w "%{http_code}" \
             --max-time 30 \
             -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "User-Agent: PIcasso-KeepAlive" \
+            -H "User-Agent: PIIcasso-KeepAlive" \
             "$SUPABASE_URL/rest/v1/" \
             && echo "✓ Supabase is alive" \
             || (echo "✗ Supabase ping failed" && exit 1)
@@ -42,7 +42,7 @@ jobs:
           echo "Pinging Vercel frontend..."
           curl -f -s -o /dev/null -w "%{http_code}" \
             --max-time 30 \
-            -H "User-Agent: PIcasso-KeepAlive" \
+            -H "User-Agent: PIIcasso-KeepAlive" \
             "https://pii-casso.vercel.app/" \
             && echo "✓ Vercel frontend is alive" \
             || (echo "✗ Vercel frontend ping failed" && exit 1)
