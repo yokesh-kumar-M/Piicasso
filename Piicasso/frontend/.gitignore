@@ -5,6 +5,11 @@
 /.pnp
 .pnp.js
 
+# This project standardizes on npm (CI + Docker use `npm ci`).
+# Ignore other package managers' lockfiles so they can't drift from package-lock.json.
+pnpm-lock.yaml
+yarn.lock
+
 # testing
 /coverage
 
