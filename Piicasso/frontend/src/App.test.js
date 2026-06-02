@@ -16,7 +16,7 @@ test('renders without crashing', () => {
   // Minimal render — just verify the provider + router don't throw
   const { container } = render(
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div data-testid="app-root">PIIcasso loaded</div>
       </BrowserRouter>
     </AuthProvider>
