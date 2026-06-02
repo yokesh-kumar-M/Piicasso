@@ -44,6 +44,7 @@ const ResultPage = () => {
   const [wordlist, setWordlist]   = useState([]);
   const [metrics,  setMetrics]    = useState(null);
   const [historyId, setHistoryId] = useState(null);
+  const [usedFallback, setUsedFallback] = useState(false);
   const [loading, setLoading]     = useState(true);
   const [visibleCount, setVisibleCount] = useState(200);
 
@@ -54,10 +55,12 @@ const ResultPage = () => {
     const raw  = sessionStorage.getItem('generatedWordlist');
     const hid  = sessionStorage.getItem('historyId');
     const mraw = sessionStorage.getItem('generationMetrics');
+    const fb   = sessionStorage.getItem('generationFallback');
 
     if (raw)  { try { setWordlist(JSON.parse(raw)); } catch { setWordlist([]); } }
     if (hid)  setHistoryId(hid);
     if (mraw) { try { setMetrics(JSON.parse(mraw)); } catch { setMetrics(null); } }
+    setUsedFallback(fb === 'true');
     setLoading(false);
   }, []);
 
@@ -161,6 +164,24 @@ const ResultPage = () => {
           ← Dashboard
         </button>
       </div>
+
+      {/* ── Fallback notice: AI engine was unavailable, algorithmic engine used ── */}
+      {usedFallback && (
+        <div style={{ display:'flex', alignItems:'flex-start', gap:12,
+                      background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.3)',
+                      borderRadius:8, padding:'12px 16px', marginBottom:24 }}>
+          <AlertTriangle style={{ width:18, height:18, color:'#f59e0b', flexShrink:0, marginTop:1 }} />
+          <div style={{ fontSize:12, color:'var(--fg-2)', lineHeight:1.5 }}>
+            <span style={{ fontWeight:700, color:'#f59e0b', fontFamily:'var(--font-mono)' }}>
+              ALGORITHMIC MODE
+            </span>{' '}
+            — the AI engine was unavailable, so this wordlist was produced by the local
+            permutation engine. Results are still valid but less profile-tailored. Configure
+            <code style={{ margin:'0 4px', color:'var(--fg-1)' }}>GEMINI_API_KEY</code>
+            on the backend to enable AI-assisted generation.
+          </div>
+        </div>
+      )}
 
       {/* ── Main grid (responsive: 1 col mobile, 3 col desktop) ── */}
       <div style={{

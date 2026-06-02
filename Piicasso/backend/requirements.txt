@@ -3,9 +3,9 @@
 # Cleaned: removed unused packages
 
 # Core framework
-Django==5.2.4
+Django==5.2.14  # security: PYSEC-2025/2026 series + CVE-2025-59682, CVE-2026-25673/25674 (stays on 5.2 LTS)
 djangorestframework==3.15.2
-djangorestframework-simplejwt==5.3.1
+djangorestframework-simplejwt==5.5.1  # security: CVE-2024-22513
 django-cors-headers==4.6.0
 
 # API documentation
@@ -13,42 +13,44 @@ drf-spectacular==0.28.0
 
 # Database
 dj-database-url==2.3.0
-psycopg2-binary>=2.9.9
+psycopg2-binary>=2.9.9,<3
 
 # Caching & sessions
 django-redis==5.4.0
-redis==5.2.1
+redis>=5.2.1,<6
 
 # Static files & storage
 whitenoise==6.8.2
 
 # Security & auth
-PyJWT==2.10.1
-cryptography>=43.0.0,<44
-django-cryptography
+PyJWT==2.12.1  # security: PYSEC-2026-120, PYSEC-2025-183
+cryptography>=46.0.6,<47  # security: PYSEC-2026-35, CVE-2024-12797, CVE-2026-26007
+# django-cryptography was unused (only `cryptography.fernet.Fernet` is imported
+# directly by generator/fields.py) and the upstream package is unmaintained
+# since 2023 — dropping it removes a stale, vulnerable transitive surface.
 
 # AI / LLM (Google Gemini)
 google-auth==2.37.0
 google-generativeai==0.8.3
 
 # HTTP clients
-requests==2.32.3
+requests==2.33.0  # security: CVE-2024-47081, CVE-2026-25645
 urllib3>=2.2.0,<3
 
 # PDF / Report generation
 reportlab==4.2.5
 
-# Image processing
-pillow==11.0.0
+# Image processing (transitive use only — ReportLab image embedding)
+pillow==12.2.0  # security: PYSEC-2026-165 + CVE-2026-25990/40192/42310/42311
 
 # Environment
-python-dotenv==1.0.1
+python-dotenv==1.2.2  # security: CVE-2026-28684
 
 # Server
-gunicorn==20.1.0
+gunicorn==23.0.0
 
 # Error tracking
-sentry-sdk[django]==2.20.0
+sentry-sdk[django]==2.30.0
 
 # Utilities
 PyYAML==6.0.2
@@ -57,6 +59,11 @@ django-prometheus==2.3.1
 
 # Async & Real-time Processing (Added for Enterprise Scale)
 celery==5.4.0
-channels==4.1.0
-channels-redis==4.2.0
+channels==4.2.2
+channels-redis==4.2.1
 daphne==4.1.2
+
+# Transitive deps of the daphne/channels websocket stack, pinned to patched
+# releases for security. Not imported directly by application code.
+Twisted>=26.4.0  # security: PYSEC-2026-160
+pyOpenSSL>=26.0.0  # security: CVE-2026-27448, CVE-2026-27459

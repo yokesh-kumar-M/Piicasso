@@ -26,11 +26,11 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: Piicasso/backend/requirements.txt
 
@@ -58,6 +58,17 @@ jobs:
               sys.exit(1)
           "
 
+      - name: Check for missing migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          DJANGO_SECRET_KEY: test-secret-key-not-for-production
+          ENV: test
+          GOOGLE_CLIENT_ID: test-google-client-id
+          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo=
+        run: |
+          cd Piicasso/backend
+          python manage.py makemigrations --check --dry-run
+
       - name: Run backend tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
@@ -69,19 +80,24 @@ jobs:
           cd Piicasso/backend
           python manage.py test --verbosity=2
 
-      - name: Lint with flake8
+      - name: Lint with flake8 (hard fail on syntax / undefined names)
         run: |
           cd Piicasso/backend
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        continue-on-error: true
+
+      - name: pip-audit (advisory)
+        run: |
+          cd Piicasso/backend
+          pip install pip-audit
+          pip-audit --strict --requirement requirements.txt || true
 
   frontend-tests:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -95,19 +111,22 @@ jobs:
       - name: Run frontend tests
         run: |
           cd Piicasso/frontend
-          npm test -- --watchAll=false --passWithNoTests
+          npm test
 
       - name: Build production bundle
-        env:
-          CI: 'false'
         run: |
           cd Piicasso/frontend
           npm run build
 
       - name: Check bundle size
         run: |
-          cd Piicasso/frontend/build/static/js
+          cd Piicasso/frontend/build/assets
           echo "Bundle sizes:"
           ls -lh *.js
           echo "Total JS size:"
           du -sh *.js
+
+      - name: npm audit (advisory)
+        run: |
+          cd Piicasso/frontend
+          npm audit --audit-level=high || true
