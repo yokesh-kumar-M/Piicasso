@@ -23,7 +23,7 @@ redis>=5.2.1,<6
 whitenoise==6.8.2
 
 # Security & auth
-PyJWT==2.12.1  # security: PYSEC-2026-120, PYSEC-2025-183
+PyJWT==2.13.0  # security: PYSEC-2026-120, PYSEC-2025-183
 cryptography>=46.0.6,<47  # security: PYSEC-2026-35, CVE-2024-12797, CVE-2026-26007
 # django-cryptography was unused (only `cryptography.fernet.Fernet` is imported
 # directly by generator/fields.py) and the upstream package is unmaintained
