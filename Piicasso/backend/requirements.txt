@@ -3,7 +3,7 @@
 # Cleaned: removed unused packages
 
 # Core framework
-Django==5.2.14  # security: PYSEC-2025/2026 series + CVE-2025-59682, CVE-2026-25673/25674 (stays on 5.2 LTS)
+Django==5.2.15  # security: PYSEC-2025/2026 series + CVE-2025-59682, CVE-2026-25673/25674 + SNYK-PYTHON-DJANGO-15183335 (5.2.15 = 2026-06-03 LTS security release; stays on 5.2 LTS)
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.5.1  # security: CVE-2024-22513
 django-cors-headers==4.6.0
@@ -80,3 +80,4 @@ idna>=3.15        # security: SNYK-PYTHON-IDNA-16769942 (ReDoS) — via requests
 pyasn1>=0.6.3     # security: SNYK-PYTHON-PYASN1-15032639/15674561 — via google-auth
 sqlparse>=0.5.4   # security: SNYK-PYTHON-SQLPARSE-14157217 — via django
 ujson>=5.12.1     # security: SNYK-PYTHON-UJSON-16643463 — via daphne -> autobahn
+zipp>=3.19.1      # security: SNYK-PYTHON-ZIPP-7430899 — via importlib-metadata
