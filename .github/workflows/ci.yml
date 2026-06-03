@@ -10,6 +10,11 @@ jobs:
   backend-tests:
     runs-on: ubuntu-latest
 
+    env:
+      # Mapped from the repo secret so step-level `if` can skip the Snyk gate
+      # gracefully when the token is absent (e.g. fork / Dependabot PRs).
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
     services:
       postgres:
         image: postgres:15
@@ -91,8 +96,23 @@ jobs:
           pip install pip-audit
           pip-audit --strict --requirement requirements.txt || true
 
+      - name: Snyk test (gate on high/critical Python deps)
+        if: ${{ env.SNYK_TOKEN != '' }}
+        run: |
+          cd Piicasso/backend
+          npm install -g snyk
+          # Deps were installed in the "Install dependencies" step above, so
+          # Snyk reads the resolved versions from requirements.txt rather than a
+          # stale environment. The medium 'twisted' command-injection advisory
+          # (SNYK-PYTHON-TWISTED-12671201) has no upstream fix and sits below
+          # this threshold by design — the build fails only on high/critical.
+          snyk test --severity-threshold=high
+
   frontend-tests:
     runs-on: ubuntu-latest
+
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
     steps:
       - uses: actions/checkout@v6
@@ -130,3 +150,10 @@ jobs:
         run: |
           cd Piicasso/frontend
           npm audit --audit-level=high || true
+
+      - name: Snyk test (gate on high/critical npm deps)
+        if: ${{ env.SNYK_TOKEN != '' }}
+        run: |
+          cd Piicasso/frontend
+          npm install -g snyk
+          snyk test --severity-threshold=high
