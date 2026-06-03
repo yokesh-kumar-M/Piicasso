@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for PIIcasso Backend
-FROM python:3.14.5-slim-bookworm AS builder
+FROM python:3.15-rc-alpine3.22 AS builder
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
-FROM python:3.14.5-slim-bookworm
+FROM python:3.15-rc-alpine3.22
 
 WORKDIR /app
 
