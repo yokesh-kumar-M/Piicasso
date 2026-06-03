@@ -3,7 +3,7 @@
 # Cleaned: removed unused packages
 
 # Core framework
-Django==6.0.2  # security: PYSEC-2025/2026 series + CVE-2025-59682, CVE-2026-25673/25674 (stays on 5.2 LTS)
+Django==5.2.15  # security: PYSEC-2025/2026 series + CVE-2025-59682, CVE-2026-25673/25674 + SNYK-PYTHON-DJANGO-15183335 (5.2.15 = 2026-06-03 LTS security release; stays on 5.2 LTS)
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.5.1  # security: CVE-2024-22513
 django-cors-headers==4.6.0
@@ -23,7 +23,7 @@ redis>=5.2.1,<6
 whitenoise==6.8.2
 
 # Security & auth
-PyJWT==2.12.1  # security: PYSEC-2026-120, PYSEC-2025-183
+PyJWT==2.13.0  # security: PYSEC-2026-120/175/177/178/179, PYSEC-2025-183 (2.13.0 closes the full SNYK pyjwt set)
 cryptography>=46.0.6,<47  # security: PYSEC-2026-35, CVE-2024-12797, CVE-2026-26007
 # django-cryptography was unused (only `cryptography.fernet.Fernet` is imported
 # directly by generator/fields.py) and the upstream package is unmaintained
@@ -35,7 +35,9 @@ google-generativeai==0.8.3
 
 # HTTP clients
 requests==2.33.0  # security: CVE-2024-47081, CVE-2026-25645
-urllib3>=2.7.0
+# security: floor raised to 2.7.0 — <2.7.0 is vulnerable to data-amplification
+# (SNYK-PYTHON-URLLIB3 highly-compressed-data) and sensitive-info leakage on redirect
+urllib3>=2.7.0,<3
 
 # PDF / Report generation
 reportlab==4.2.5
@@ -66,7 +68,16 @@ daphne==4.1.2
 # Transitive deps of the daphne/channels websocket stack, pinned to patched
 # releases for security. Not imported directly by application code.
 Twisted>=26.4.0  # security: PYSEC-2026-160
+# Note: twisted still carries one un-patched advisory (SNYK-PYTHON-TWISTED-12671201,
+# "Arbitrary Command Injection", medium) with no fixed release as of 2026-06; not
+# reachable from this app's code paths — accepted until upstream ships a fix.
 pyOpenSSL>=26.0.0  # security: CVE-2026-27448, CVE-2026-27459
-pyasn1>=0.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
-sqlparse>=0.5.4 # not directly required, pinned by Snyk to avoid a vulnerability
-zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
+
+# Vulnerable transitive deps pinned to patched floors. Not imported directly by
+# application code; without these the resolver pulls older, flagged versions.
+click>=8.3.3      # security: SNYK-PYTHON-CLICK-16347201 (command injection) — via celery
+idna>=3.15        # security: SNYK-PYTHON-IDNA-16769942 (ReDoS) — via requests
+pyasn1>=0.6.3     # security: SNYK-PYTHON-PYASN1-15032639/15674561 — via google-auth
+sqlparse>=0.5.4   # security: SNYK-PYTHON-SQLPARSE-14157217 — via django
+ujson>=5.12.1     # security: SNYK-PYTHON-UJSON-16643463 — via daphne -> autobahn
+zipp>=3.19.1      # security: SNYK-PYTHON-ZIPP-7430899 — via importlib-metadata
