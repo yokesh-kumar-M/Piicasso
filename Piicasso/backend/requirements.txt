@@ -75,7 +75,7 @@ pyOpenSSL>=26.0.0  # security: CVE-2026-27448, CVE-2026-27459
 
 # Vulnerable transitive deps pinned to patched floors. Not imported directly by
 # application code; without these the resolver pulls older, flagged versions.
-click>=8.3.3      # security: SNYK-PYTHON-CLICK-16347201 (command injection) — via celery
+click>=8.4.1      # security: SNYK-PYTHON-CLICK-16347201 (command injection) — via celery
 idna>=3.15        # security: SNYK-PYTHON-IDNA-16769942 (ReDoS) — via requests
 pyasn1>=0.6.3     # security: SNYK-PYTHON-PYASN1-15032639/15674561 — via google-auth
 sqlparse>=0.5.4   # security: SNYK-PYTHON-SQLPARSE-14157217 — via django
