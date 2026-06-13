@@ -157,3 +157,14 @@ jobs:
           cd Piicasso/frontend
           npm install -g snyk
           snyk test --severity-threshold=high
+
+  backend-docker-build:
+    # Builds the production backend image so a broken Dockerfile (e.g. a bad
+    # base image or missing build dep) fails CI instead of breaking the Render
+    # deploy, which builds from this same Dockerfile on push to main.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build backend Docker image
+        run: docker build -t piicasso-backend:ci Piicasso/backend

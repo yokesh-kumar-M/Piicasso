@@ -52,3 +52,11 @@ class RegisterRateThrottle(AnonRateThrottle):
     Default: 5 requests per hour per IP.
     """
     scope = 'register'
+
+
+class TerminalRateThrottle(UserRateThrottle):
+    """
+    Throttle for the simulated terminal endpoint.
+    Default: 10 requests per minute per user.
+    """
+    scope = 'terminal'
