@@ -17,7 +17,7 @@ psycopg2-binary>=2.9.9,<3
 
 # Caching & sessions
 django-redis==5.4.0
-redis>=5.2.1,<6
+redis>=8.0.0,<9
 
 # Static files & storage
 whitenoise==6.8.2
