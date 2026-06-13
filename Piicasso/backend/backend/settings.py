@@ -328,6 +328,17 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_ALL_ORIGINS = False
 
+# Django 4+ requires scheme://host entries here for cross-origin POSTs over
+# HTTPS behind a proxy (e.g. the admin and any session-auth form). Defaults to
+# the configured CORS origins; override with CSRF_TRUSTED_ORIGINS if needed.
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "CSRF_TRUSTED_ORIGINS", ",".join(CORS_ALLOWED_ORIGINS)
+    ).split(",")
+    if o.strip().startswith("http")
+]
+
 # ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────────
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 if not GOOGLE_CLIENT_ID:

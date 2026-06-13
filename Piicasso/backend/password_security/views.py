@@ -93,7 +93,19 @@ KEYBOARD_PATTERNS = {
 
 
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Keyed HMAC-SHA256 used ONLY for duplicate detection, never for auth.
+
+    Peppering with SECRET_KEY means a database leak does not hand an attacker
+    raw, offline-crackable SHA-256 password hashes. (Existing rows hashed with
+    the old unkeyed scheme simply won't match new ones — dedupe is best-effort
+    and non-critical.)
+    """
+    import hmac
+    from django.conf import settings
+
+    return hmac.new(
+        settings.SECRET_KEY.encode(), password.encode(), hashlib.sha256
+    ).hexdigest()
 
 
 def calculate_entropy(password):

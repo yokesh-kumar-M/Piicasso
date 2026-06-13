@@ -89,14 +89,18 @@ class MaintenanceModeMiddleware(MiddlewareMixin):
     ) + AUTH_EXEMPT_PREFIXES
 
     def process_request(self, request):
-        # Only check if the app is loaded (avoid import errors during startup)
-        try:
-            from operations.models import SystemSetting
-            maintenance = SystemSetting.get('maintenance_mode', 'false')
-        except Exception:
-            return None
+        # Cache the setting briefly so this isn't a DB hit on every request.
+        # A toggle from the admin propagates within the TTL.
+        maintenance = cache.get('sys:maintenance_mode')
+        if maintenance is None:
+            try:
+                from operations.models import SystemSetting
+                maintenance = SystemSetting.get('maintenance_mode', 'false')
+            except Exception:
+                return None
+            cache.set('sys:maintenance_mode', maintenance, 15)
 
-        if maintenance.lower() not in ('true', '1', 'yes'):
+        if str(maintenance).lower() not in ('true', '1', 'yes'):
             return None
 
         # Allow exempt paths
