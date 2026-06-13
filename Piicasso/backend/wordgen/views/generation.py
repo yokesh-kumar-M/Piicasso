@@ -555,6 +555,16 @@ def download_wordlist(request, id):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def export_history_csv(request):
+    def _esc(value):
+        """Neutralize spreadsheet formula injection. A cell beginning with
+        =, +, -, @, tab or CR is interpreted as a formula by Excel/Sheets, so
+        prefix those with a single quote. Quoting/escaping of commas, quotes
+        and newlines is handled by csv.writer."""
+        s = "" if value is None else str(value)
+        if s[:1] in ("=", "+", "-", "@", "\t", "\r"):
+            return "'" + s
+        return s
+
     def _row_generator():
         if request.user.is_superuser:
             qs = GenerationHistory.objects.all().order_by("-timestamp")
@@ -562,20 +572,34 @@ def export_history_csv(request):
             qs = GenerationHistory.objects.filter(user=request.user).order_by(
                 "-timestamp"
             )
-        yield "ID,Timestamp,IP Address,PII Data,Wordlist Count,Sample Passwords\n"
+
+        buf = StringIO()
+        writer = csv.writer(buf)
+
+        def _drain():
+            data = buf.getvalue()
+            buf.seek(0)
+            buf.truncate(0)
+            return data
+
+        writer.writerow(
+            ["ID", "Timestamp", "IP Address", "PII Data", "Wordlist Count", "Sample Passwords"]
+        )
+        yield _drain()
+
         for r in qs:
             sample = ", ".join((r.wordlist or [])[:5]) + (
                 "..." if r.wordlist and len(r.wordlist) > 5 else ""
             )
-            row = [
-                str(r.id),
-                str(r.timestamp),
-                str(r.ip_address),
-                json.dumps(_redact_pii(r.pii_data)),
-                str(len(r.wordlist or [])),
-                sample,
-            ]
-            yield ",".join([f'"{v}"' for v in row]) + "\n"
+            writer.writerow([
+                _esc(r.id),
+                _esc(r.timestamp),
+                _esc(r.ip_address),
+                _esc(json.dumps(_redact_pii(r.pii_data))),
+                _esc(len(r.wordlist or [])),
+                _esc(sample),
+            ])
+            yield _drain()
 
     try:
         return StreamingHttpResponse(

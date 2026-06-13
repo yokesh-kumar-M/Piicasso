@@ -57,13 +57,15 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         if user is None:
             user = User.objects.filter(email__iexact=username).first()
 
+        # Use one generic message for both "no such account" and "wrong
+        # password" so the endpoint cannot be used to enumerate valid
+        # usernames/emails. The dummy-hash check keeps timing constant.
         if not user:
-            # Keep timing similar when the account does not exist.
             check_password(password, _DUMMY_HASH)
-            raise AuthenticationFailed("No account found for this email/username.")
+            raise AuthenticationFailed("Invalid credentials.")
 
         if not user.check_password(password):
-            raise AuthenticationFailed("Incorrect password.")
+            raise AuthenticationFailed("Invalid credentials.")
 
         if not user.is_active:
             raise AuthenticationFailed("Your account has been suspended.")

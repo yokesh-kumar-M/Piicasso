@@ -226,10 +226,24 @@ if ENV == "production":
         SESSION_ENGINE = "django.contrib.sessions.backends.cache"
         SESSION_CACHE_ALIAS = "default"
     else:
-        # Fallback to local memory cache if Redis not available
+        # No Redis in production: fall back to the DATABASE cache backend, not
+        # LocMemCache. LocMemCache is per-process, so with multiple Gunicorn
+        # workers the DRF throttle counters, login-lockout state and OTP
+        # attempt caps would be split per-worker and reset on every restart,
+        # making brute-force protection unreliable. DatabaseCache is shared
+        # across workers. (Provision REDIS_URL for best performance — the
+        # table is created idempotently by `createcachetable` in start.sh.)
+        import warnings
+
+        warnings.warn(
+            "REDIS_URL is not set in production — falling back to the database "
+            "cache backend. Set REDIS_URL for shared, high-performance caching.",
+            RuntimeWarning,
+        )
         CACHES = {
             "default": {
-                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+                "LOCATION": "piicasso_cache",
                 "KEY_PREFIX": "piicasso",
                 "TIMEOUT": 3600,
             }
