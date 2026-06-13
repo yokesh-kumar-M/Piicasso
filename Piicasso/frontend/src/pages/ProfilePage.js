@@ -35,6 +35,9 @@ const ProfilePage = () => {
     const [passwordForm, setPasswordForm] = useState({ current_password: '', new_password: '', confirm_password: '' });
     const [passwordError, setPasswordError] = useState('');
     const [passwordSuccess, setPasswordSuccess] = useState('');
+    // Current password required to re-authenticate an email change (backend
+    // anti-takeover check). Kept separate from the password-change form above.
+    const [emailChangePassword, setEmailChangePassword] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -74,15 +77,35 @@ const ProfilePage = () => {
         if (user?.profile_picture) setAvatarPreview(user.profile_picture);
     }, [user]);
 
+    // True when the edited email differs from the stored one. Changing the email
+    // requires the account password (the backend rejects the change otherwise),
+    // so we prompt for it and include it in the PATCH only in that case.
+    const emailChanged =
+        editForm.email.trim().toLowerCase() !== (profile?.email || '').toLowerCase();
+
     const handleSaveProfile = async () => {
-        setSaving(true);
         setEditError('');
         setEditSuccess('');
+
+        if (emailChanged) {
+            // OAuth accounts have no usable password and cannot change email.
+            if (profile?.has_usable_password === false) {
+                setEditError('Email cannot be changed for Google OAuth accounts.');
+                return;
+            }
+            if (!emailChangePassword) {
+                setEditError('Enter your current password to change your email.');
+                return;
+            }
+        }
+
+        setSaving(true);
         try {
             const formData = new FormData();
             formData.append('first_name', editForm.first_name);
             formData.append('last_name', editForm.last_name);
             formData.append('email', editForm.email);
+            if (emailChanged) formData.append('current_password', emailChangePassword);
             if (avatarFile) formData.append('profile_picture', avatarFile);
 
             await axiosInstance.patch('profile/', formData, {
@@ -90,6 +113,7 @@ const ProfilePage = () => {
             });
             setEditSuccess('Profile updated successfully!');
             setEditing(false);
+            setEmailChangePassword('');
             const res = await axiosInstance.get('profile/');
             setProfile(res.data);
             setTimeout(() => setEditSuccess(''), 3000);
@@ -341,7 +365,7 @@ const ProfilePage = () => {
                                     zIndex: 10,
                                 }}>
                                     <button
-                                        onClick={() => { setEditing(!editing); setEditError(''); }}
+                                        onClick={() => { setEditing(!editing); setEditError(''); setEmailChangePassword(''); }}
                                         style={{
                                             width: '100%',
                                             borderRadius: 6,
@@ -590,6 +614,41 @@ const ProfilePage = () => {
                                             />
                                         </div>
                                     </div>
+                                    {emailChanged && profile?.has_usable_password !== false && (
+                                        <div style={{ marginTop: 16 }}>
+                                            <label style={{
+                                                fontSize: 10,
+                                                fontFamily: 'var(--font-mono)',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: 1,
+                                                marginBottom: 6,
+                                                display: 'block',
+                                                color: 'var(--fg-3)',
+                                            }}>
+                                                Current Password — required to change email
+                                            </label>
+                                            <input
+                                                type="password"
+                                                value={emailChangePassword}
+                                                onChange={e => setEmailChangePassword(e.target.value)}
+                                                autoComplete="current-password"
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 12px',
+                                                    fontSize: 14,
+                                                    borderRadius: 6,
+                                                    background: 'var(--ink-3)',
+                                                    border: '1px solid var(--ink-5)',
+                                                    color: 'var(--fg-0)',
+                                                    outline: 'none',
+                                                    transition: 'border-color 200ms',
+                                                }}
+                                                onFocus={(e) => e.target.style.borderColor = 'var(--accent-500)'}
+                                                onBlur={(e) => e.target.style.borderColor = 'var(--ink-5)'}
+                                                placeholder="Enter current password to confirm"
+                                            />
+                                        </div>
+                                    )}
                                     <button
                                         onClick={handleSaveProfile}
                                         disabled={saving}
