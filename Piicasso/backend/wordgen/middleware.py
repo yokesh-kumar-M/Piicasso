@@ -276,10 +276,9 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def _get_client_ip(request):
-        xff = request.META.get('HTTP_X_FORWARDED_FOR')
-        if xff:
-            return xff.split(',')[0].strip()
-        return request.META.get('REMOTE_ADDR', 'Unknown')
+        # Shared, spoof-resistant resolver (trusted-proxy aware).
+        from .utils import get_client_ip
+        return get_client_ip(request) or 'Unknown'
 
     def _is_scanner(self, user_agent):
         ua_lower = user_agent.lower()

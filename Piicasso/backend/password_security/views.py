@@ -286,12 +286,9 @@ class PasswordAnalyzeView(APIView):
         return [PIISubmitRateThrottle()]
 
     def get_client_ip(self, request):
-        xff = request.META.get("HTTP_X_FORWARDED_FOR")
-        if xff:
-            ip = xff.split(",")[0].strip()
-            if ip and len(ip) <= 45:
-                return ip
-        return request.META.get("REMOTE_ADDR")
+        # Shared, spoof-resistant resolver (trusted-proxy aware).
+        from wordgen.utils import get_client_ip as _get_client_ip
+        return _get_client_ip(request)
 
     def post(self, request):
         password = request.data.get("password", "")

@@ -293,33 +293,30 @@ class RequestPasswordResetView(APIView):
 
         try:
             user = User.objects.get(email=email)
-            if not user.has_usable_password():
-                return Response(
-                    {
-                        "error": "This account is authenticated externally (e.g. Google). Password reset not available."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
 
-            # Generate 6 digit OTP using cryptographically secure random
-            otp = "".join(secrets.choice(string.digits) for _ in range(6))
+            # Only password accounts can reset. For externally-authenticated
+            # (OAuth) accounts we deliberately do nothing here and still return
+            # the same generic response below, so the endpoint never reveals
+            # whether an address exists or how it authenticates.
+            if user.has_usable_password():
+                # Generate 6 digit OTP using cryptographically secure random
+                otp = "".join(secrets.choice(string.digits) for _ in range(6))
 
-            # Store in cache for 10 minutes (600 seconds)
-            cache.set(f"pwd_reset_otp_{email}", otp, timeout=600)
+                # Store in cache for 10 minutes (600 seconds)
+                cache.set(f"pwd_reset_otp_{email}", otp, timeout=600)
 
-            # Send Email (5.3: using fail_silently=True as a fallback;
-            # ideally this should be moved to a Celery task)
-            try:
-                send_mail(
-                    subject="PIIcasso - System Recovery Authorization",
-                    message=f"Operator {user.username},\n\nA password reset was requested for your account.\n\nYour Authorization Code: {otp}\n\nThis code will self-destruct in 10 minutes.\nIf you did not request this, ignore this transmission.",
-                    from_email=settings.DEFAULT_FROM_EMAIL or "noreply@piicasso.com",
-                    recipient_list=[email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                logger.error(f"SMTP send failure for password reset: {e}")
-                # Still return success to avoid leaking info about email existence
+                # Send Email (5.3: ideally this should be moved to a Celery task)
+                try:
+                    send_mail(
+                        subject="PIIcasso - System Recovery Authorization",
+                        message=f"Operator {user.username},\n\nA password reset was requested for your account.\n\nYour Authorization Code: {otp}\n\nThis code will self-destruct in 10 minutes.\nIf you did not request this, ignore this transmission.",
+                        from_email=settings.DEFAULT_FROM_EMAIL or "noreply@piicasso.com",
+                        recipient_list=[email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    logger.error(f"SMTP send failure for password reset: {e}")
+                    # Still return success to avoid leaking email existence.
 
             return Response(
                 {"message": "If an account exists, a recovery code has been sent."},

@@ -37,7 +37,7 @@ from ..serializers import Piiserializer
 from ..report_generator import generate_report_pdf
 from analytics.models import UserActivity
 from backend.throttles import PiiSubmitRateThrottle
-from ..utils import safe_float
+from ..utils import safe_float, get_client_ip
 from ..llm_handler import mask_pii_for_api
 
 logger = logging.getLogger("wordgen")
@@ -269,19 +269,8 @@ class PiiSubmitView(APIView):
     throttle_classes = [PiiSubmitRateThrottle]
 
     def get_client_ip(self, request):
-        """
-        Get client IP. In production behind a reverse proxy, use the
-        rightmost IP in X-Forwarded-For (last external hop) for safety,
-        or fall back to REMOTE_ADDR.
-        """
-        xff = request.META.get("HTTP_X_FORWARDED_FOR")
-        if xff:
-            # Use first IP (client IP when behind trusted proxy like Render/Cloudflare)
-            ip = xff.split(",")[0].strip()
-            # Basic validation
-            if ip and len(ip) <= 45:  # Max IPv6 length
-                return ip
-        return request.META.get("REMOTE_ADDR")
+        # Delegates to the shared, spoof-resistant helper (trusted-proxy aware).
+        return get_client_ip(request)
 
     def post(self, request):
         serializer = Piiserializer(data=request.data)

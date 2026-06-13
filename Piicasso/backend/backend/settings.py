@@ -73,6 +73,11 @@ ALLOWED_HOSTS = [
 if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(os.getenv("RENDER_EXTERNAL_HOSTNAME"))
 
+# Number of trusted reverse proxies in front of the app (Render LB = 1). Used
+# by wordgen.utils.get_client_ip to pick the real client IP from the
+# X-Forwarded-For chain without trusting client-supplied left-most entries.
+TRUSTED_PROXY_COUNT = int(os.getenv("TRUSTED_PROXY_COUNT", "1"))
+
 # Security headers (always on)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -303,7 +308,11 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
+    # Dedicated JWT signing key so it can be rotated independently of
+    # DJANGO_SECRET_KEY (which also signs sessions, CSRF, password-reset
+    # tokens). Falls back to SECRET_KEY when unset, so this is backward
+    # compatible; set JWT_SIGNING_KEY in production to decouple them.
+    "SIGNING_KEY": os.getenv("JWT_SIGNING_KEY") or SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "USER_AUTHENTICATION_RULE": "backend.auth_rules.allow_all_users_rule",
