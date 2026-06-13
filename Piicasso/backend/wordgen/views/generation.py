@@ -158,7 +158,7 @@ class RegisterView(APIView):
             )
 
         username = request.data.get("username", "").strip()
-        email = request.data.get("email", "").strip()
+        email = request.data.get("email", "").strip().lower()
         password = request.data.get("password", "")
         lat = request.data.get("lat")
         lng = request.data.get("lng")
@@ -211,7 +211,7 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if email and User.objects.filter(email=email).exists():
+        if email and User.objects.filter(email__iexact=email).exists():
             return Response(
                 {
                     "error": "Registration failed. Username or email may already be in use."
@@ -669,12 +669,40 @@ def user_profile(request):
             if "last_name" in data:
                 u.last_name = data["last_name"][:30]
             if "email" in data and data["email"]:
-                if User.objects.filter(email=data["email"]).exclude(id=u.id).exists():
-                    return Response(
-                        {"error": "Email already in use."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                u.email = data["email"]
+                new_email = str(data["email"]).strip()
+                if new_email.lower() != (u.email or "").lower():
+                    # Changing email requires re-authentication with the current
+                    # password (anti-takeover). OAuth accounts have no usable
+                    # password — their email is their identity and is fixed.
+                    if not u.has_usable_password():
+                        return Response(
+                            {"error": "Email cannot be changed for OAuth accounts."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    if not u.check_password(data.get("current_password", "")):
+                        return Response(
+                            {"error": "Current password is required to change email."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    if not re.match(
+                        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", new_email
+                    ):
+                        return Response(
+                            {"error": "Invalid email format."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    # Case-insensitive uniqueness (email is not unique at the DB
+                    # layer on the default User model — enforce it in app code).
+                    if (
+                        User.objects.filter(email__iexact=new_email)
+                        .exclude(id=u.id)
+                        .exists()
+                    ):
+                        return Response(
+                            {"error": "Email already in use."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    u.email = new_email
 
             if "current_password" in data and "new_password" in data:
                 if not u.has_usable_password():

@@ -78,14 +78,12 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["username"] = self.user.username
         data["is_superuser"] = self.user.is_superuser
 
-        # Promote to superuser if admin email
-        ADMIN_EMAIL = "yokeshkumar1704@gmail.com"
-        if self.user.email and self.user.email.lower() == ADMIN_EMAIL:
-            if not self.user.is_superuser:
-                self.user.is_superuser = True
-                self.user.is_staff = True
-                self.user.save(update_fields=["is_superuser", "is_staff"])
-                data["is_superuser"] = True
+        # NOTE: superuser status is NEVER granted at authentication time.
+        # It is managed exclusively via `manage.py createsuperuser`, the Django
+        # admin, or the SuperAdminView promote/demote actions. A previous
+        # implementation auto-promoted a hardcoded email here, which was a
+        # privilege-escalation backdoor (anyone able to claim that unverified
+        # email became a superuser on login). Do not reintroduce it.
 
         lat = self.initial_data.get("lat") if hasattr(self, "initial_data") else None
         lng = self.initial_data.get("lng") if hasattr(self, "initial_data") else None
@@ -182,35 +180,20 @@ class GoogleLoginView(APIView):
                 )
 
             # Normalize email to lowercase for consistency
-            email = payload.get("email", "").lower()
-            name = payload.get("name", "")
+            email = email.lower()
 
-            if not email:
-                return Response(
-                    {"error": "Email not found in token"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Admin email check (case-insensitive)
-            ADMIN_EMAIL = "yokeshkumar1704@gmail.com"
-
-            # Check if user exists
-            try:
-                user = User.objects.get(email=email)
+            # Look up by case-insensitive email. Use filter().first() rather
+            # than get() so a (legacy) duplicate email can never raise a 500.
+            user = User.objects.filter(email__iexact=email).first()
+            if user is not None:
                 # Check if user is active (1.3 related)
                 if not user.is_active:
                     return Response(
                         {"error": "Your account has been suspended."},
                         status=status.HTTP_403_FORBIDDEN,
                     )
-                # Force superuser status if admin email
-                if email == ADMIN_EMAIL:
-                    if not user.is_superuser:
-                        user.is_superuser = True
-                        user.is_staff = True
-                        user.save(update_fields=["is_superuser", "is_staff"])
-            except User.DoesNotExist:
-                # Create user
+            else:
+                # Provision a new account for this verified Google identity.
                 username = email.split("@")[0]
                 # Ensure username uniqueness using secure random
                 while User.objects.filter(username=username).exists():
@@ -232,11 +215,10 @@ class GoogleLoginView(APIView):
                     last_name=last_name,
                 )
                 user.set_unusable_password()
-                # Promote to superuser if admin email
-                if email == ADMIN_EMAIL:
-                    user.is_superuser = True
-                    user.is_staff = True
                 user.save()
+                # NOTE: superuser is never auto-granted from an email here.
+                # The hardcoded-admin promotion was removed (privilege-
+                # escalation backdoor). Elevate via the admin path only.
 
             # Generate Tokens
             refresh = RefreshToken.for_user(user)
