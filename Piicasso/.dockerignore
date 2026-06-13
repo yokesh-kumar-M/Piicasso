@@ -16,6 +16,8 @@ nosetests.xml
 coverage.xml
 *.cover
 *.log
+*.sqlite3
+db.sqlite3
 .git
 .gitignore
 .idea

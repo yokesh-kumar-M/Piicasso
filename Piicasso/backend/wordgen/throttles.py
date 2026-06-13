@@ -1,23 +1,17 @@
-from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+"""
+Deprecated shim. All throttle classes now live in ``backend.throttles`` —
+this module re-exports them so any lingering imports keep working. Import
+from ``backend.throttles`` directly in new code.
+"""
+from backend.throttles import (  # noqa: F401
+    LoginRateThrottle,
+    PiiSubmitRateThrottle,
+    BreachSearchRateThrottle,
+    OTPVerifyRateThrottle,
+    PasswordResetRateThrottle,
+    RegisterRateThrottle,
+    TerminalRateThrottle,
+)
 
-class LoginRateThrottle(AnonRateThrottle):
-    scope = 'login'
-
-class PIISubmitRateThrottle(UserRateThrottle):
-    scope = 'pii_submit'
-
-class BreachSearchRateThrottle(UserRateThrottle):
-    scope = 'breach_search'
-
-class RegisterRateThrottle(AnonRateThrottle):
-    scope = 'register'
-
-class PasswordResetRateThrottle(AnonRateThrottle):
-    scope = 'password_reset'
-
-class TerminalRateThrottle(UserRateThrottle):
-    scope = 'terminal'
-
-import sys
-if 'test' in sys.argv:
-    PIISubmitRateThrottle.rate = None
+# Backward-compatible alias (old name used the all-caps spelling).
+PIISubmitRateThrottle = PiiSubmitRateThrottle

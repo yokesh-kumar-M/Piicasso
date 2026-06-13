@@ -114,7 +114,8 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data["detail"], "Incorrect password.")
+        # Anti-enumeration: same generic message as the unknown-account cases.
+        self.assertEqual(response.data["detail"], "Invalid credentials.")
 
     def test_login_unknown_email(self):
         response = self.client.post(
@@ -126,9 +127,9 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(
-            response.data["detail"], "No account found for this email/username."
-        )
+        # Anti-enumeration: unknown account is indistinguishable from a wrong
+        # password (same generic message).
+        self.assertEqual(response.data["detail"], "Invalid credentials.")
 
     def test_login_unknown_username(self):
         response = self.client.post(
@@ -140,9 +141,8 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(
-            response.data["detail"], "No account found for this email/username."
-        )
+        # Anti-enumeration: unknown username yields the same generic message.
+        self.assertEqual(response.data["detail"], "Invalid credentials.")
 
     def test_login_inactive_user(self):
         """1.3 fix: inactive users should NOT get valid tokens."""
@@ -565,3 +565,59 @@ class UserProfileTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Jane")
+
+    def test_email_change_requires_current_password(self):
+        response = self.client.patch(
+            "/api/profile/",
+            {"email": "moved@test.com"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, "prof@test.com")
+
+    def test_email_change_wrong_password_rejected(self):
+        response = self.client.patch(
+            "/api/profile/",
+            {"email": "moved@test.com", "current_password": "WrongPass!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, "prof@test.com")
+
+    def test_email_change_with_correct_password_succeeds(self):
+        response = self.client.patch(
+            "/api/profile/",
+            {"email": "moved@test.com", "current_password": "Pass1234!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, "moved@test.com")
+
+
+class SecurityRegressionTest(TestCase):
+    """Locks in the removal of the hardcoded-email superuser backdoor."""
+
+    def setUp(self):
+        self.client = APIClient()
+        cache.clear()
+
+    def test_login_never_grants_superuser_by_email(self):
+        # The previously hardcoded "admin" email must no longer auto-promote
+        # anyone to superuser at login time.
+        magic_email = "yokeshkumar1704@gmail.com"
+        user = User.objects.create_user(
+            username="notadmin", password="StrongPass1!", email=magic_email
+        )
+        response = self.client.post(
+            "/api/user/token/",
+            {"username": "notadmin", "password": "StrongPass1!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.data["is_superuser"])
+        user.refresh_from_db()
+        self.assertFalse(user.is_superuser)
+        self.assertFalse(user.is_staff)

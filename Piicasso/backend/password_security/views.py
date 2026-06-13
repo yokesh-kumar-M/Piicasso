@@ -93,7 +93,19 @@ KEYBOARD_PATTERNS = {
 
 
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Keyed HMAC-SHA256 used ONLY for duplicate detection, never for auth.
+
+    Peppering with SECRET_KEY means a database leak does not hand an attacker
+    raw, offline-crackable SHA-256 password hashes. (Existing rows hashed with
+    the old unkeyed scheme simply won't match new ones — dedupe is best-effort
+    and non-critical.)
+    """
+    import hmac
+    from django.conf import settings
+
+    return hmac.new(
+        settings.SECRET_KEY.encode(), password.encode(), hashlib.sha256
+    ).hexdigest()
 
 
 def calculate_entropy(password):
@@ -286,12 +298,9 @@ class PasswordAnalyzeView(APIView):
         return [PIISubmitRateThrottle()]
 
     def get_client_ip(self, request):
-        xff = request.META.get("HTTP_X_FORWARDED_FOR")
-        if xff:
-            ip = xff.split(",")[0].strip()
-            if ip and len(ip) <= 45:
-                return ip
-        return request.META.get("REMOTE_ADDR")
+        # Shared, spoof-resistant resolver (trusted-proxy aware).
+        from wordgen.utils import get_client_ip as _get_client_ip
+        return _get_client_ip(request)
 
     def post(self, request):
         password = request.data.get("password", "")

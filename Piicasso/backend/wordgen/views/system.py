@@ -19,7 +19,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from operations.models import SystemLog
 from ..serializers import SystemLogSerializer
-from ..throttles import TerminalRateThrottle
+from backend.throttles import TerminalRateThrottle
 
 logger = logging.getLogger("wordgen")
 

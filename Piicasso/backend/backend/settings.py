@@ -73,6 +73,11 @@ ALLOWED_HOSTS = [
 if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(os.getenv("RENDER_EXTERNAL_HOSTNAME"))
 
+# Number of trusted reverse proxies in front of the app (Render LB = 1). Used
+# by wordgen.utils.get_client_ip to pick the real client IP from the
+# X-Forwarded-For chain without trusting client-supplied left-most entries.
+TRUSTED_PROXY_COUNT = int(os.getenv("TRUSTED_PROXY_COUNT", "1"))
+
 # Security headers (always on)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -226,10 +231,24 @@ if ENV == "production":
         SESSION_ENGINE = "django.contrib.sessions.backends.cache"
         SESSION_CACHE_ALIAS = "default"
     else:
-        # Fallback to local memory cache if Redis not available
+        # No Redis in production: fall back to the DATABASE cache backend, not
+        # LocMemCache. LocMemCache is per-process, so with multiple Gunicorn
+        # workers the DRF throttle counters, login-lockout state and OTP
+        # attempt caps would be split per-worker and reset on every restart,
+        # making brute-force protection unreliable. DatabaseCache is shared
+        # across workers. (Provision REDIS_URL for best performance — the
+        # table is created idempotently by `createcachetable` in start.sh.)
+        import warnings
+
+        warnings.warn(
+            "REDIS_URL is not set in production — falling back to the database "
+            "cache backend. Set REDIS_URL for shared, high-performance caching.",
+            RuntimeWarning,
+        )
         CACHES = {
             "default": {
-                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+                "LOCATION": "piicasso_cache",
                 "KEY_PREFIX": "piicasso",
                 "TIMEOUT": 3600,
             }
@@ -289,7 +308,11 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
+    # Dedicated JWT signing key so it can be rotated independently of
+    # DJANGO_SECRET_KEY (which also signs sessions, CSRF, password-reset
+    # tokens). Falls back to SECRET_KEY when unset, so this is backward
+    # compatible; set JWT_SIGNING_KEY in production to decouple them.
+    "SIGNING_KEY": os.getenv("JWT_SIGNING_KEY") or SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "USER_AUTHENTICATION_RULE": "backend.auth_rules.allow_all_users_rule",
@@ -304,6 +327,17 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 CORS_ALLOW_ALL_ORIGINS = False
+
+# Django 4+ requires scheme://host entries here for cross-origin POSTs over
+# HTTPS behind a proxy (e.g. the admin and any session-auth form). Defaults to
+# the configured CORS origins; override with CSRF_TRUSTED_ORIGINS if needed.
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "CSRF_TRUSTED_ORIGINS", ",".join(CORS_ALLOWED_ORIGINS)
+    ).split(",")
+    if o.strip().startswith("http")
+]
 
 # ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────────
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")

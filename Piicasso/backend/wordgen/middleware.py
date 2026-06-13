@@ -89,14 +89,18 @@ class MaintenanceModeMiddleware(MiddlewareMixin):
     ) + AUTH_EXEMPT_PREFIXES
 
     def process_request(self, request):
-        # Only check if the app is loaded (avoid import errors during startup)
-        try:
-            from operations.models import SystemSetting
-            maintenance = SystemSetting.get('maintenance_mode', 'false')
-        except Exception:
-            return None
+        # Cache the setting briefly so this isn't a DB hit on every request.
+        # A toggle from the admin propagates within the TTL.
+        maintenance = cache.get('sys:maintenance_mode')
+        if maintenance is None:
+            try:
+                from operations.models import SystemSetting
+                maintenance = SystemSetting.get('maintenance_mode', 'false')
+            except Exception:
+                return None
+            cache.set('sys:maintenance_mode', maintenance, 15)
 
-        if maintenance.lower() not in ('true', '1', 'yes'):
+        if str(maintenance).lower() not in ('true', '1', 'yes'):
             return None
 
         # Allow exempt paths
@@ -276,10 +280,9 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def _get_client_ip(request):
-        xff = request.META.get('HTTP_X_FORWARDED_FOR')
-        if xff:
-            return xff.split(',')[0].strip()
-        return request.META.get('REMOTE_ADDR', 'Unknown')
+        # Shared, spoof-resistant resolver (trusted-proxy aware).
+        from .utils import get_client_ip
+        return get_client_ip(request) or 'Unknown'
 
     def _is_scanner(self, user_agent):
         ua_lower = user_agent.lower()

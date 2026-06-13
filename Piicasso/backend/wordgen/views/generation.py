@@ -37,7 +37,7 @@ from ..serializers import Piiserializer
 from ..report_generator import generate_report_pdf
 from analytics.models import UserActivity
 from backend.throttles import PiiSubmitRateThrottle
-from ..utils import safe_float
+from ..utils import safe_float, get_client_ip
 from ..llm_handler import mask_pii_for_api
 
 logger = logging.getLogger("wordgen")
@@ -158,7 +158,7 @@ class RegisterView(APIView):
             )
 
         username = request.data.get("username", "").strip()
-        email = request.data.get("email", "").strip()
+        email = request.data.get("email", "").strip().lower()
         password = request.data.get("password", "")
         lat = request.data.get("lat")
         lng = request.data.get("lng")
@@ -211,7 +211,7 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if email and User.objects.filter(email=email).exists():
+        if email and User.objects.filter(email__iexact=email).exists():
             return Response(
                 {
                     "error": "Registration failed. Username or email may already be in use."
@@ -269,19 +269,8 @@ class PiiSubmitView(APIView):
     throttle_classes = [PiiSubmitRateThrottle]
 
     def get_client_ip(self, request):
-        """
-        Get client IP. In production behind a reverse proxy, use the
-        rightmost IP in X-Forwarded-For (last external hop) for safety,
-        or fall back to REMOTE_ADDR.
-        """
-        xff = request.META.get("HTTP_X_FORWARDED_FOR")
-        if xff:
-            # Use first IP (client IP when behind trusted proxy like Render/Cloudflare)
-            ip = xff.split(",")[0].strip()
-            # Basic validation
-            if ip and len(ip) <= 45:  # Max IPv6 length
-                return ip
-        return request.META.get("REMOTE_ADDR")
+        # Delegates to the shared, spoof-resistant helper (trusted-proxy aware).
+        return get_client_ip(request)
 
     def post(self, request):
         serializer = Piiserializer(data=request.data)
@@ -555,6 +544,16 @@ def download_wordlist(request, id):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def export_history_csv(request):
+    def _esc(value):
+        """Neutralize spreadsheet formula injection. A cell beginning with
+        =, +, -, @, tab or CR is interpreted as a formula by Excel/Sheets, so
+        prefix those with a single quote. Quoting/escaping of commas, quotes
+        and newlines is handled by csv.writer."""
+        s = "" if value is None else str(value)
+        if s[:1] in ("=", "+", "-", "@", "\t", "\r"):
+            return "'" + s
+        return s
+
     def _row_generator():
         if request.user.is_superuser:
             qs = GenerationHistory.objects.all().order_by("-timestamp")
@@ -562,20 +561,34 @@ def export_history_csv(request):
             qs = GenerationHistory.objects.filter(user=request.user).order_by(
                 "-timestamp"
             )
-        yield "ID,Timestamp,IP Address,PII Data,Wordlist Count,Sample Passwords\n"
+
+        buf = StringIO()
+        writer = csv.writer(buf)
+
+        def _drain():
+            data = buf.getvalue()
+            buf.seek(0)
+            buf.truncate(0)
+            return data
+
+        writer.writerow(
+            ["ID", "Timestamp", "IP Address", "PII Data", "Wordlist Count", "Sample Passwords"]
+        )
+        yield _drain()
+
         for r in qs:
             sample = ", ".join((r.wordlist or [])[:5]) + (
                 "..." if r.wordlist and len(r.wordlist) > 5 else ""
             )
-            row = [
-                str(r.id),
-                str(r.timestamp),
-                str(r.ip_address),
-                json.dumps(_redact_pii(r.pii_data)),
-                str(len(r.wordlist or [])),
-                sample,
-            ]
-            yield ",".join([f'"{v}"' for v in row]) + "\n"
+            writer.writerow([
+                _esc(r.id),
+                _esc(r.timestamp),
+                _esc(r.ip_address),
+                _esc(json.dumps(_redact_pii(r.pii_data))),
+                _esc(len(r.wordlist or [])),
+                _esc(sample),
+            ])
+            yield _drain()
 
     try:
         return StreamingHttpResponse(
@@ -669,12 +682,40 @@ def user_profile(request):
             if "last_name" in data:
                 u.last_name = data["last_name"][:30]
             if "email" in data and data["email"]:
-                if User.objects.filter(email=data["email"]).exclude(id=u.id).exists():
-                    return Response(
-                        {"error": "Email already in use."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                u.email = data["email"]
+                new_email = str(data["email"]).strip()
+                if new_email.lower() != (u.email or "").lower():
+                    # Changing email requires re-authentication with the current
+                    # password (anti-takeover). OAuth accounts have no usable
+                    # password — their email is their identity and is fixed.
+                    if not u.has_usable_password():
+                        return Response(
+                            {"error": "Email cannot be changed for OAuth accounts."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    if not u.check_password(data.get("current_password", "")):
+                        return Response(
+                            {"error": "Current password is required to change email."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    if not re.match(
+                        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", new_email
+                    ):
+                        return Response(
+                            {"error": "Invalid email format."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    # Case-insensitive uniqueness (email is not unique at the DB
+                    # layer on the default User model — enforce it in app code).
+                    if (
+                        User.objects.filter(email__iexact=new_email)
+                        .exclude(id=u.id)
+                        .exists()
+                    ):
+                        return Response(
+                            {"error": "Email already in use."},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    u.email = new_email
 
             if "current_password" in data and "new_password" in data:
                 if not u.has_usable_password():
