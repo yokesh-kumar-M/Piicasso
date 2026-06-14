@@ -71,7 +71,7 @@ Twisted>=26.4.0  # security: PYSEC-2026-160
 # Note: twisted still carries one un-patched advisory (SNYK-PYTHON-TWISTED-12671201,
 # "Arbitrary Command Injection", medium) with no fixed release as of 2026-06; not
 # reachable from this app's code paths — accepted until upstream ships a fix.
-pyOpenSSL>=26.0.0  # security: CVE-2026-27448, CVE-2026-27459
+pyOpenSSL>=26.0.0,<26.2.0  # security: CVE-2026-27448, CVE-2026-27459
 
 # Vulnerable transitive deps pinned to patched floors. Not imported directly by
 # application code; without these the resolver pulls older, flagged versions.
