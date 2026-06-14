@@ -4,20 +4,20 @@
 
 # Core framework
 Django==5.2.15  # security: PYSEC-2025/2026 series + CVE-2025-59682, CVE-2026-25673/25674 + SNYK-PYTHON-DJANGO-15183335 (5.2.15 = 2026-06-03 LTS security release; stays on 5.2 LTS)
-djangorestframework==3.15.2
+djangorestframework==3.17.1
 djangorestframework-simplejwt==5.5.1  # security: CVE-2024-22513
-django-cors-headers==4.6.0
+django-cors-headers==4.9.0
 
 # API documentation
-drf-spectacular==0.28.0
+drf-spectacular==0.29.0
 
 # Database
-dj-database-url==2.3.0
+dj-database-url==3.1.2
 psycopg2-binary>=2.9.9,<3
 
 # Caching & sessions
 django-redis==5.4.0
-redis>=5.2.1,<6
+redis>=8.0.0,<9
 
 # Static files & storage
 whitenoise==6.8.2
@@ -49,10 +49,10 @@ pillow==12.2.0  # security: PYSEC-2026-165 + CVE-2026-25990/40192/42310/42311
 python-dotenv==1.2.2  # security: CVE-2026-28684
 
 # Server
-gunicorn==23.0.0
+gunicorn==26.0.0
 
 # Error tracking
-sentry-sdk[django]==2.30.0
+sentry-sdk[django]==2.61.1
 
 # Utilities
 PyYAML==6.0.2
@@ -62,7 +62,7 @@ django-prometheus==2.3.1
 # Async & Real-time Processing (Added for Enterprise Scale)
 celery==5.4.0
 channels==4.2.2
-channels-redis==4.2.1
+channels-redis==4.3.0
 daphne==4.2.2
 
 # Transitive deps of the daphne/channels websocket stack, pinned to patched
@@ -75,7 +75,7 @@ pyOpenSSL>=26.0.0  # security: CVE-2026-27448, CVE-2026-27459
 
 # Vulnerable transitive deps pinned to patched floors. Not imported directly by
 # application code; without these the resolver pulls older, flagged versions.
-click>=8.3.3      # security: SNYK-PYTHON-CLICK-16347201 (command injection) — via celery
+click>=8.4.1      # security: SNYK-PYTHON-CLICK-16347201 (command injection) — via celery
 idna>=3.15        # security: SNYK-PYTHON-IDNA-16769942 (ReDoS) — via requests
 pyasn1>=0.6.3     # security: SNYK-PYTHON-PYASN1-15032639/15674561 — via google-auth
 sqlparse>=0.5.4   # security: SNYK-PYTHON-SQLPARSE-14157217 — via django
