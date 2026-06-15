@@ -34,7 +34,7 @@ google-auth==2.37.0
 google-generativeai==0.8.3
 
 # HTTP clients
-requests==2.33.0  # security: CVE-2024-47081, CVE-2026-25645
+requests==2.34.2  # security: CVE-2024-47081, CVE-2026-25645
 # security: floor raised to 2.7.0 — <2.7.0 is vulnerable to data-amplification
 # (SNYK-PYTHON-URLLIB3 highly-compressed-data) and sensitive-info leakage on redirect
 urllib3>=2.7.0,<3
