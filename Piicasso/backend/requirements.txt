@@ -20,7 +20,7 @@ django-redis==5.4.0
 redis>=8.0.0,<9
 
 # Static files & storage
-whitenoise==6.8.2
+whitenoise==6.12.0
 
 # Security & auth
 PyJWT==2.13.0  # security: PYSEC-2026-120/175/177/178/179, PYSEC-2025-183 (2.13.0 closes the full SNYK pyjwt set)
