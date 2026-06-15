@@ -55,7 +55,7 @@ gunicorn==26.0.0
 sentry-sdk[django]==2.61.1
 
 # Utilities
-PyYAML==6.0.2
+PyYAML==6.0.3
 defusedxml==0.7.1
 django-prometheus==2.3.1
 
