@@ -31,7 +31,7 @@ cryptography>=46.0.6,<47  # security: PYSEC-2026-35, CVE-2024-12797, CVE-2026-26
 
 # AI / LLM (Google Gemini)
 google-auth==2.37.0
-google-generativeai==0.8.3
+google-generativeai==0.8.6
 
 # HTTP clients
 requests==2.33.0  # security: CVE-2024-47081, CVE-2026-25645
