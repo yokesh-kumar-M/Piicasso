@@ -24,7 +24,7 @@ whitenoise==6.8.2
 
 # Security & auth
 PyJWT==2.13.0  # security: PYSEC-2026-120/175/177/178/179, PYSEC-2025-183 (2.13.0 closes the full SNYK pyjwt set)
-cryptography>=46.0.6,<47  # security: PYSEC-2026-35, CVE-2024-12797, CVE-2026-26007
+cryptography>=49.0.0,<50  # security: PYSEC-2026-35, CVE-2024-12797, CVE-2026-26007
 # django-cryptography was unused (only `cryptography.fernet.Fernet` is imported
 # directly by generator/fields.py) and the upstream package is unmaintained
 # since 2023 — dropping it removes a stale, vulnerable transitive surface.
