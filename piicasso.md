@@ -20,7 +20,7 @@
 | Layer      | Tech                                                        |
 |------------|-------------------------------------------------------------|
 | Frontend   | React 18, React Router v6, CSS variables design system      |
-| Backend    | Django 4.x, DRF, simplejwt, PostgreSQL                      |
+| Backend    | Django 5.x (5.2 LTS), DRF, simplejwt, PostgreSQL            |
 | Auth       | JWT (access 15 min, refresh 1 day) + Google OAuth           |
 | Deployment | Vercel (frontend), Render (backend)                         |
 | CI/CD      | GitHub Actions — tests + keep-alive pings every 10 min      |
@@ -239,5 +239,23 @@ CI env vars needed in GitHub Secrets:
 
 After the pass: **70 / 70 Django tests green**, **CRA production build green** (warnings only — unused imports), all DesignAppShell pages exercised manually via the build artefacts.
 
-**Last Updated**: 2026-05-17
-**Status**: Production-ready — under-development pages (Financial Risk, Learn) now ship with real content/data; all critical backend bugs surfaced by the test suite are resolved
+---
+
+## 2026-06-03 — Cleanup pass (this session)
+
+| # | Area | Change |
+|---|------|--------|
+| C1 | `Piicasso/README.md` | Replaced a corrupted UTF-16 "deployment trigger" artefact with a short pointer to the repo-root README + sub-package docs |
+| C2 | `Piicasso/Dockerfile` | Removed — orphaned single-stage `python:3.11` image referenced by neither `render.yaml` nor any compose file (deploys use `backend/Dockerfile` + `frontend/Dockerfile`) |
+| C3 | `Piicasso/Procfile` | Removed — Render deploys via Docker (`dockerCommand: sh ./start.sh`), so the Heroku-style Procfile never ran |
+| C4 | `backend/settings.py` | Removed the dead `FIREBASE_PROJECT_ID` read (used nowhere in the codebase) |
+| D1 | `piicasso.md` | Corrected stack table (`Django 4.x` → `5.x` LTS) |
+| D2 | `README.md` | Fixed project-layout tree — relabelled `core/` (auth/token app at `api/user/`), added the `generator`/`intelligence` apps and the `backend/` project package |
+| D3 | `README.md` | Added Vite to the frontend tech-stack table (CRA → Vite migration) |
+
+Frontend now builds with **Vite** (migrated from CRA). This pass also carries the
+pending **Snyk** security work (CI gate + 32 pip-finding patches + Dockerfile pin)
+onto `main`.
+
+**Last Updated**: 2026-06-03
+**Status**: Production-ready — repo cleaned of dead deploy artefacts, docs reconciled with the live stack, security patches landed

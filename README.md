@@ -206,6 +206,7 @@ Override the API base with the `PIICASSO_API` environment variable or `piicasso 
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | React | 18 | UI framework |
+| Vite | 6.x | Build tool + dev server (migrated from CRA) |
 | Tailwind CSS | 3.x | Utility-first styling |
 | Framer Motion | 12.x | Page + component animations |
 | react-globe.gl | latest | 3D threat globe (Three.js) |
@@ -403,12 +404,15 @@ GitHub Actions pings the backend, frontend, and Supabase every 10 minutes to pre
 PIIcasso/
 ├── Piicasso/
 │   ├── backend/                    # Django API
-│   │   ├── core/                   # Settings + core URLs
-│   │   ├── operations/             # Operation history, breach search, financial risk
-│   │   ├── password_security/      # Password strength + preferences
-│   │   ├── teams/                  # Team management
-│   │   ├── wordgen/                # AI wordlist generation + Gemini integration
-│   │   ├── analytics/              # Analytics + system logs
+│   │   ├── backend/                # Project package — settings, urls, asgi/wsgi, celery
+│   │   ├── core/                   # Auth: registration, JWT, Google OAuth, password reset (api/user/)
+│   │   ├── wordgen/                # AI wordlist generation + Gemini, websocket consumers
+│   │   ├── generator/              # GenerationHistory model + Fernet-encrypted PII fields
+│   │   ├── intelligence/           # Target profiles, dossiers, seeds, permuted credentials
+│   │   ├── operations/             # Operation history, breach search, messages, financial risk
+│   │   ├── password_security/      # Password strength scoring + HIBP breach checks
+│   │   ├── teams/                  # Team workspaces + chat
+│   │   ├── analytics/              # Globe presence data + activity beacons
 │   │   ├── start.sh                # Gunicorn entrypoint (2w, 120s)
 │   │   └── requirements.txt
 │   │
