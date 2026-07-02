@@ -1,0 +1,12 @@
+# PIIcasso Backend — Development-only dependencies
+# ===================================================
+# Not installed in production (Dockerfile only installs requirements.txt).
+# Used by CI, pre-commit, and local dev (see ../../Taskfile.yml).
+
+-r requirements.txt
+
+ruff>=0.15.12
+mypy>=2.1.0
+django-stubs>=6.0.6
+djangorestframework-stubs>=3.17.0
+pre-commit>=4.6.0

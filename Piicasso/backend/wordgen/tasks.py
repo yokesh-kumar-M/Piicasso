@@ -1,12 +1,15 @@
 import logging
+
 from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from celery import shared_task
+from channels.layers import get_channel_layer
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
+
+from generator.models import GenerationHistory
+
 from .llm_handler import build_prompt, call_gemini_api
 from .views import get_rockyou_wordlist
-from generator.models import GenerationHistory
-from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -57,9 +60,7 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
         )
 
         rockyou_passwords = get_rockyou_wordlist()
-        ai_wordlist = [
-            line.strip() for line in wordlist_raw.splitlines() if line.strip()
-        ]
+        ai_wordlist = [line.strip() for line in wordlist_raw.splitlines() if line.strip()]
 
         seen = set()
         wordlist = []
@@ -75,9 +76,7 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
                 seen.add(pwd)
 
         if not wordlist:
-            raise ValueError(
-                "The generated wordlist is empty. Ensure valid PII was provided."
-            )
+            raise ValueError("The generated wordlist is empty. Ensure valid PII was provided.")
 
         wordlist_text = "\n".join(wordlist)
 

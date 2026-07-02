@@ -44,9 +44,7 @@ def create_team(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        team = Team.objects.create(
-            name=html_module.escape(name, quote=True), owner=user
-        )
+        team = Team.objects.create(name=html_module.escape(name, quote=True), owner=user)
         TeamMembership.objects.create(user=user, team=team, role="LEADER")
 
         # UserActivity.objects.create(
@@ -122,9 +120,7 @@ def join_team(request):
         #     link='/teams'
         # )
 
-        return Response(
-            {"message": f"Successfully joined {team.name}."}, status=status.HTTP_200_OK
-        )
+        return Response({"message": f"Successfully joined {team.name}."}, status=status.HTTP_200_OK)
     except Exception as e:
         logger.error(f"Team join error: {e}")
         return Response(
@@ -140,9 +136,7 @@ def get_team_info(request):
     """Retrieves intelligence feed and member details for the current team."""
     try:
         user = request.user
-        membership = (
-            TeamMembership.objects.filter(user=user).select_related("team").first()
-        )
+        membership = TeamMembership.objects.filter(user=user).select_related("team").first()
         if not membership:
             return Response({"active": False})
 
@@ -202,24 +196,17 @@ def leave_team(request):
             count = TeamMembership.objects.filter(team=team).count()
             if count == 1:
                 team.delete()
-                return Response(
-                    {"message": "Unit decommissioned (no remaining operators)."}
-                )
+                return Response({"message": "Unit decommissioned (no remaining operators)."})
 
             # Transfer command hierarchy
             next_member = (
-                TeamMembership.objects.filter(team=team)
-                .exclude(user=request.user)
-                .order_by("joined_at")
-                .first()
+                TeamMembership.objects.filter(team=team).exclude(user=request.user).order_by("joined_at").first()
             )
             if next_member:
                 next_member.role = "LEADER"
                 next_member.save()
             membership.delete()
-            return Response(
-                {"message": "Command hierarchy transferred. Operator extracted."}
-            )
+            return Response({"message": "Command hierarchy transferred. Operator extracted."})
 
         membership.delete()
         return Response({"message": f"Successfully detached from unit {team.name}."})
@@ -247,9 +234,9 @@ def team_chat_messages(request):
 
     if request.method == "GET":
         after_id = int(request.query_params.get("after", 0))
-        msgs = TeamMessage.objects.filter(team=team, id__gt=after_id).select_related('sender').order_by(
-            "timestamp"
-        )[:100]
+        msgs = (
+            TeamMessage.objects.filter(team=team, id__gt=after_id).select_related("sender").order_by("timestamp")[:100]
+        )
         return Response(
             [
                 {
@@ -265,13 +252,9 @@ def team_chat_messages(request):
 
     content = request.data.get("content", "").strip()
     if not content:
-        return Response(
-            {"error": "Empty signal transmissions are restricted."}, status=400
-        )
+        return Response({"error": "Empty signal transmissions are restricted."}, status=400)
     if len(content) > 2000:
-        return Response(
-            {"error": "Signal transmission exceeds limit (2000 chars)."}, status=400
-        )
+        return Response({"error": "Signal transmission exceeds limit (2000 chars)."}, status=400)
 
     content = html_module.escape(content, quote=True)
 

@@ -4,9 +4,10 @@ PIIcasso Backend Tests — analytics app
 Tests for globe data and beacon endpoints.
 """
 
-from django.test import TestCase
 from django.contrib.auth.models import User
+from django.test import TestCase
 from rest_framework.test import APIClient
+
 from analytics.models import UserActivity
 
 
@@ -42,16 +43,12 @@ class BeaconTest(TestCase):
 
     def test_anonymous_cannot_use_beacon(self):
         client = APIClient()
-        response = client.post(
-            "/api/analytics/beacon/", {"message": "HELP"}, format="json"
-        )
+        response = client.post("/api/analytics/beacon/", {"message": "HELP"}, format="json")
         self.assertEqual(response.status_code, 401)
 
     def test_authenticated_beacon(self):
         user = User.objects.create_user("beaconuser", password="Pass1234!")
         client = APIClient()
         client.force_authenticate(user=user)
-        response = client.post(
-            "/api/analytics/beacon/", {"message": "HELP"}, format="json"
-        )
+        response = client.post("/api/analytics/beacon/", {"message": "HELP"}, format="json")
         self.assertEqual(response.status_code, 200)

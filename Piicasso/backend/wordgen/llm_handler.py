@@ -1,10 +1,11 @@
-import os
-import re
 import itertools
 import logging
+import os
+import re
+
 import requests
 
-logger = logging.getLogger('wordgen')
+logger = logging.getLogger("wordgen")
 
 
 def mask_pii_for_api(pii_data):
@@ -12,9 +13,9 @@ def mask_pii_for_api(pii_data):
     Optional masker: remove or mask extremely sensitive fields before sending to external LLM.
     """
     safe = dict(pii_data)
-    for k in ['ssn_last4', 'bank_name', 'crypto_wallet', 'gov_id', 'passport_id', 'bank_suffix']:
-        if k in safe and safe[k]:
-            safe[k] = '[MASKED]'
+    for k in ["ssn_last4", "bank_name", "crypto_wallet", "gov_id", "passport_id", "bank_suffix"]:
+        if safe.get(k):
+            safe[k] = "[MASKED]"
     return safe
 
 
@@ -32,63 +33,63 @@ def build_prompt(pii_data, pattern_mode="standard"):
         return str(val)
 
     identity = f"""
-    Full Name: {fmt('full_name')}
-    DOB/Year: {fmt('birth_year')}
-    Phone Digits: {fmt('phone_suffix')}
-    Username: {fmt('username')}
-    Email Handle: {fmt('email')}
+    Full Name: {fmt("full_name")}
+    DOB/Year: {fmt("birth_year")}
+    Phone Digits: {fmt("phone_suffix")}
+    Username: {fmt("username")}
+    Email Handle: {fmt("email")}
     """
 
     family = f"""
-    Spouse: {fmt('spouse_name')}
-    Children: {fmt('child_names')}
-    Pets: {fmt('pet_names')}
-    Mother's Maiden: {fmt('mother_maiden')}
-    Father's Name: {fmt('father_name')}
-    Siblings: {fmt('sibling_names')}
-    Best Friend: {fmt('best_friend')}
-    Childhood Nickname: {fmt('childhood_nickname')}
+    Spouse: {fmt("spouse_name")}
+    Children: {fmt("child_names")}
+    Pets: {fmt("pet_names")}
+    Mother's Maiden: {fmt("mother_maiden")}
+    Father's Name: {fmt("father_name")}
+    Siblings: {fmt("sibling_names")}
+    Best Friend: {fmt("best_friend")}
+    Childhood Nickname: {fmt("childhood_nickname")}
     """
 
     work = f"""
-    Company: {fmt('employer_name')}
-    Job Title: {fmt('job_title')}
-    Department: {fmt('department')}
-    Employee ID: {fmt('employee_id')}
-    Boss: {fmt('boss_name')}
-    Past Company: {fmt('past_company')}
-    University: {fmt('university')}
-    Degree/Major: {fmt('degree')}
-    School: {fmt('school_name')}
+    Company: {fmt("employer_name")}
+    Job Title: {fmt("job_title")}
+    Department: {fmt("department")}
+    Employee ID: {fmt("employee_id")}
+    Boss: {fmt("boss_name")}
+    Past Company: {fmt("past_company")}
+    University: {fmt("university")}
+    Degree/Major: {fmt("degree")}
+    School: {fmt("school_name")}
     """
 
     location = f"""
-    Current City: {fmt('current_city')}
-    Hometown: {fmt('hometown')}
-    Street: {fmt('street_name')}
-    Zip Code: {fmt('zip_code')}
-    State: {fmt('state')}
-    Country: {fmt('country')}
-    Vacation Spot: {fmt('vacation_spot')}
-    Last Location: {fmt('last_location')}
+    Current City: {fmt("current_city")}
+    Hometown: {fmt("hometown")}
+    Street: {fmt("street_name")}
+    Zip Code: {fmt("zip_code")}
+    State: {fmt("state")}
+    Country: {fmt("country")}
+    Vacation Spot: {fmt("vacation_spot")}
+    Last Location: {fmt("last_location")}
     """
 
     interests = f"""
-    Sports Team: {fmt('sports_team')}
-    Musician: {fmt('musician')}
-    Movies: {fmt('favourite_movies')}
-    Hobbies: {fmt('hobbies')}
-    Books: {fmt('books')}
-    Games: {fmt('games')}
-    Favorite Food: {fmt('favourite_food')}
+    Sports Team: {fmt("sports_team")}
+    Musician: {fmt("musician")}
+    Movies: {fmt("favourite_movies")}
+    Hobbies: {fmt("hobbies")}
+    Books: {fmt("books")}
+    Games: {fmt("games")}
+    Favorite Food: {fmt("favourite_food")}
     """
 
     assets = f"""
-    Car Model: {fmt('first_car_model')}
-    License Plate: {fmt('plate_number_partial')}
-    Brand Affinity: {fmt('brand_affinity')}
-    Device: {fmt('device_type')}
-    Subscription: {fmt('subscription')}
+    Car Model: {fmt("first_car_model")}
+    License Plate: {fmt("plate_number_partial")}
+    Brand Affinity: {fmt("brand_affinity")}
+    Device: {fmt("device_type")}
+    Subscription: {fmt("subscription")}
     """
 
     # Adjust instructions based on user's selected pattern mode
@@ -163,18 +164,18 @@ def generate_fallback_wordlist(pii_data):
     """
     seeds = []
 
-    for k, val in pii_data.items():
+    for _k, val in pii_data.items():
         if val:
             if isinstance(val, list):
                 seeds.extend([str(v) for v in val if v])
             else:
                 s_val = str(val)
                 seeds.append(s_val)
-                if ' ' in s_val:
+                if " " in s_val:
                     seeds.extend(s_val.split())
 
-    if pii_data.get('full_name'):
-        parts = pii_data['full_name'].split()
+    if pii_data.get("full_name"):
+        parts = pii_data["full_name"].split()
         seeds.extend(parts)
 
     # Clean seeds
@@ -182,7 +183,7 @@ def generate_fallback_wordlist(pii_data):
     seeds = list(set(seeds))
 
     passwords = set()
-    suffixes = ['', '1', '123', '!', '.', '2024', '2025', '2020', '@123']
+    suffixes = ["", "1", "123", "!", ".", "2024", "2025", "2020", "@123"]
     transforms = [lambda s: s, lambda s: s.lower(), lambda s: s.upper(), lambda s: s.capitalize()]
 
     for s in seeds:
@@ -216,9 +217,7 @@ def call_gemini_api(prompt, pii_data=None):
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}]
-        }
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
 
@@ -258,10 +257,10 @@ def call_gemini_api(prompt, pii_data=None):
 
 # ─── Probability scoring ──────────────────────────────────────────────────────
 
-_YEAR_RE = re.compile(r'(19|20)\d{2}')
-_COMMON_SUFFIXES = ('123', '1234', '12345', '!', '@', '#', '!@#', '!!', '007', '01', '1')
+_YEAR_RE = re.compile(r"(19|20)\d{2}")
+_COMMON_SUFFIXES = ("123", "1234", "12345", "!", "@", "#", "!@#", "!!", "007", "01", "1")
 # str.translate table for de-leetification (used to detect leet-encoded PII)
-_LEET_TABLE = str.maketrans({'@': 'a', '3': 'e', '1': 'i', '0': 'o', '$': 's', '7': 't', '4': 'a'})
+_LEET_TABLE = str.maketrans({"@": "a", "3": "e", "1": "i", "0": "o", "$": "s", "7": "t", "4": "a"})
 
 
 def score_wordlist(passwords, pii_data, rockyou_set=frozenset()):
@@ -277,10 +276,7 @@ def score_wordlist(passwords, pii_data, rockyou_set=frozenset()):
     Returns: [{"password": "...", "score": N}, ...]
     """
     pii_tokens = _extract_pii_tokens(pii_data)
-    scored = [
-        {"password": pwd, "score": _score_one(pwd, pii_tokens, rockyou_set)}
-        for pwd in passwords
-    ]
+    scored = [{"password": pwd, "score": _score_one(pwd, pii_tokens, rockyou_set)} for pwd in passwords]
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored
 
@@ -317,7 +313,7 @@ def _score_one(password, pii_tokens, rockyou_set):
     normalised = password.translate(_LEET_TABLE).lower()
     if normalised != pw_lower and any(tok in normalised for tok in pii_tokens):
         pattern += 7
-    if any(c in password for c in '!@#$%^&*'):
+    if any(c in password for c in "!@#$%^&*"):
         pattern += 5
     score += min(pattern, 30)
 

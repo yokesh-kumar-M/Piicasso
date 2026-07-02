@@ -1,4 +1,5 @@
 import json
+
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.db import models

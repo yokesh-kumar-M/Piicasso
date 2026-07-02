@@ -2,43 +2,43 @@
 Wordlist generation, history, download, and user profile views.
 """
 
-import os
 import csv
-import json
 import html
-import re
-import random
+import json
 import logging
+import os
+import random
+import re
 import threading
-from io import StringIO, BytesIO
+from io import BytesIO, StringIO
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
-from django.http import HttpResponse, FileResponse, StreamingHttpResponse
-from django.utils import timezone
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.db.models import Sum
-from django.conf import settings
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.http import FileResponse, HttpResponse, StreamingHttpResponse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
     permission_classes,
 )
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from generator.models import GenerationHistory
-from ..serializers import Piiserializer
-from ..report_generator import generate_report_pdf
 from analytics.models import UserActivity
 from backend.throttles import PiiSubmitRateThrottle
-from ..utils import safe_float, get_client_ip
+from generator.models import GenerationHistory
+
 from ..llm_handler import mask_pii_for_api
+from ..report_generator import generate_report_pdf
+from ..serializers import Piiserializer
+from ..utils import get_client_ip, safe_float
 
 logger = logging.getLogger("wordgen")
 
@@ -60,11 +60,7 @@ def _redact_pii(pii_data):
     """
     if not isinstance(pii_data, dict):
         return {}
-    return {
-        k: "***"
-        for k, v in pii_data.items()
-        if k not in _PII_SUMMARY_EXCLUDED and v and v != [] and v != ""
-    }
+    return {k: "***" for k, v in pii_data.items() if k not in _PII_SUMMARY_EXCLUDED and v and v != [] and v != ""}
 
 
 # ─── RockYou Cache (lazy singleton, memory-bounded) ─────────────────────────
@@ -74,7 +70,7 @@ def _redact_pii(pii_data):
 # giving a uniform random sample with a single streaming pass.
 
 _ROCKYOU_MAX = 50_000
-_ROCKYOU_CACHE = None          # None = not yet loaded
+_ROCKYOU_CACHE = None  # None = not yet loaded
 _ROCKYOU_LOCK = threading.Lock()
 
 
@@ -85,7 +81,7 @@ def _load_rockyou():
     try:
         reservoir = []
         count = 0  # number of valid (non-blank) lines seen so far
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(path, encoding="utf-8", errors="ignore") as f:
             for line in f:
                 word = line.strip()
                 if not word:
@@ -95,8 +91,9 @@ def _load_rockyou():
                 else:
                     # Algorithm R: replace a random earlier entry with
                     # decreasing probability so every word has an equal
-                    # chance of appearing in the final reservoir.
-                    j = random.randint(0, count)
+                    # chance of appearing in the final reservoir. Statistical
+                    # sampling only, not security-sensitive.
+                    j = random.randint(0, count)  # noqa: S311
                     if j < _ROCKYOU_MAX:
                         reservoir[j] = word
                 count += 1
@@ -179,16 +176,12 @@ class RegisterView(APIView):
         # Username must be alphanumeric with underscores/hyphens only
         if not re.match(r"^[a-zA-Z0-9_-]+$", username):
             return Response(
-                {
-                    "error": "Username may only contain letters, numbers, underscores, and hyphens."
-                },
+                {"error": "Username may only contain letters, numbers, underscores, and hyphens."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Email format validation
-        if email and not re.match(
-            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email
-        ):
+        if email and not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             return Response(
                 {"error": "Invalid email format."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -205,36 +198,26 @@ class RegisterView(APIView):
 
         if User.objects.filter(username=username).exists():
             return Response(
-                {
-                    "error": "Registration failed. Username or email may already be in use."
-                },
+                {"error": "Registration failed. Username or email may already be in use."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if email and User.objects.filter(email__iexact=email).exists():
             return Response(
-                {
-                    "error": "Registration failed. Username or email may already be in use."
-                },
+                {"error": "Registration failed. Username or email may already be in use."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            user = User.objects.create_user(
-                username=username, email=email, password=password
-            )
+            user = User.objects.create_user(username=username, email=email, password=password)
 
             UserActivity.objects.create(
                 user=user,
                 activity_type="LOGIN",
-                description=f"New operator registered",
+                description="New operator registered",
                 city="Unknown Cluster",
-                latitude=max(-90.0, min(90.0, safe_float(lat)))
-                if safe_float(lat) != 999.0
-                else 999.0,
-                longitude=max(-180.0, min(180.0, safe_float(lng)))
-                if safe_float(lng) != 999.0
-                else 999.0,
+                latitude=max(-90.0, min(90.0, safe_float(lat))) if safe_float(lat) != 999.0 else 999.0,
+                longitude=max(-180.0, min(180.0, safe_float(lng))) if safe_float(lng) != 999.0 else 999.0,
             )
 
             from operations.views import create_notification
@@ -282,11 +265,7 @@ class PiiSubmitView(APIView):
         # Sanitize PII data to prevent stored XSS (1.6 fix)
         pii_data = _sanitize_pii_data(pii_data)
 
-        non_empty_values = [
-            v
-            for k, v in pii_data.items()
-            if k != "pattern_mode" and v and v != "" and v != []
-        ]
+        non_empty_values = [v for k, v in pii_data.items() if k != "pattern_mode" and v and v != "" and v != []]
         if not non_empty_values:
             return Response(
                 {"error": "No meaningful PII data provided."},
@@ -301,9 +280,7 @@ class PiiSubmitView(APIView):
         max_size_setting = SystemSetting.get("max_wordlist_size", "")
         try:
             max_size = (
-                int(max_size_setting)
-                if max_size_setting
-                else settings.PIICASSO_SETTINGS.get("MAX_WORDLIST_SIZE", 1000)
+                int(max_size_setting) if max_size_setting else settings.PIICASSO_SETTINGS.get("MAX_WORDLIST_SIZE", 1000)
             )
         except (ValueError, TypeError):
             max_size = settings.PIICASSO_SETTINGS.get("MAX_WORDLIST_SIZE", 1000)
@@ -314,14 +291,19 @@ class PiiSubmitView(APIView):
             pattern_mode = pii_data.pop("pattern_mode", "standard")
 
             # Caching to load balance and scale
-            from django.core.cache import cache
             import hashlib
             import json
+
+            from django.core.cache import cache
+
             from ..llm_handler import build_prompt, call_gemini_api, score_wordlist
 
-            # Create a deterministic hash of the PII data + pattern mode
+            # Create a deterministic hash of the PII data + pattern mode.
+            # usedforsecurity=False: this is a cache key, not a security control.
             cache_key_data = json.dumps(pii_data, sort_keys=True) + pattern_mode
-            cache_key = f"wordgen_{request.user.id}_{hashlib.md5(cache_key_data.encode()).hexdigest()}"
+            cache_key = (
+                f"wordgen_{request.user.id}_{hashlib.md5(cache_key_data.encode(), usedforsecurity=False).hexdigest()}"
+            )
 
             cached = cache.get(cache_key)
 
@@ -338,17 +320,13 @@ class PiiSubmitView(APIView):
                     cache.set(cache_key, scored_list, timeout=60 * 60 * 24)
             else:
                 # Synchronous generation (no Celery — fits 512MB free tier)
-                logger.info(
-                    f"Starting wordlist generation for user={request.user.username} cache_key={cache_key}"
-                )
+                logger.info(f"Starting wordlist generation for user={request.user.username} cache_key={cache_key}")
 
                 pii_data = mask_pii_for_api(pii_data)
                 prompt = build_prompt(pii_data, pattern_mode)
                 wordlist_raw = call_gemini_api(prompt, pii_data=pii_data)
 
-                ai_wordlist = [
-                    line.strip() for line in wordlist_raw.splitlines() if line.strip()
-                ]
+                ai_wordlist = [line.strip() for line in wordlist_raw.splitlines() if line.strip()]
 
                 seen = set()
                 plain_passwords = []
@@ -409,6 +387,7 @@ class PiiSubmitView(APIView):
             # ── Compute threat metrics (E score + Risk Density + Threat Level) ──
             try:
                 from ..services.metrics_service import compute_metrics
+
                 metrics = compute_metrics(plain_passwords, pii_data)
             except Exception as _me:
                 logger.warning(f"Metrics computation skipped: {_me}")
@@ -450,9 +429,7 @@ class PiiSubmitView(APIView):
                 error_response["error"] = "Request timed out."
                 error_response["type"] = "timeout_error"
 
-            return Response(
-                error_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response(error_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ─── HISTORY ─────────────────────────────────────────────────────────────────
@@ -470,11 +447,7 @@ class HistoryView(APIView):
             start = (page - 1) * page_size
             end = start + page_size
 
-            qs = (
-                GenerationHistory.objects.filter(user=request.user)
-                .defer("wordlist")
-                .order_by("-timestamp")
-            )
+            qs = GenerationHistory.objects.filter(user=request.user).defer("wordlist").order_by("-timestamp")
             total = qs.count()
 
             entries = qs[start:end]
@@ -513,9 +486,7 @@ def delete_history_entry(request, id):
     try:
         r = GenerationHistory.objects.get(id=id)
         if r.user != request.user and not request.user.is_superuser:
-            return Response(
-                {"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)
         r.delete()
         return Response({"message": "Deleted."}, status=status.HTTP_204_NO_CONTENT)
     except GenerationHistory.DoesNotExist:
@@ -529,9 +500,7 @@ def download_wordlist(request, id):
     try:
         r = GenerationHistory.objects.get(id=id)
         if r.user != request.user and not request.user.is_superuser:
-            return Response(
-                {"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)
         txt = "\n".join(r.wordlist or [])
         resp = HttpResponse(txt, content_type="text/plain")
         resp["Content-Disposition"] = f"attachment; filename=wordlist_{id}.txt"
@@ -558,9 +527,7 @@ def export_history_csv(request):
         if request.user.is_superuser:
             qs = GenerationHistory.objects.all().order_by("-timestamp")
         else:
-            qs = GenerationHistory.objects.filter(user=request.user).order_by(
-                "-timestamp"
-            )
+            qs = GenerationHistory.objects.filter(user=request.user).order_by("-timestamp")
 
         buf = StringIO()
         writer = csv.writer(buf)
@@ -571,23 +538,21 @@ def export_history_csv(request):
             buf.truncate(0)
             return data
 
-        writer.writerow(
-            ["ID", "Timestamp", "IP Address", "PII Data", "Wordlist Count", "Sample Passwords"]
-        )
+        writer.writerow(["ID", "Timestamp", "IP Address", "PII Data", "Wordlist Count", "Sample Passwords"])
         yield _drain()
 
         for r in qs:
-            sample = ", ".join((r.wordlist or [])[:5]) + (
-                "..." if r.wordlist and len(r.wordlist) > 5 else ""
+            sample = ", ".join((r.wordlist or [])[:5]) + ("..." if r.wordlist and len(r.wordlist) > 5 else "")
+            writer.writerow(
+                [
+                    _esc(r.id),
+                    _esc(r.timestamp),
+                    _esc(r.ip_address),
+                    _esc(json.dumps(_redact_pii(r.pii_data))),
+                    _esc(len(r.wordlist or [])),
+                    _esc(sample),
+                ]
             )
-            writer.writerow([
-                _esc(r.id),
-                _esc(r.timestamp),
-                _esc(r.ip_address),
-                _esc(json.dumps(_redact_pii(r.pii_data))),
-                _esc(len(r.wordlist or [])),
-                _esc(sample),
-            ])
             yield _drain()
 
     try:
@@ -598,9 +563,7 @@ def export_history_csv(request):
         )
     except Exception as e:
         logger.error(f"CSV export error: {e}")
-        return Response(
-            {"error": "Export failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        return Response({"error": "Export failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(["GET"])
@@ -610,9 +573,7 @@ def download_report_pdf(request, id):
     try:
         r = GenerationHistory.objects.get(id=id)
         if r.user != request.user and not request.user.is_superuser:
-            return Response(
-                {"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)
 
         buffer = BytesIO()
         generate_report_pdf(r, buffer)
@@ -644,10 +605,7 @@ def user_stats(request):
     try:
         total_ops = GenerationHistory.objects.filter(user=request.user).count()
         total_passwords = (
-            GenerationHistory.objects.filter(user=request.user).aggregate(
-                total=Sum("wordlist_count")
-            )["total"]
-            or 0
+            GenerationHistory.objects.filter(user=request.user).aggregate(total=Sum("wordlist_count"))["total"] or 0
         )
 
         return Response(
@@ -681,7 +639,7 @@ def user_profile(request):
                 u.first_name = data["first_name"][:30]
             if "last_name" in data:
                 u.last_name = data["last_name"][:30]
-            if "email" in data and data["email"]:
+            if data.get("email"):
                 new_email = str(data["email"]).strip()
                 if new_email.lower() != (u.email or "").lower():
                     # Changing email requires re-authentication with the current
@@ -697,20 +655,14 @@ def user_profile(request):
                             {"error": "Current password is required to change email."},
                             status=status.HTTP_400_BAD_REQUEST,
                         )
-                    if not re.match(
-                        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", new_email
-                    ):
+                    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", new_email):
                         return Response(
                             {"error": "Invalid email format."},
                             status=status.HTTP_400_BAD_REQUEST,
                         )
                     # Case-insensitive uniqueness (email is not unique at the DB
                     # layer on the default User model — enforce it in app code).
-                    if (
-                        User.objects.filter(email__iexact=new_email)
-                        .exclude(id=u.id)
-                        .exists()
-                    ):
+                    if User.objects.filter(email__iexact=new_email).exclude(id=u.id).exists():
                         return Response(
                             {"error": "Email already in use."},
                             status=status.HTTP_400_BAD_REQUEST,
@@ -731,9 +683,7 @@ def user_profile(request):
                 try:
                     validate_password(data["new_password"], user=u)
                 except DjangoValidationError as e:
-                    return Response(
-                        {"error": e.messages[0]}, status=status.HTTP_400_BAD_REQUEST
-                    )
+                    return Response({"error": e.messages[0]}, status=status.HTTP_400_BAD_REQUEST)
                 u.set_password(data["new_password"])
 
             u.save()
@@ -742,15 +692,15 @@ def user_profile(request):
             if "new_password" in data and "current_password" in data:
                 try:
                     from rest_framework_simplejwt.token_blacklist.models import (
-                        OutstandingToken,
                         BlacklistedToken,
+                        OutstandingToken,
                     )
 
                     outstanding = OutstandingToken.objects.filter(user=u)
                     for token in outstanding:
                         BlacklistedToken.objects.get_or_create(token=token)
-                except Exception:
-                    pass  # Token blacklist may not be available
+                except Exception as e:
+                    logger.warning(f"Token blacklist may not be available: {e}")
 
             return Response({"message": "Profile updated successfully."})
         except Exception as e:
@@ -775,15 +725,8 @@ def user_profile(request):
             logger.error(f"Failed to fetch team info: {e}")
 
         total_generations = GenerationHistory.objects.filter(user=u).count()
-        total_words = (
-            GenerationHistory.objects.filter(user=u).aggregate(
-                total=Sum("wordlist_count")
-            )["total"]
-            or 0
-        )
-        last_gen = (
-            GenerationHistory.objects.filter(user=u).order_by("-timestamp").first()
-        )
+        total_words = GenerationHistory.objects.filter(user=u).aggregate(total=Sum("wordlist_count"))["total"] or 0
+        last_gen = GenerationHistory.objects.filter(user=u).order_by("-timestamp").first()
 
         from operations.models import Message
 
@@ -839,17 +782,13 @@ def generate_download_token(request):
         )
 
     if file_type not in ("wordlist", "report"):
-        return Response(
-            {"error": "Invalid file_type."}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Invalid file_type."}, status=status.HTTP_400_BAD_REQUEST)
 
     # Verify user has access to this record
     try:
         record = GenerationHistory.objects.get(id=record_id)
         if record.user != request.user and not request.user.is_superuser:
-            return Response(
-                {"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)
     except GenerationHistory.DoesNotExist:
         return Response({"error": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -888,9 +827,7 @@ def download_file_with_token(request, file_type, id):
         user = User.objects.get(id=int(user_id))
 
     except SignatureExpired:
-        return HttpResponse(
-            "Download link has expired. Please generate a new one.", status=401
-        )
+        return HttpResponse("Download link has expired. Please generate a new one.", status=401)
     except (BadSignature, User.DoesNotExist, ValueError):
         return HttpResponse("Invalid or expired token.", status=401)
 
@@ -933,9 +870,7 @@ def get_cached_wordlist(request, cache_key):
 
     cached = cache.get(cache_key)
     if not cached:
-        return Response(
-            {"error": "Wordlist not found or expired."}, status=status.HTTP_404_NOT_FOUND
-        )
+        return Response({"error": "Wordlist not found or expired."}, status=status.HTTP_404_NOT_FOUND)
 
     # Normalise: cache holds scored [{password, score}] or legacy plain strings.
     if isinstance(cached[0], dict):
@@ -947,9 +882,7 @@ def get_cached_wordlist(request, cache_key):
 
     # Ownership check: DB stores plain strings, so compare against those.
     record = (
-        GenerationHistory.objects.filter(user=request.user, wordlist=plain_passwords)
-        .order_by("-timestamp")
-        .first()
+        GenerationHistory.objects.filter(user=request.user, wordlist=plain_passwords).order_by("-timestamp").first()
     )
     if not record:
         return Response({"error": "Unauthorized."}, status=status.HTTP_403_FORBIDDEN)

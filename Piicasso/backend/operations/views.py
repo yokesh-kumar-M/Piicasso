@@ -1,22 +1,25 @@
-import re
 import html as html_module
+import re
 from urllib.parse import quote
-from rest_framework import viewsets, permissions, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from backend.permissions import IsActiveUserOrMessagesOnly
+from password_security.hibp import k_anonymity_breach_count
+
 from .models import Message, Notification, SystemSetting
 from .serializers import (
     MessageSerializer,
     NotificationSerializer,
     SystemSettingSerializer,
 )
-from backend.permissions import IsActiveUserOrMessagesOnly
-from password_security.hibp import k_anonymity_breach_count
 
 User = get_user_model()
 
@@ -36,8 +39,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         if user.is_superuser:
             return Message.objects.select_related("sender", "recipient").all()
         return Message.objects.select_related("sender", "recipient").filter(
-            Q(sender=user, recipient__is_superuser=True)
-            | Q(recipient=user, sender__is_superuser=True)
+            Q(sender=user, recipient__is_superuser=True) | Q(recipient=user, sender__is_superuser=True)
         )
 
     def perform_create(self, serializer):
@@ -51,22 +53,19 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         recipient = serializer.validated_data.get("recipient")
 
-        if not self.request.user.is_superuser:
-            if not recipient or not recipient.is_superuser:
-                admin_user = User.objects.filter(is_superuser=True).first()
-                if admin_user:
-                    serializer.save(
-                        sender=self.request.user,
-                        recipient=admin_user,
-                        content=sanitized_content,
-                    )
-                else:
-                    from rest_framework.exceptions import ValidationError
+        if not self.request.user.is_superuser and (not recipient or not recipient.is_superuser):
+            admin_user = User.objects.filter(is_superuser=True).first()
+            if admin_user:
+                serializer.save(
+                    sender=self.request.user,
+                    recipient=admin_user,
+                    content=sanitized_content,
+                )
+            else:
+                from rest_framework.exceptions import ValidationError
 
-                    raise ValidationError(
-                        "You can only message the system administrator."
-                    )
-                return
+                raise ValidationError("You can only message the system administrator.")
+            return
 
         if not recipient:
             from rest_framework.exceptions import ValidationError
@@ -92,12 +91,8 @@ class NotificationListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        notifications = Notification.objects.filter(user=request.user).order_by(
-            "-timestamp"
-        )[:50]
-        unread_count = Notification.objects.filter(
-            user=request.user, is_read=False
-        ).count()
+        notifications = Notification.objects.filter(user=request.user).order_by("-timestamp")[:50]
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
         serializer = NotificationSerializer(notifications, many=True)
         return Response(
             {
@@ -111,9 +106,7 @@ class NotificationListView(APIView):
         action_type = request.data.get("action")
 
         if action_type == "mark_all_read":
-            Notification.objects.filter(user=request.user, is_read=False).update(
-                is_read=True
-            )
+            Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
             return Response({"message": "All notifications marked as read."})
 
         notification_id = request.data.get("id")
@@ -177,28 +170,20 @@ class SystemSettingsView(APIView):
         # Validate key against whitelist
         if key not in self.ALLOWED_KEYS:
             return Response(
-                {
-                    "error": f"Invalid setting key. Allowed: {', '.join(sorted(self.ALLOWED_KEYS))}"
-                },
+                {"error": f"Invalid setting key. Allowed: {', '.join(sorted(self.ALLOWED_KEYS))}"},
                 status=400,
             )
 
         # Validate value length
         if len(value) > 500:
-            return Response(
-                {"error": "Setting value too long (max 500 characters)."}, status=400
-            )
+            return Response({"error": "Setting value too long (max 500 characters)."}, status=400)
 
-        setting = SystemSetting.set(
-            key, value, user=request.user, description=description
-        )
+        setting = SystemSetting.set(key, value, user=request.user, description=description)
 
         # Log the change
         from .models import SystemLog
 
-        SystemLog.objects.create(
-            message=f"Setting '{key}' updated by admin", level="INFO", source="ADMIN"
-        )
+        SystemLog.objects.create(message=f"Setting '{key}' updated by admin", level="INFO", source="ADMIN")
 
         return Response(
             {
@@ -252,9 +237,7 @@ class BreachSearchView(APIView):
 
         # Validate query length and content
         if len(query) > 254:
-            return Response(
-                {"error": "Query too long (max 254 characters)."}, status=400
-            )
+            return Response({"error": "Query too long (max 254 characters)."}, status=400)
 
         # Validate email format for HIBP lookup
         if "@" in query and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", query):
@@ -302,13 +285,11 @@ class BreachSearchView(APIView):
                         pass  # No breaches found — good news
                     elif resp.status_code == 429:
                         results["rate_limited"] = True
-                except Exception as e:
+                except Exception:
                     results["hibp_error"] = "Breach lookup temporarily unavailable."
             else:
                 # No HIBP API key configured — skip email breach lookup
-                results["hibp_note"] = (
-                    "Email breach lookup requires HIBP API key configuration."
-                )
+                results["hibp_note"] = "Email breach lookup requires HIBP API key configuration."
 
         # 2. Check HIBP Passwords API using k-anonymity (SHA-1 prefix)
         # This checks if the query itself (as a password) has been exposed.
@@ -326,9 +307,7 @@ class BreachSearchView(APIView):
         breach_count = len(results["breaches"])
         risk_score = min(
             100,
-            (breach_count * 15)
-            + (min(results["password_exposures"], 100) * 0.5)
-            + (results["internal_matches"] * 5),
+            (breach_count * 15) + (min(results["password_exposures"], 100) * 0.5) + (results["internal_matches"] * 5),
         )
         results["risk_score"] = round(risk_score)
 
@@ -379,9 +358,10 @@ class FinancialRiskView(APIView):
     REMEDIATION_PER_RECORD = 12
 
     def get(self, request):
-        from password_security.models import PasswordAnalysis
+        from django.db.models import Avg, Sum
+
         from generator.models import GenerationHistory
-        from django.db.models import Sum, Count, Avg
+        from password_security.models import PasswordAnalysis
 
         analyses = PasswordAnalysis.objects.filter(user=request.user)
         history = GenerationHistory.objects.filter(user=request.user)
@@ -393,32 +373,20 @@ class FinancialRiskView(APIView):
         low = analyses.filter(vulnerability_level="low").count()
         total_analyses = critical + high + medium + low
 
-        breach_hits = (
-            analyses.aggregate(total=Sum("breach_count"))["total"] or 0
-        )
-        avg_strength = (
-            analyses.aggregate(avg=Avg("strength_score"))["avg"] or 0
-        )
-        total_generated = (
-            history.aggregate(total=Sum("wordlist_count"))["total"] or 0
-        )
+        breach_hits = analyses.aggregate(total=Sum("breach_count"))["total"] or 0
+        avg_strength = analyses.aggregate(avg=Avg("strength_score"))["avg"] or 0
+        total_generated = history.aggregate(total=Sum("wordlist_count"))["total"] or 0
 
-        gdpr_fines = (
-            critical * self.GDPR_PER_CRITICAL + high * self.GDPR_PER_HIGH
-        )
+        gdpr_fines = critical * self.GDPR_PER_CRITICAL + high * self.GDPR_PER_HIGH
         ccpa_fines = breach_hits * self.CCPA_PER_BREACH
         remediation_cost = total_generated * self.REMEDIATION_PER_RECORD
         total_exposure = gdpr_fines + ccpa_fines + remediation_cost
 
         # Breach probability — heuristic mixing weak-password share and
         # known-breach hits, normalised to a 0–100 scale.
-        weak_share = (
-            ((critical + high) / total_analyses) if total_analyses else 0.0
-        )
+        weak_share = ((critical + high) / total_analyses) if total_analyses else 0.0
         breach_pressure = min(1.0, breach_hits / 25.0)
-        breach_probability = round(
-            min(100, weak_share * 70 + breach_pressure * 30)
-        )
+        breach_probability = round(min(100, weak_share * 70 + breach_pressure * 30))
 
         if total_exposure >= 1_000_000 or breach_probability >= 70:
             severity = "HIGH"
@@ -429,47 +397,54 @@ class FinancialRiskView(APIView):
 
         recommendations = []
         if critical:
-            recommendations.append({
-                "level": "critical",
-                "title": "Enforce mandatory rotation on critical accounts",
-                "detail": (
-                    f"{critical} password(s) analysed are in the critical band. "
-                    "Trigger a forced reset and pair it with mandatory 2FA."
-                ),
-            })
+            recommendations.append(
+                {
+                    "level": "critical",
+                    "title": "Enforce mandatory rotation on critical accounts",
+                    "detail": (
+                        f"{critical} password(s) analysed are in the critical band. "
+                        "Trigger a forced reset and pair it with mandatory 2FA."
+                    ),
+                }
+            )
         if breach_hits:
-            recommendations.append({
-                "level": "warning",
-                "title": "Replace breached credentials",
-                "detail": (
-                    f"{breach_hits} credential(s) appear in known breach corpora. "
-                    "Rotate them before another credential-stuffing sweep."
-                ),
-            })
+            recommendations.append(
+                {
+                    "level": "warning",
+                    "title": "Replace breached credentials",
+                    "detail": (
+                        f"{breach_hits} credential(s) appear in known breach corpora. "
+                        "Rotate them before another credential-stuffing sweep."
+                    ),
+                }
+            )
         if high:
-            recommendations.append({
-                "level": "warning",
-                "title": "Strengthen high-risk passwords",
-                "detail": (
-                    f"{high} password(s) sit just above the critical line. "
-                    "Add length and entropy, then re-test."
-                ),
-            })
+            recommendations.append(
+                {
+                    "level": "warning",
+                    "title": "Strengthen high-risk passwords",
+                    "detail": (
+                        f"{high} password(s) sit just above the critical line. Add length and entropy, then re-test."
+                    ),
+                }
+            )
         if not recommendations:
-            recommendations.append({
-                "level": "info",
-                "title": "Maintain quarterly password hygiene reviews",
-                "detail": (
-                    "No critical findings on file. Keep your review cadence "
-                    "to stay ahead of new breach corpora."
-                ),
-            })
+            recommendations.append(
+                {
+                    "level": "info",
+                    "title": "Maintain quarterly password hygiene reviews",
+                    "detail": (
+                        "No critical findings on file. Keep your review cadence to stay ahead of new breach corpora."
+                    ),
+                }
+            )
 
         # Trajectory: last six months of detected weak passwords as a rough
         # exposure proxy. Each weak finding contributes one notional fine
         # ceiling; the curve smooths the value to millions.
-        from django.utils import timezone
         from datetime import timedelta
+
+        from django.utils import timezone
 
         now = timezone.now()
         trajectory = []
@@ -481,32 +456,34 @@ class FinancialRiskView(APIView):
                 created_at__lt=window_end,
                 vulnerability_level__in=["critical", "high"],
             ).count()
-            month_value = round(
-                (month_critical * self.GDPR_PER_HIGH) / 1_000_000, 2
+            month_value = round((month_critical * self.GDPR_PER_HIGH) / 1_000_000, 2)
+            trajectory.append(
+                {
+                    "label": window_start.strftime("%b"),
+                    "value": month_value,
+                }
             )
-            trajectory.append({
-                "label": window_start.strftime("%b"),
-                "value": month_value,
-            })
 
-        return Response({
-            "total_exposure": total_exposure,
-            "gdpr_fines": gdpr_fines,
-            "ccpa_fines": ccpa_fines,
-            "remediation_cost": remediation_cost,
-            "breach_probability": breach_probability,
-            "severity": severity,
-            "breakdown": {
-                "critical": critical,
-                "high": high,
-                "medium": medium,
-                "low": low,
-                "total_analyses": total_analyses,
-                "breach_hits": breach_hits,
-                "average_strength": round(float(avg_strength), 1),
-                "passwords_generated": total_generated,
-            },
-            "recommendations": recommendations[:4],
-            "trajectory": trajectory,
-            "generated_at": timezone.now().isoformat(),
-        })
+        return Response(
+            {
+                "total_exposure": total_exposure,
+                "gdpr_fines": gdpr_fines,
+                "ccpa_fines": ccpa_fines,
+                "remediation_cost": remediation_cost,
+                "breach_probability": breach_probability,
+                "severity": severity,
+                "breakdown": {
+                    "critical": critical,
+                    "high": high,
+                    "medium": medium,
+                    "low": low,
+                    "total_analyses": total_analyses,
+                    "breach_hits": breach_hits,
+                    "average_strength": round(float(avg_strength), 1),
+                    "passwords_generated": total_generated,
+                },
+                "recommendations": recommendations[:4],
+                "trajectory": trajectory,
+                "generated_at": timezone.now().isoformat(),
+            }
+        )

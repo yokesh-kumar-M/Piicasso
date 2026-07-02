@@ -1,12 +1,9 @@
 import hashlib
-import re
 import logging
 import math
+import re
 
 from django.contrib.auth import get_user_model
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -14,10 +11,11 @@ from rest_framework.decorators import (
     permission_classes,
     throttle_classes,
 )
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
+from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .hibp import k_anonymity_breach_count
 
@@ -101,11 +99,10 @@ def hash_password(password):
     and non-critical.)
     """
     import hmac
+
     from django.conf import settings
 
-    return hmac.new(
-        settings.SECRET_KEY.encode(), password.encode(), hashlib.sha256
-    ).hexdigest()
+    return hmac.new(settings.SECRET_KEY.encode(), password.encode(), hashlib.sha256).hexdigest()
 
 
 def calculate_entropy(password):
@@ -172,7 +169,7 @@ def analyze_password_strength(password, pii_data=None):
 
     pii_data = pii_data or {}
     pii_values = []
-    for key, value in pii_data.items():
+    for _key, value in pii_data.items():
         if value and isinstance(value, str) and len(value) > 2:
             pii_values.append(value.lower())
 
@@ -212,15 +209,9 @@ def analyze_password_strength(password, pii_data=None):
     if has_digit and has_special:
         score += 10
 
-    common_check = (
-        password_lower.replace("0", "o")
-        .replace("1", "i")
-        .replace("3", "e")
-        .replace("4", "a")
-    )
+    common_check = password_lower.replace("0", "o").replace("1", "i").replace("3", "e").replace("4", "a")
     if any(
-        common in COMMON_PASSWORDS
-        or COMMON_PASSWORDS.intersection(common_check.split())
+        common in COMMON_PASSWORDS or COMMON_PASSWORDS.intersection(common_check.split())
         for common in [password_lower, common_check]
     ):
         score = max(score - 50, 5)
@@ -231,9 +222,7 @@ def analyze_password_strength(password, pii_data=None):
     for pii_value in pii_values:
         if len(pii_value) >= 4 and pii_value in password_lower:
             score = max(score - 30, 5)
-            vulnerabilities.append(
-                f"Contains personal information: {pii_value[:10]}..."
-            )
+            vulnerabilities.append(f"Contains personal information: {pii_value[:10]}...")
             recommendations.append("Avoid using personal information in passwords")
             has_personal = True
             break
@@ -289,7 +278,6 @@ def analyze_password_strength(password, pii_data=None):
     }
 
 
-
 class PasswordAnalyzeView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -300,6 +288,7 @@ class PasswordAnalyzeView(APIView):
     def get_client_ip(self, request):
         # Shared, spoof-resistant resolver (trusted-proxy aware).
         from wordgen.utils import get_client_ip as _get_client_ip
+
         return _get_client_ip(request)
 
     def post(self, request):
@@ -307,9 +296,7 @@ class PasswordAnalyzeView(APIView):
         pii_data = request.data.get("pii_data", {})
 
         if not password:
-            return Response(
-                {"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         analysis_result = analyze_password_strength(password, pii_data)
 
@@ -318,9 +305,7 @@ class PasswordAnalyzeView(APIView):
             analysis_result["breach_count"] = breach_count
 
             if breach_count > 0:
-                analysis_result["vulnerabilities"].append(
-                    f"Found in {breach_count} data breaches"
-                )
+                analysis_result["vulnerabilities"].append(f"Found in {breach_count} data breaches")
                 analysis_result["recommendations"].append(
                     "Change this password immediately - it's been exposed in breaches"
                 )
@@ -372,9 +357,7 @@ class PasswordAnalysisHistoryView(APIView):
         try:
             from .models import PasswordAnalysis
 
-            analyses = PasswordAnalysis.objects.filter(user=request.user).order_by(
-                "-created_at"
-            )[:50]
+            analyses = PasswordAnalysis.objects.filter(user=request.user).order_by("-created_at")[:50]
 
             results = []
             for a in analyses:
@@ -409,7 +392,7 @@ class UserPreferencesView(APIView):
         try:
             from .models import UserPreference
 
-            pref, created = UserPreference.objects.get_or_create(user=request.user)
+            pref, _created = UserPreference.objects.get_or_create(user=request.user)
             return Response(
                 {
                     "default_mode": pref.default_mode,
@@ -433,15 +416,11 @@ class UserPreferencesView(APIView):
             last_mode = request.data.get("last_mode", "user")
 
             if default_mode not in ["user", "security"]:
-                return Response(
-                    {"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST)
             if last_mode not in ["user", "security"]:
-                return Response(
-                    {"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST)
 
-            pref, created = UserPreference.objects.get_or_create(user=request.user)
+            pref, _created = UserPreference.objects.get_or_create(user=request.user)
             pref.default_mode = default_mode
             pref.last_mode = last_mode
             pref.save()
@@ -470,9 +449,7 @@ def check_password_breach(request):
     password = request.data.get("password", "")
 
     if not password:
-        return Response(
-            {"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     breach_count = k_anonymity_breach_count(password)
 
@@ -493,13 +470,11 @@ class UserActivityFeedView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        from .models import PasswordAuditLog, PasswordAnalysis
+        from .models import PasswordAnalysis, PasswordAuditLog
 
         activities = []
 
-        audit_logs = PasswordAuditLog.objects.filter(user=request.user).order_by(
-            "-timestamp"
-        )[:20]
+        audit_logs = PasswordAuditLog.objects.filter(user=request.user).order_by("-timestamp")[:20]
 
         for log in audit_logs:
             action_labels = {
@@ -517,12 +492,8 @@ class UserActivityFeedView(APIView):
             }
 
             status_map = {
-                "analyze": "success"
-                if log.details.get("strength_score", 0) >= 50
-                else "warning",
-                "breach_check": "danger"
-                if log.details.get("breach_count", 0) > 0
-                else "success",
+                "analyze": "success" if log.details.get("strength_score", 0) >= 50 else "warning",
+                "breach_check": "danger" if log.details.get("breach_count", 0) > 0 else "success",
                 "view_history": "info",
                 "export": "info",
             }
@@ -538,9 +509,7 @@ class UserActivityFeedView(APIView):
                 }
             )
 
-        recent_analyses = PasswordAnalysis.objects.filter(user=request.user).order_by(
-            "-created_at"
-        )[:5]
+        recent_analyses = PasswordAnalysis.objects.filter(user=request.user).order_by("-created_at")[:5]
 
         for analysis in recent_analyses:
             breach_status = "danger" if analysis.breach_count > 0 else "success"

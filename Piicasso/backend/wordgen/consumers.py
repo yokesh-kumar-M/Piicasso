@@ -1,5 +1,7 @@
 import json
+
 from channels.generic.websocket import AsyncWebsocketConsumer
+
 
 class GenerationProgressConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -16,33 +18,31 @@ class GenerationProgressConsumer(AsyncWebsocketConsumer):
         self.group_name = f"gen_user_{self.user.id}"
 
         # Join generation group
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
-        
-        await self.send(text_data=json.dumps({
-            'type': 'connection_established',
-            'message': 'Connected to Generation Channel',
-            'group': self.group_name
-        }))
+
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "connection_established",
+                    "message": "Connected to Generation Channel",
+                    "group": self.group_name,
+                }
+            )
+        )
 
     async def disconnect(self, close_code):
         # Leave generation group
-        if hasattr(self, 'group_name'):
-            await self.channel_layer.group_discard(
-                self.group_name,
-                self.channel_name
-            )
+        if hasattr(self, "group_name"):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     # Receive message from room group
     async def generation_progress(self, event):
         # Send message to WebSocket
         await self.send(text_data=json.dumps(event))
-        
+
     async def generation_complete(self, event):
         await self.send(text_data=json.dumps(event))
-        
+
     async def generation_error(self, event):
         await self.send(text_data=json.dumps(event))

@@ -7,21 +7,20 @@ import logging
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Count, OuterRef, Subquery, Q
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.db.models import Count, OuterRef, Q, Subquery
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
     permission_classes,
 )
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from analytics.models import UserActivity
 from generator.models import GenerationHistory
 from operations.models import SystemLog
-from analytics.models import UserActivity
 
 logger = logging.getLogger("wordgen")
 
@@ -36,9 +35,7 @@ class SuperAdminView(APIView):
     def check_permissions(self, request):
         super().check_permissions(request)
         if not request.user.is_superuser:
-            self.permission_denied(
-                request, message="Restricted entry. System Administrator ONLY."
-            )
+            self.permission_denied(request, message="Restricted entry. System Administrator ONLY.")
 
     def get(self, request):
         action = request.query_params.get("action")
@@ -55,11 +52,10 @@ class SuperAdminView(APIView):
             if not User.objects.filter(id=target_id).exists():
                 return Response({"error": "User not found."}, status=404)
             gens = list(
-                GenerationHistory.objects.filter(user_id=target_id).select_related('user')
+                GenerationHistory.objects.filter(user_id=target_id)
+                .select_related("user")
                 .order_by("-timestamp")
-                .values("id", "timestamp", "ip_address", "wordlist")[
-                    :100
-                ]  # Limit results
+                .values("id", "timestamp", "ip_address", "wordlist")[:100]  # Limit results
             )
             for g in gens:
                 g["wordlist_count"] = len(g["wordlist"]) if g["wordlist"] else 0
@@ -89,18 +85,14 @@ class SuperAdminView(APIView):
                 "is_active": u.is_active,
                 "date_joined": u.date_joined,
                 "location": u.latest_city or "Unknown",
-                "pass_display": "External Auth (Google)"
-                if not u.has_usable_password()
-                else "Password Set",
+                "pass_display": "External Auth (Google)" if not u.has_usable_password() else "Password Set",
                 "generation_count": u.generated,
             }
             for u in users_qs
         ]
 
         logs = list(SystemLog.objects.all().order_by("-timestamp")[:50].values())
-        activities = list(
-            UserActivity.objects.all().order_by("-timestamp")[:50].values()
-        )
+        activities = list(UserActivity.objects.all().order_by("-timestamp")[:50].values())
         history_count = GenerationHistory.objects.count()
 
         return Response(
@@ -157,15 +149,11 @@ class SuperAdminView(APIView):
         elif action == "block":
             target_user.is_active = False
             target_user.save()
-            return Response(
-                {"message": f"Operator {target_user.username} ACCESS BLOCKED."}
-            )
+            return Response({"message": f"Operator {target_user.username} ACCESS BLOCKED."})
         elif action == "unblock":
             target_user.is_active = True
             target_user.save()
-            return Response(
-                {"message": f"Operator {target_user.username} access restored."}
-            )
+            return Response({"message": f"Operator {target_user.username} access restored."})
         elif action == "change_password":
             new_pwd = request.data.get("new_password")
             if not new_pwd:
@@ -182,19 +170,15 @@ class SuperAdminView(APIView):
             # Invalidate all existing tokens for the target user
             try:
                 from rest_framework_simplejwt.token_blacklist.models import (
-                    OutstandingToken,
                     BlacklistedToken,
+                    OutstandingToken,
                 )
 
                 for token in OutstandingToken.objects.filter(user=target_user):
                     BlacklistedToken.objects.get_or_create(token=token)
-            except Exception:
-                pass
-            return Response(
-                {
-                    "message": f"Security clearance for {target_user.username} manually overridden."
-                }
-            )
+            except Exception as e:
+                logger.warning(f"Token blacklist during security override failed: {e}")
+            return Response({"message": f"Security clearance for {target_user.username} manually overridden."})
 
         return Response({"error": "Invalid action parameter."}, status=400)
 
@@ -215,9 +199,7 @@ class SuperAdminView(APIView):
                 )
             username = u.username
             u.delete()
-            return Response(
-                {"message": f"User {username} and all their data eliminated."}
-            )
+            return Response({"message": f"User {username} and all their data eliminated."})
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=404)
 
@@ -247,16 +229,8 @@ def admin_message_view(request):
             user_id = request.query_params.get("user_id")
             if not user_id:
                 # Optimized: batch unread counts with annotation (2.3 fix)
-                sent_ids = (
-                    Message.objects.filter(recipient=request.user)
-                    .values_list("sender_id", flat=True)
-                    .distinct()
-                )
-                recv_ids = (
-                    Message.objects.filter(sender=request.user)
-                    .values_list("recipient_id", flat=True)
-                    .distinct()
-                )
+                sent_ids = Message.objects.filter(recipient=request.user).values_list("sender_id", flat=True).distinct()
+                recv_ids = Message.objects.filter(sender=request.user).values_list("recipient_id", flat=True).distinct()
                 user_ids = set(list(sent_ids) + list(recv_ids)) - {request.user.id}
 
                 users = User.objects.filter(id__in=user_ids).annotate(
@@ -280,12 +254,9 @@ def admin_message_view(request):
                 )
 
             msgs = Message.objects.filter(
-                Q(sender=request.user, recipient_id=user_id)
-                | Q(sender_id=user_id, recipient=request.user)
+                Q(sender=request.user, recipient_id=user_id) | Q(sender_id=user_id, recipient=request.user)
             ).order_by("-timestamp")[:MESSAGE_LIMIT]
-            Message.objects.filter(
-                sender_id=user_id, recipient=request.user, is_read=False
-            ).update(is_read=True)
+            Message.objects.filter(sender_id=user_id, recipient=request.user, is_read=False).update(is_read=True)
             return Response(
                 [
                     {
@@ -303,20 +274,14 @@ def admin_message_view(request):
         recipient_id = request.data.get("recipient_id")
         content = request.data.get("content", "").strip()
         if not recipient_id or not content:
-            return Response(
-                {"error": "recipient_id and content are required."}, status=400
-            )
+            return Response({"error": "recipient_id and content are required."}, status=400)
         if len(content) > 2000:
-            return Response(
-                {"error": "Message too long (max 2000 characters)."}, status=400
-            )
+            return Response({"error": "Message too long (max 2000 characters)."}, status=400)
         try:
             recipient = User.objects.get(id=recipient_id)
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=404)
-        msg = Message.objects.create(
-            sender=request.user, recipient=recipient, content=content
-        )
+        msg = Message.objects.create(sender=request.user, recipient=recipient, content=content)
 
         from operations.views import create_notification
 
@@ -346,12 +311,9 @@ def admin_message_view(request):
 
         if request.method == "GET":
             msgs = Message.objects.filter(
-                Q(sender=request.user, recipient=admin)
-                | Q(sender=admin, recipient=request.user)
+                Q(sender=request.user, recipient=admin) | Q(sender=admin, recipient=request.user)
             ).order_by("-timestamp")[:MESSAGE_LIMIT]
-            Message.objects.filter(
-                sender=admin, recipient=request.user, is_read=False
-            ).update(is_read=True)
+            Message.objects.filter(sender=admin, recipient=request.user, is_read=False).update(is_read=True)
             return Response(
                 [
                     {
@@ -369,12 +331,8 @@ def admin_message_view(request):
         if not content:
             return Response({"error": "Message cannot be empty."}, status=400)
         if len(content) > 2000:
-            return Response(
-                {"error": "Message too long (max 2000 characters)."}, status=400
-            )
-        msg = Message.objects.create(
-            sender=request.user, recipient=admin, content=content
-        )
+            return Response({"error": "Message too long (max 2000 characters)."}, status=400)
+        msg = Message.objects.create(sender=request.user, recipient=admin, content=content)
 
         from operations.views import create_notification
 
@@ -405,11 +363,7 @@ def admin_users_list(request):
     """Superuser-only: list all users for admin to select and message."""
     if not request.user.is_superuser:
         return Response({"error": "Access denied."}, status=403)
-    users = (
-        User.objects.filter(is_superuser=False)
-        .order_by("username")
-        .values("id", "username", "email", "is_active")
-    )
+    users = User.objects.filter(is_superuser=False).order_by("username").values("id", "username", "email", "is_active")
     return Response(list(users))
 
 
@@ -436,8 +390,9 @@ def admin_purge_all(request):
             status=400,
         )
 
-    from operations.models import Message, Notification
     from django.db import transaction
+
+    from operations.models import Message, Notification
 
     deleted = {}
     with transaction.atomic():
@@ -446,9 +401,7 @@ def admin_purge_all(request):
         deleted["system_logs"] = SystemLog.objects.all().delete()[0]
         deleted["messages"] = Message.objects.all().delete()[0]
         deleted["notifications"] = Notification.objects.all().delete()[0]
-        deleted["users"] = (
-            User.objects.filter(is_superuser=False).delete()[0]
-        )
+        deleted["users"] = User.objects.filter(is_superuser=False).delete()[0]
 
     SystemLog.objects.create(
         message=(

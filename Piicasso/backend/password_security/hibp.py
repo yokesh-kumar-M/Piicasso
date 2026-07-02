@@ -34,9 +34,7 @@ def k_anonymity_breach_count(password: str) -> int:
     if cached is not None:
         return cached
 
-    sha1 = hashlib.sha1(
-        password.encode("utf-8"), usedforsecurity=False
-    ).hexdigest().upper()
+    sha1 = hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()
     prefix, suffix = sha1[:5], sha1[5:]
 
     try:
@@ -71,15 +69,14 @@ def k_anonymity_breach_count(password: str) -> int:
 
 
 def _cache_key(password: str) -> str:
-    sha1 = hashlib.sha1(
-        password.encode("utf-8"), usedforsecurity=False
-    ).hexdigest().upper()
+    sha1 = hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()
     return f"hibp_breach:{sha1}"
 
 
 def _get_cached(password: str):
     try:
         from django.core.cache import cache
+
         return cache.get(_cache_key(password))
     except Exception:
         return None
@@ -88,6 +85,7 @@ def _get_cached(password: str):
 def _set_cached(password: str, count: int) -> None:
     try:
         from django.core.cache import cache
+
         cache.set(_cache_key(password), count, _CACHE_TTL)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"HIBP cache write failed: {e}")
