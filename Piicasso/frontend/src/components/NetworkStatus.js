@@ -33,21 +33,19 @@ const NetworkStatus = () => {
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-[9999] px-4 py-2 text-center text-sm font-medium transition-all duration-300 ${
-        isOnline
-          ? 'bg-green-600 text-white'
-          : 'bg-neon-green text-white'
+      className={`fixed left-0 right-0 top-0 z-[9999] px-4 py-2 text-center text-sm font-medium transition-all duration-300 ${
+        isOnline ? 'bg-green-600 text-white' : 'bg-neon-green text-white'
       }`}
     >
       <div className="flex items-center justify-center gap-2">
         {isOnline ? (
           <>
-            <Wifi className="w-4 h-4" />
+            <Wifi className="h-4 w-4" />
             <span>Connection restored</span>
           </>
         ) : (
           <>
-            <WifiOff className="w-4 h-4" />
+            <WifiOff className="h-4 w-4" />
             <span>You are offline — some features may be unavailable</span>
           </>
         )}

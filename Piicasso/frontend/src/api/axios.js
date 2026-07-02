@@ -19,7 +19,7 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Refresh logic
@@ -45,7 +45,9 @@ axiosInstance.interceptors.response.use(
       errorCode === 'user_inactive' ||
       errorMsg === 'User is inactive'
     ) {
-      alert("Your account has been suspended due to a policy violation. You are being redirected to your inbox.");
+      alert(
+        'Your account has been suspended due to a policy violation. You are being redirected to your inbox.',
+      );
       // Prevent infinite redirect loops for routes like '/inbox/'
       if (!window.location.pathname.startsWith('/inbox')) {
         window.location.href = '/inbox';
@@ -86,7 +88,8 @@ axiosInstance.interceptors.response.use(
       return new Promise((resolve, reject) => {
         const refreshUrl = `${defaultBaseURL}user/token/refresh/`;
 
-        axios.post(refreshUrl, { refresh })
+        axios
+          .post(refreshUrl, { refresh })
           .then(({ data }) => {
             localStorage.setItem('access_token', data.access);
             axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + data.access;
@@ -105,12 +108,14 @@ axiosInstance.interceptors.response.use(
             }
             reject(error);
           })
-          .finally(() => { isRefreshing = false; });
+          .finally(() => {
+            isRefreshing = false;
+          });
       });
     }
 
     return Promise.reject(err);
-  }
+  },
 );
 
 export default axiosInstance;

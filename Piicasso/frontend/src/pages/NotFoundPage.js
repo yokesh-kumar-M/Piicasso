@@ -21,7 +21,14 @@ const NotFoundPage = () => {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ink-0)', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--ink-0)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <div style={{ flex: 1, display: 'grid', placeItems: 'center', padding: '32px' }}>
         <div style={{ textAlign: 'center', maxWidth: '640px' }}>
           {/* 404 Display */}
@@ -52,7 +59,9 @@ const NotFoundPage = () => {
           </div>
 
           {/* Eyebrow label */}
-          <div className="eyebrow" style={{ marginBottom: '20px' }}>ERROR — ROUTE NOT FOUND</div>
+          <div className="eyebrow" style={{ marginBottom: '20px' }}>
+            ERROR — ROUTE NOT FOUND
+          </div>
 
           {/* Faux CLI block */}
           <div
@@ -77,8 +86,8 @@ const NotFoundPage = () => {
                     i === 0
                       ? 'var(--fg-0)'
                       : i === lines.length - 1
-                      ? 'var(--accent-500)'
-                      : 'var(--fg-2)',
+                        ? 'var(--accent-500)'
+                        : 'var(--fg-2)',
                 }}
               >
                 {l}
@@ -87,8 +96,15 @@ const NotFoundPage = () => {
           </div>
 
           {/* Message */}
-          <p style={{ fontSize: '14px', color: 'var(--fg-2)', marginBottom: '32px', margin: '0 0 32px 0' }}>
-            The page you're looking for doesn't exist or has been moved.
+          <p
+            style={{
+              fontSize: '14px',
+              color: 'var(--fg-2)',
+              marginBottom: '32px',
+              margin: '0 0 32px 0',
+            }}
+          >
+            The page you&apos;re looking for doesn&apos;t exist or has been moved.
           </p>
 
           {/* Action buttons */}

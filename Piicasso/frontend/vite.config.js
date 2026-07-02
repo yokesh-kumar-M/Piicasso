@@ -33,7 +33,9 @@ export default defineConfig(({ mode }) => {
     // Statically replace the CRA-style env references at build time.
     define: {
       'process.env.REACT_APP_API_URL': JSON.stringify(env.REACT_APP_API_URL || ''),
-      'process.env.REACT_APP_GOOGLE_CLIENT_ID': JSON.stringify(env.REACT_APP_GOOGLE_CLIENT_ID || ''),
+      'process.env.REACT_APP_GOOGLE_CLIENT_ID': JSON.stringify(
+        env.REACT_APP_GOOGLE_CLIENT_ID || '',
+      ),
       'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
     },
 

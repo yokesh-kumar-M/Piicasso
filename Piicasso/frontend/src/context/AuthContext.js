@@ -20,7 +20,7 @@ const isTokenValid = (token) => {
   const decoded = parseJwt(token);
   if (!decoded || !decoded.exp) return false;
   // Add 30-second buffer to account for clock skew
-  return decoded.exp > (Date.now() / 1000) + 30;
+  return decoded.exp > Date.now() / 1000 + 30;
 };
 
 export const AuthProvider = ({ children }) => {
@@ -84,16 +84,19 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-      useEffect(() => {
+  useEffect(() => {
     if (token) {
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       const decoded = parseJwt(token);
       if (decoded) {
         setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
         // Fetch profile to get email
-        axiosInstance.get('profile/').then(res => {
-          setUser(prev => ({ ...prev, email: res.data.email }));
-        }).catch(() => {});
+        axiosInstance
+          .get('profile/')
+          .then((res) => {
+            setUser((prev) => ({ ...prev, email: res.data.email }));
+          })
+          .catch(() => {});
       }
       setLoading(false);
     } else {
@@ -128,19 +131,30 @@ export const AuthProvider = ({ children }) => {
         }
       }
     } catch (e) {
-      console.log('IP Location fallback, trying browser geolocation');
+      console.warn('IP Location fallback, trying browser geolocation', e);
     }
 
     try {
       const pos = await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('Location prompt timeout')), 3000);
         navigator.geolocation.getCurrentPosition(
-          (pos) => { clearTimeout(timer); resolve(pos); },
-          (err) => { clearTimeout(timer); reject(err); },
-          { timeout: 3000, maximumAge: 10000 }
+          (pos) => {
+            clearTimeout(timer);
+            resolve(pos);
+          },
+          (err) => {
+            clearTimeout(timer);
+            reject(err);
+          },
+          { timeout: 3000, maximumAge: 10000 },
         );
       });
-      return { lat: pos.coords.latitude, lng: pos.coords.longitude, city: 'Unknown', country_code: 'UNK' };
+      return {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        city: 'Unknown',
+        country_code: 'UNK',
+      };
     } catch {
       return { lat: null, lng: null, city: 'Unknown', country_code: 'UNK' };
     }
@@ -149,7 +163,13 @@ export const AuthProvider = ({ children }) => {
   const googleLogin = async (googleToken) => {
     try {
       const { lat, lng, city, country_code } = await getLocationData();
-      const res = await axiosInstance.post('user/auth/google/', { token: googleToken, lat, lng, city, country_code });
+      const res = await axiosInstance.post('user/auth/google/', {
+        token: googleToken,
+        lat,
+        lng,
+        city,
+        country_code,
+      });
       const access = res.data.access;
       const refresh = res.data.refresh;
 
@@ -173,7 +193,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const { lat, lng, city, country_code } = await getLocationData();
-      const res = await axiosInstance.post('user/token/', { username, password, lat, lng, city, country_code });
+      const res = await axiosInstance.post('user/token/', {
+        username,
+        password,
+        lat,
+        lng,
+        city,
+        country_code,
+      });
       const access = res.data.access;
       const refresh = res.data.refresh;
 
@@ -190,7 +217,10 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (e) {
       console.error('Login error:', e);
-      return { success: false, error: e.response?.data?.detail || e.response?.data?.error || e.message };
+      return {
+        success: false,
+        error: e.response?.data?.detail || e.response?.data?.error || e.message,
+      };
     }
   };
 
@@ -203,15 +233,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{
-      token,
-      user,
-      loading,
-      isAuthenticated: !!token && isTokenValid(token),
-      login,
-      googleLogin,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        loading,
+        isAuthenticated: !!token && isTokenValid(token),
+        login,
+        googleLogin,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import axios from './api/axios';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import axios from './api/axios';
 import ScrollToTop from './components/ScrollToTop';
 import PrivateRoute from './components/PrivateRoute';
 import Footer from './components/Footer';
@@ -13,8 +14,6 @@ import ModeSelectionModal from './components/ModeSelectionModal';
 import ModeManager from './components/ModeManager';
 import ModeTearTransition from './components/ModeTearTransition';
 
-import { GoogleOAuthProvider } from '@react-oauth/google';
-
 // ── Yokesh's Iconic Touch: The HELP Beacon ──
 const useHelpBeacon = () => {
   const { isAuthenticated, user } = useContext(AuthContext);
@@ -25,7 +24,7 @@ const useHelpBeacon = () => {
     const sendBeacon = () => {
       // Only send if the tab is currently visible
       if (document.visibilityState === 'visible') {
-        axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => { });
+        axios.post('analytics/beacon/', { message: 'HELP' }).catch(() => {});
       }
     };
     sendBeacon();
@@ -75,11 +74,11 @@ function AppContent() {
       <ModeSelectionModal />
       <ModeManager />
       {/* App shell uses transparent bg since body handles the gradient/colors */}
-      <div className="min-h-screen flex flex-col w-full overflow-x-hidden transition-colors duration-300 bg-transparent">
+      <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-transparent transition-colors duration-300">
         <CinematicTransition>
           {(locationToRender) => (
-            <div className="flex-1 flex flex-col w-full relative">
-              <Suspense fallback={<div className="flex-1 w-full bg-transparent" />}>
+            <div className="relative flex w-full flex-1 flex-col">
+              <Suspense fallback={<div className="w-full flex-1 bg-transparent" />}>
                 <Routes location={locationToRender} key={locationToRender.pathname}>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/api" element={<ApiDocsPage />} />
@@ -88,72 +87,108 @@ function AppContent() {
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/register" element={<RegisterPage />} />
 
-                  <Route path="/user" element={
-                    <PrivateRoute>
-                      <UserModeLayout />
-                    </PrivateRoute>
-                  }>
+                  <Route
+                    path="/user"
+                    element={
+                      <PrivateRoute>
+                        <UserModeLayout />
+                      </PrivateRoute>
+                    }
+                  >
                     <Route path="dashboard" element={<UserDashboardPage />} />
                     <Route path="history" element={<AnalysisHistoryPage />} />
                     <Route path="learn" element={<LearnPage />} />
                   </Route>
 
-                  <Route path="/security/dashboard" element={
-                    <PrivateRoute>
-                      <SecurityDashboardPage />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/operation" element={
-                    <PrivateRoute>
-                      <NewOperationPage />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/workspace" element={
-                    <PrivateRoute>
-                      <SavedPage />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/profile" element={
-                    <PrivateRoute>
-                      <ProfilePage />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/teams" element={
-                    <PrivateRoute>
-                      <TeamsPage />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/darkweb" element={
-                    <PrivateRoute>
-                      <DarkWebPage />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/system-admin" element={
-                    <PrivateRoute>
-                      <SuperAdminPage />
-                    </PrivateRoute>
-                  } />
-                   <Route path="/security/history" element={
-                     <PrivateRoute>
-                       <AnalysisHistoryPage />
-                     </PrivateRoute>
-                   } />
-                   <Route path="/inbox" element={
-                     <PrivateRoute>
-                       <InboxPage />
-                     </PrivateRoute>
-                   } />
-                  <Route path="/risk" element={
-                    <PrivateRoute>
-                      <FinancialRiskPage />
-                    </PrivateRoute>
-                  } />
+                  <Route
+                    path="/security/dashboard"
+                    element={
+                      <PrivateRoute>
+                        <SecurityDashboardPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/operation"
+                    element={
+                      <PrivateRoute>
+                        <NewOperationPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/workspace"
+                    element={
+                      <PrivateRoute>
+                        <SavedPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <PrivateRoute>
+                        <ProfilePage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/teams"
+                    element={
+                      <PrivateRoute>
+                        <TeamsPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/darkweb"
+                    element={
+                      <PrivateRoute>
+                        <DarkWebPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/system-admin"
+                    element={
+                      <PrivateRoute>
+                        <SuperAdminPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/security/history"
+                    element={
+                      <PrivateRoute>
+                        <AnalysisHistoryPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/inbox"
+                    element={
+                      <PrivateRoute>
+                        <InboxPage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/risk"
+                    element={
+                      <PrivateRoute>
+                        <FinancialRiskPage />
+                      </PrivateRoute>
+                    }
+                  />
 
-                  <Route path="/result" element={
-                    <PrivateRoute>
-                      <ResultPage />
-                    </PrivateRoute>
-                  } />
+                  <Route
+                    path="/result"
+                    element={
+                      <PrivateRoute>
+                        <ResultPage />
+                      </PrivateRoute>
+                    }
+                  />
 
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
@@ -162,7 +197,7 @@ function AppContent() {
           )}
         </CinematicTransition>
         {shouldShowFooter && (
-          <div className="shrink-0 w-full">
+          <div className="w-full shrink-0">
             <Footer />
           </div>
         )}

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
-@import "tailwindcss";
-@config "../tailwind.config.cjs";
+@import 'tailwindcss';
+@config '../tailwind.config.cjs';
 
 @layer base {
   :root {
@@ -22,26 +22,26 @@
     @apply border-border;
     box-sizing: border-box;
   }
-  
+
   /* The global body switches dynamically via ModeManager context but defaults to Tactical DARK */
   body {
-    @apply font-sans antialiased overflow-x-hidden transition-colors duration-700;
+    @apply overflow-x-hidden font-sans antialiased transition-colors duration-700;
     background: #050507;
-    color: #F2F2F2;
+    color: #f2f2f2;
   }
-  
+
   /* --- Security Mode (Tactical Dark/Red) --- */
   .theme-security {
-    @apply font-sans min-h-screen selection:bg-security-red/30 selection:text-white;
+    @apply min-h-screen font-sans selection:bg-security-red/30 selection:text-white;
     background: #050505;
-    color: #F8FAFC;
+    color: #f8fafc;
   }
-  
+
   /* --- User Mode (Midnight Cobalt Glass) --- */
   .theme-user {
-    @apply font-sans min-h-screen selection:bg-user-cobalt/30 selection:text-white;
+    @apply min-h-screen font-sans selection:bg-user-cobalt/30 selection:text-white;
     background: #020617;
-    color: #F1F5F9;
+    color: #f1f5f9;
   }
 
   /* Page-level background grid overlay */
@@ -54,17 +54,24 @@
     z-index: 0;
     opacity: 0.04;
     background-image:
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 64px 64px;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     /* Base headings */
-    @apply tracking-tight font-semibold;
+    @apply font-semibold tracking-tight;
   }
-  
-  .theme-security h1, .theme-security h2, .theme-security h3 {
+
+  .theme-security h1,
+  .theme-security h2,
+  .theme-security h3 {
     @apply font-display uppercase tracking-wide; /* Oswald / Tactical */
   }
 
@@ -85,10 +92,10 @@
   }
 
   .theme-security ::-webkit-scrollbar-thumb:hover {
-    background: #E11D48; /* Tactical Red */
+    background: #e11d48; /* Tactical Red */
   }
   .theme-user ::-webkit-scrollbar-thumb:hover {
-    background: #3B82F6; /* Cobalt Blue */
+    background: #3b82f6; /* Cobalt Blue */
   }
 }
 
@@ -96,10 +103,10 @@
 
 /* --- Security Mode Utilities (Tactical Dark/Red) --- */
 .security-card {
-  @apply bg-security-surface border border-security-border rounded-xl shadow-xl transition-all duration-300 hover:border-white/10;
+  @apply rounded-xl border border-security-border bg-security-surface shadow-xl transition-all duration-300 hover:border-white/10;
 }
 .security-btn-primary {
-  @apply bg-security-red text-white hover:bg-security-red-hover font-bold transition-all shadow-[0_0_15px_rgba(225,29,72,0.3)] hover:shadow-[0_0_25px_rgba(225,29,72,0.5)] active:scale-95;
+  @apply bg-security-red font-bold text-white shadow-[0_0_15px_rgba(225,29,72,0.3)] transition-all hover:bg-security-red-hover hover:shadow-[0_0_25px_rgba(225,29,72,0.5)] active:scale-95;
 }
 .security-heading {
   @apply font-display text-4xl uppercase tracking-widest text-white;
@@ -107,10 +114,10 @@
 
 /* --- User Mode Utilities (Midnight Cobalt Glass) --- */
 .user-glass-panel {
-  @apply bg-white/[0.02] backdrop-blur-xl border border-user-border rounded-2xl shadow-xl transition-all duration-300 hover:bg-white/[0.03];
+  @apply rounded-2xl border border-user-border bg-white/[0.02] shadow-xl backdrop-blur-xl transition-all duration-300 hover:bg-white/[0.03];
 }
 .user-btn-primary {
-  @apply bg-user-cobalt text-white hover:bg-user-cobalt-hover font-semibold transition-all shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95;
+  @apply bg-user-cobalt font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.25)] transition-all hover:bg-user-cobalt-hover hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95;
 }
 .user-heading {
   @apply font-sans font-bold tracking-tight text-white;
@@ -118,8 +125,8 @@
 
 /* Hide default tailwind utilities we replaced */
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
@@ -129,24 +136,47 @@
 
 /* Glow animations */
 @keyframes sec-pulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(225, 29, 72, 0.3); }
-  50% { box-shadow: 0 0 30px rgba(225, 29, 72, 0.6); }
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(225, 29, 72, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(225, 29, 72, 0.6);
+  }
 }
 @keyframes usr-pulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+  }
 }
 @keyframes scan-line {
-  0% { top: -2px; }
-  100% { top: 100%; }
+  0% {
+    top: -2px;
+  }
+  100% {
+    top: 100%;
+  }
 }
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 /* Security card variant — sharp, tactical */
@@ -164,7 +194,7 @@
 .usr-card {
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   transition: border-color 0.2s;
 }
@@ -187,8 +217,12 @@
 }
 
 /* Mode-specific scrollbar thumbs */
-.theme-security ::-webkit-scrollbar-thumb { background: rgba(225, 29, 72, 0.4); }
-.theme-user ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); }
+.theme-security ::-webkit-scrollbar-thumb {
+  background: rgba(225, 29, 72, 0.4);
+}
+.theme-user ::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.4);
+}
 
 /* Scanline overlay helper */
 .scanline-overlay {
@@ -218,80 +252,121 @@
 
 /* Extra Small devices (phones, 320px and up) */
 @media (min-width: 320px) {
-  .xs\:block { display: block; }
-  .xs\:hidden { display: none; }
-  .xs\:text-xs { font-size: 0.75rem; }
-  .xs\:text-sm { font-size: 0.875rem; }
-  .xs\:px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-  .xs\:py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+  .xs\:block {
+    display: block;
+  }
+  .xs\:hidden {
+    display: none;
+  }
+  .xs\:text-xs {
+    font-size: 0.75rem;
+  }
+  .xs\:text-sm {
+    font-size: 0.875rem;
+  }
+  .xs\:px-3 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .xs\:py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
 }
 
 /* Small devices (large phones, 640px and up) */
 @media (min-width: 640px) {
-  .sm\:block { display: block; }
-  .sm\:hidden { display: none; }
-  .sm\:text-base { font-size: 1rem; }
-  .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .sm\:block {
+    display: block;
+  }
+  .sm\:hidden {
+    display: none;
+  }
+  .sm\:text-base {
+    font-size: 1rem;
+  }
+  .sm\:px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
 /* Mobile-first base styles (up to 768px) */
 @media (max-width: 768px) {
   /* Ensure minimum touch target size (44px) */
-  button, a, input[type="submit"], input[type="button"], 
-  [role="button"], .clickable {
+  button,
+  a,
+  input[type='submit'],
+  input[type='button'],
+  [role='button'],
+  .clickable {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Prevent horizontal overflow */
-  img, video, iframe, canvas, svg {
+  img,
+  video,
+  iframe,
+  canvas,
+  svg {
     max-width: 100%;
     height: auto;
   }
-  
+
   /* Improve tap target spacing for buttons in rows */
-  .flex button, .flex a {
+  .flex button,
+  .flex a {
     min-width: 44px;
   }
-  
+
   /* Ensure inputs are easily tappable and prevent iOS zoom */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 
   /* Mobile typography adjustments */
-  h1 { font-size: 1.5rem !important; }
-  h2 { font-size: 1.25rem !important; }
-  h3 { font-size: 1.125rem !important; }
-  
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  h3 {
+    font-size: 1.125rem !important;
+  }
+
   /* Mobile card spacing */
   .card-mobile {
     padding: 1rem !important;
     margin-bottom: 0.75rem !important;
   }
-  
+
   /* Stack grid items on mobile */
   .grid-cols-mobile-stack {
     grid-template-columns: 1fr !important;
   }
-  
+
   /* Hide desktop-only elements */
   .desktop-only {
     display: none !important;
   }
-  
+
   /* Full width on mobile */
   .mobile-full-width {
     width: 100% !important;
     max-width: 100% !important;
   }
-  
+
   /* Mobile table adjustments */
   table {
     font-size: 0.75rem;
   }
-  
-  td, th {
+
+  td,
+  th {
     padding: 0.5rem 0.25rem !important;
   }
 }
@@ -310,19 +385,31 @@
 /* Tablet-specific styles (768px to 1024px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   /* Tablet typography */
-  h1 { font-size: 1.875rem; }
-  h2 { font-size: 1.5rem; }
-  h3 { font-size: 1.25rem; }
-  
+  h1 {
+    font-size: 1.875rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+  }
+  h3 {
+    font-size: 1.25rem;
+  }
+
   /* Tablet grid adjustments */
   .tablet\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-    
+
   /* Tablet spacing */
-  .tablet\:px-8 { padding-left: 2rem; padding-right: 2rem; }
-  .tablet\:py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-    
+  .tablet\:px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  .tablet\:py-6 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
   /* Tablet card adjustments */
   .tablet-card {
     padding: 1.25rem !important;
@@ -372,26 +459,26 @@
 
 :root {
   /* Ink scale — slightly cool, never pure black */
-  --ink-0: #07070a;     /* deepest — page bg */
-  --ink-1: #0b0b10;     /* surface bg */
-  --ink-2: #101017;     /* elevated surface */
-  --ink-3: #16161f;     /* card */
-  --ink-4: #1d1d28;     /* hairline well */
-  --ink-5: #262633;     /* hairline */
-  --ink-6: #383848;     /* divider strong */
+  --ink-0: #07070a; /* deepest — page bg */
+  --ink-1: #0b0b10; /* surface bg */
+  --ink-2: #101017; /* elevated surface */
+  --ink-3: #16161f; /* card */
+  --ink-4: #1d1d28; /* hairline well */
+  --ink-5: #262633; /* hairline */
+  --ink-6: #383848; /* divider strong */
 
   /* Foreground scale */
-  --fg-0: #f6f6f8;      /* primary text */
-  --fg-1: #c8c8d4;      /* body */
-  --fg-2: #8e8ea3;      /* muted */
-  --fg-3: #5a5a70;      /* subtle */
-  --fg-4: #3a3a4a;      /* whisper */
+  --fg-0: #f6f6f8; /* primary text */
+  --fg-1: #c8c8d4; /* body */
+  --fg-2: #8e8ea3; /* muted */
+  --fg-3: #5a5a70; /* subtle */
+  --fg-4: #3a3a4a; /* whisper */
 
   /* Mode hue (default: security red = 25). Swapped to 255 in user mode. */
   --accent-h: 25;
-  --accent-50:  oklch(0.96 0.02 var(--accent-h));
-  --accent-200: oklch(0.82 0.10 var(--accent-h));
-  --accent-400: oklch(0.70 0.16 var(--accent-h));
+  --accent-50: oklch(0.96 0.02 var(--accent-h));
+  --accent-200: oklch(0.82 0.1 var(--accent-h));
+  --accent-400: oklch(0.7 0.16 var(--accent-h));
   --accent-500: oklch(0.62 0.18 var(--accent-h));
   --accent-600: oklch(0.55 0.18 var(--accent-h));
   --accent-700: oklch(0.45 0.16 var(--accent-h));
@@ -402,14 +489,16 @@
   --usr-500: oklch(0.62 0.18 255);
 
   /* Semantic — hue-locked */
-  --good:  oklch(0.72 0.14 150);
-  --warn:  oklch(0.78 0.14 78);
-  --crit:  oklch(0.65 0.20 25);
+  --good: oklch(0.72 0.14 150);
+  --warn: oklch(0.78 0.14 78);
+  --crit: oklch(0.65 0.2 25);
 
   /* Type */
-  --font-sans-v3: "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  --font-mono-v3: "Geist Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --font-serif-v3: "Instrument Serif", "Times New Roman", Times, serif;
+  --font-sans-v3:
+    'Geist', ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono-v3:
+    'Geist Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  --font-serif-v3: 'Instrument Serif', 'Times New Roman', Times, serif;
 
   /* Radius */
   --r-1: 4px;
@@ -425,11 +514,11 @@
 
 /* Mode swap — when ModeContext sets data-mode, the accent hue rotates 180°
    so reds become blues without changing chroma or lightness. */
-[data-mode="user"] {
+[data-mode='user'] {
   --accent-h: 255;
 }
 
-[data-mode="security"] {
+[data-mode='security'] {
   --font-sans-v3: 'Courier Prime', 'Courier New', monospace;
 }
 
@@ -523,14 +612,18 @@
 }
 .v3-btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(255,255,255,0.08);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.08);
 }
 .v3-btn-accent {
   background: var(--accent-500);
   color: var(--ink-0);
-  box-shadow: 0 0 0 1px var(--accent-600), 0 8px 32px var(--accent-glow);
+  box-shadow:
+    0 0 0 1px var(--accent-600),
+    0 8px 32px var(--accent-glow);
 }
-.v3-btn-accent:hover { background: var(--accent-400); }
+.v3-btn-accent:hover {
+  background: var(--accent-400);
+}
 .v3-btn-ghost {
   background: transparent;
   color: var(--fg-0);
@@ -544,7 +637,9 @@
   color: var(--fg-1);
   padding: 6px 0;
 }
-.v3-btn-link:hover { color: var(--fg-0); }
+.v3-btn-link:hover {
+  color: var(--fg-0);
+}
 
 /* ── Backgrounds & overlays ───────────────────────────────────────── */
 .grid-bg {
@@ -566,18 +661,26 @@
   position: relative;
 }
 .redact::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(0,0,0,0.15) 6px 7px);
+  background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(0, 0, 0, 0.15) 6px 7px);
 }
 
 /* ── Animations ───────────────────────────────────────────────────── */
 @keyframes v3-fade-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.fade-up { animation: v3-fade-up 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.fade-up {
+  animation: v3-fade-up 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
 
 .reveal {
   opacity: 0;
@@ -587,13 +690,28 @@
     transform 0.9s cubic-bezier(0.2, 0.7, 0.3, 1);
   will-change: opacity, transform;
 }
-.reveal.in { opacity: 1; transform: translateY(0); }
-.reveal-left { transform: translateX(-32px); }
-.reveal-left.in { transform: translateX(0); }
-.reveal-right { transform: translateX(32px); }
-.reveal-right.in { transform: translateX(0); }
-.reveal-scale { transform: scale(0.94); }
-.reveal-scale.in { transform: scale(1); }
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-left {
+  transform: translateX(-32px);
+}
+.reveal-left.in {
+  transform: translateX(0);
+}
+.reveal-right {
+  transform: translateX(32px);
+}
+.reveal-right.in {
+  transform: translateX(0);
+}
+.reveal-scale {
+  transform: scale(0.94);
+}
+.reveal-scale.in {
+  transform: scale(1);
+}
 
 .reveal.stagger > * {
   opacity: 0;
@@ -602,20 +720,45 @@
     opacity 0.7s cubic-bezier(0.2, 0.7, 0.3, 1),
     transform 0.7s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
-.reveal.stagger.in > * { opacity: 1; transform: translateY(0); }
-.reveal.stagger.in > *:nth-child(1) { transition-delay: 0.05s; }
-.reveal.stagger.in > *:nth-child(2) { transition-delay: 0.12s; }
-.reveal.stagger.in > *:nth-child(3) { transition-delay: 0.19s; }
-.reveal.stagger.in > *:nth-child(4) { transition-delay: 0.26s; }
-.reveal.stagger.in > *:nth-child(5) { transition-delay: 0.33s; }
-.reveal.stagger.in > *:nth-child(6) { transition-delay: 0.40s; }
-.reveal.stagger.in > *:nth-child(7) { transition-delay: 0.47s; }
-.reveal.stagger.in > *:nth-child(8) { transition-delay: 0.54s; }
-.reveal.stagger.in > *:nth-child(9) { transition-delay: 0.61s; }
+.reveal.stagger.in > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal.stagger.in > *:nth-child(1) {
+  transition-delay: 0.05s;
+}
+.reveal.stagger.in > *:nth-child(2) {
+  transition-delay: 0.12s;
+}
+.reveal.stagger.in > *:nth-child(3) {
+  transition-delay: 0.19s;
+}
+.reveal.stagger.in > *:nth-child(4) {
+  transition-delay: 0.26s;
+}
+.reveal.stagger.in > *:nth-child(5) {
+  transition-delay: 0.33s;
+}
+.reveal.stagger.in > *:nth-child(6) {
+  transition-delay: 0.4s;
+}
+.reveal.stagger.in > *:nth-child(7) {
+  transition-delay: 0.47s;
+}
+.reveal.stagger.in > *:nth-child(8) {
+  transition-delay: 0.54s;
+}
+.reveal.stagger.in > *:nth-child(9) {
+  transition-delay: 0.61s;
+}
 
 @keyframes v3-marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 .v3-marquee {
   display: inline-flex;
@@ -625,8 +768,13 @@
 }
 
 @keyframes v3-shimmer {
-  0%, 100% { background-position: -200% 0; }
-  50%      { background-position: 200% 0; }
+  0%,
+  100% {
+    background-position: -200% 0;
+  }
+  50% {
+    background-position: 200% 0;
+  }
 }
 .shimmer-line {
   height: 1px;
@@ -636,15 +784,27 @@
 }
 
 @keyframes v3-pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
-  50%      { box-shadow: 0 0 0 6px transparent; }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
 }
-.dot.pulse, .v3-pulse { animation: v3-pulse-dot 1.6s ease-in-out infinite; }
+.dot.pulse,
+.v3-pulse {
+  animation: v3-pulse-dot 1.6s ease-in-out infinite;
+}
 
 @keyframes v3-blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
-.v3-blink { animation: v3-blink 1s infinite; }
+.v3-blink {
+  animation: v3-blink 1s infinite;
+}
 
 /* Mobile responsiveness for the new typography */
 @media (max-width: 768px) {

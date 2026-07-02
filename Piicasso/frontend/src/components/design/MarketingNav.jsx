@@ -65,7 +65,14 @@ export default function MarketingNav() {
         >
           <button
             onClick={() => navigate('/')}
-            style={{ display: 'flex', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--fg-0)' }}
+            style={{
+              display: 'flex',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              color: 'var(--fg-0)',
+            }}
             aria-label="Home"
           >
             <Logo />
@@ -86,7 +93,9 @@ export default function MarketingNav() {
                   textDecoration: 'none',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--fg-0)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = isActive(href) ? 'var(--fg-0)' : 'var(--fg-2)')}
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = isActive(href) ? 'var(--fg-0)' : 'var(--fg-2)')
+                }
               >
                 {label}
               </Link>
@@ -99,17 +108,25 @@ export default function MarketingNav() {
             {/* Desktop CTAs */}
             {isAuthenticated ? (
               <button
-                onClick={() => navigate(mode === 'security' ? '/security/dashboard' : '/user/dashboard')}
+                onClick={() =>
+                  navigate(mode === 'security' ? '/security/dashboard' : '/user/dashboard')
+                }
                 className="v3-btn v3-btn-accent mkt-nav-links"
               >
                 Open dashboard <span style={{ opacity: 0.6 }}>→</span>
               </button>
             ) : (
               <>
-                <button onClick={() => navigate('/login')} className="v3-btn v3-btn-link mkt-nav-links">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="v3-btn v3-btn-link mkt-nav-links"
+                >
                   Log in
                 </button>
-                <button onClick={() => navigate('/register')} className="v3-btn v3-btn-accent mkt-nav-links">
+                <button
+                  onClick={() => navigate('/register')}
+                  className="v3-btn v3-btn-accent mkt-nav-links"
+                >
                   Get started <span style={{ opacity: 0.6 }}>→</span>
                 </button>
               </>
@@ -118,7 +135,7 @@ export default function MarketingNav() {
             {/* Hamburger -- mobile only */}
             <button
               className="mkt-hamburger"
-              onClick={() => setMobileOpen(o => !o)}
+              onClick={() => setMobileOpen((o) => !o)}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               style={{
                 background: 'var(--ink-3)',
@@ -136,12 +153,45 @@ export default function MarketingNav() {
               }}
             >
               {mobileOpen ? (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--fg-1)', lineHeight: 1 }}>✕</span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 14,
+                    color: 'var(--fg-1)',
+                    lineHeight: 1,
+                  }}
+                >
+                  ✕
+                </span>
               ) : (
                 <>
-                  <span style={{ display: 'block', width: 16, height: 1.5, background: 'var(--fg-1)', borderRadius: 1 }} />
-                  <span style={{ display: 'block', width: 16, height: 1.5, background: 'var(--fg-1)', borderRadius: 1 }} />
-                  <span style={{ display: 'block', width: 16, height: 1.5, background: 'var(--fg-1)', borderRadius: 1 }} />
+                  <span
+                    style={{
+                      display: 'block',
+                      width: 16,
+                      height: 1.5,
+                      background: 'var(--fg-1)',
+                      borderRadius: 1,
+                    }}
+                  />
+                  <span
+                    style={{
+                      display: 'block',
+                      width: 16,
+                      height: 1.5,
+                      background: 'var(--fg-1)',
+                      borderRadius: 1,
+                    }}
+                  />
+                  <span
+                    style={{
+                      display: 'block',
+                      width: 16,
+                      height: 1.5,
+                      background: 'var(--fg-1)',
+                      borderRadius: 1,
+                    }}
+                  />
                 </>
               )}
             </button>
@@ -169,7 +219,16 @@ export default function MarketingNav() {
               padding: '16px var(--gutter)',
             }}
           >
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg-4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9,
+                color: 'var(--fg-4)',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                marginBottom: 10,
+              }}
+            >
               Navigation
             </div>
             {items.map(([label, href]) => (
@@ -195,7 +254,10 @@ export default function MarketingNav() {
             <div style={{ display: 'flex', gap: 8 }}>
               {isAuthenticated ? (
                 <button
-                  onClick={() => { navigate(mode === 'security' ? '/security/dashboard' : '/user/dashboard'); setMobileOpen(false); }}
+                  onClick={() => {
+                    navigate(mode === 'security' ? '/security/dashboard' : '/user/dashboard');
+                    setMobileOpen(false);
+                  }}
                   className="v3-btn v3-btn-accent"
                   style={{ flex: 1 }}
                 >
@@ -203,10 +265,24 @@ export default function MarketingNav() {
                 </button>
               ) : (
                 <>
-                  <button onClick={() => { navigate('/login'); setMobileOpen(false); }} className="v3-btn v3-btn-ghost" style={{ flex: 1 }}>
+                  <button
+                    onClick={() => {
+                      navigate('/login');
+                      setMobileOpen(false);
+                    }}
+                    className="v3-btn v3-btn-ghost"
+                    style={{ flex: 1 }}
+                  >
                     Log in
                   </button>
-                  <button onClick={() => { navigate('/register'); setMobileOpen(false); }} className="v3-btn v3-btn-accent" style={{ flex: 1 }}>
+                  <button
+                    onClick={() => {
+                      navigate('/register');
+                      setMobileOpen(false);
+                    }}
+                    className="v3-btn v3-btn-accent"
+                    style={{ flex: 1 }}
+                  >
                     Get started →
                   </button>
                 </>

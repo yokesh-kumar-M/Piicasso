@@ -21,7 +21,7 @@ test('renders without crashing', () => {
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div data-testid="app-root">PIIcasso loaded</div>
       </BrowserRouter>
-    </AuthProvider>
+    </AuthProvider>,
   );
   expect(container).toBeTruthy();
 });
@@ -37,7 +37,7 @@ test('auth context provides default values', () => {
   render(
     <AuthProvider>
       <TestConsumer />
-    </AuthProvider>
+    </AuthProvider>,
   );
 
   expect(contextValues).toHaveProperty('isAuthenticated');
