@@ -15,7 +15,7 @@ version: '3.8'
 
 services:
   web:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     command: sh ./start.sh

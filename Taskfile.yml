@@ -1,0 +1,142 @@
+# Common dev commands for PIIcasso. Install: https://taskfile.dev
+#
+#   task setup        # first-time environment setup (backend venv + frontend deps + pre-commit)
+#   task dev           # run backend + frontend dev servers together
+#   task test           # run both test suites
+#   task lint            # ruff check (backend) + eslint (frontend)
+#   task format          # ruff format + prettier --write
+#   task typecheck        # mypy on the seed-strict backend modules
+#   task up / task down    # docker compose full stack
+
+version: '3'
+
+vars:
+  BACKEND_DIR: Piicasso/backend
+  FRONTEND_DIR: Piicasso/frontend
+  COMPOSE_FILE: Piicasso/docker-compose.yml
+  # Used from within a task that already has `dir: '{{.BACKEND_DIR}}'` set —
+  # paths here are relative to that directory, not the repo root.
+  VENV_ACTIVATE: |
+    if [ -f ".venv/Scripts/activate" ]; then
+      source ".venv/Scripts/activate"
+    else
+      source ".venv/bin/activate"
+    fi
+
+tasks:
+  setup:
+    desc: First-time setup — backend venv, frontend deps, pre-commit hooks
+    cmds:
+      - python -m venv {{.BACKEND_DIR}}/.venv
+      - cmd: |
+          cd {{.BACKEND_DIR}}
+          {{.VENV_ACTIVATE}}
+          pip install -r requirements.txt
+          pip install pre-commit
+      - npm install --prefix {{.FRONTEND_DIR}}
+      - pre-commit install
+      - 'echo "Setup complete. Copy {{.BACKEND_DIR}}/.env.example to {{.BACKEND_DIR}}/.env and fill it in before running the servers."'
+
+  dev:backend:
+    desc: Run the Django dev server
+    dir: '{{.BACKEND_DIR}}'
+    cmds:
+      - cmd: |
+          {{.VENV_ACTIVATE}}
+          python manage.py runserver
+
+  dev:frontend:
+    desc: Run the Vite dev server
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm run dev
+
+  dev:
+    desc: Run backend + frontend dev servers together
+    deps: [dev:backend, dev:frontend]
+
+  test:backend:
+    desc: Run the Django test suite
+    dir: '{{.BACKEND_DIR}}'
+    cmds:
+      - cmd: |
+          {{.VENV_ACTIVATE}}
+          python manage.py test --verbosity=2
+
+  test:frontend:
+    desc: Run the frontend test suite
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm test
+
+  test:
+    desc: Run both test suites
+    cmds:
+      - task: test:backend
+      - task: test:frontend
+
+  lint:backend:
+    desc: Ruff check (backend)
+    dir: '{{.BACKEND_DIR}}'
+    cmds:
+      - cmd: |
+          {{.VENV_ACTIVATE}}
+          ruff check .
+
+  lint:frontend:
+    desc: ESLint (frontend)
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm run lint
+
+  lint:
+    desc: Lint both backend and frontend
+    cmds:
+      - task: lint:backend
+      - task: lint:frontend
+
+  format:backend:
+    desc: Ruff format (backend)
+    dir: '{{.BACKEND_DIR}}'
+    cmds:
+      - cmd: |
+          {{.VENV_ACTIVATE}}
+          ruff format .
+
+  format:frontend:
+    desc: Prettier --write (frontend)
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm run format
+
+  format:
+    desc: Format both backend and frontend
+    cmds:
+      - task: format:backend
+      - task: format:frontend
+
+  typecheck:
+    desc: mypy on the seed-strict backend modules (see pyproject.toml overrides)
+    dir: '{{.BACKEND_DIR}}'
+    cmds:
+      - cmd: |
+          {{.VENV_ACTIVATE}}
+          mypy wordgen/utils.py wordgen/throttles.py wordgen/llm_handler.py generator/fields.py backend/settings.py
+
+  schema:
+    desc: Regenerate the OpenAPI schema.yml (run after changing any API view/serializer).
+    dir: '{{.BACKEND_DIR}}'
+    cmds:
+      - cmd: |
+          {{.VENV_ACTIVATE}}
+          python manage.py spectacular --file schema.yml --validate
+
+  up:
+    desc: Start the full stack via Docker Compose (requires backend/.env)
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} up --build
+
+  down:
+    desc: Stop the Docker Compose stack
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} down
