@@ -19,8 +19,8 @@
 
 | Layer      | Tech                                                        |
 |------------|-------------------------------------------------------------|
-| Frontend   | React 18, React Router v6, CSS variables design system      |
-| Backend    | Django 4.x, DRF, simplejwt, PostgreSQL                      |
+| Frontend   | React 19, Vite, React Router v7, CSS variables design system |
+| Backend    | Django 5.2 LTS, DRF, simplejwt, PostgreSQL                   |
 | Auth       | JWT (access 15 min, refresh 1 day) + Google OAuth           |
 | Deployment | Vercel (frontend), Render (backend)                         |
 | CI/CD      | GitHub Actions — tests + keep-alive pings every 10 min      |

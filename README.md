@@ -7,7 +7,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)](https://betterstack.com)
 [![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django)](https://www.djangoproject.com/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)](https://www.docker.com/)
 
 > **AI-powered PII intelligence and adversarial wordlist platform** — web app, in-browser terminal, and a global CLI you can install in one line.
@@ -61,7 +61,7 @@ PIIcasso is a full-stack **Deep Search Intelligence Platform** with a dual-mode 
 
 It ships in three surfaces:
 
-1. **Web app** — React 18 SPA on Vercel.
+1. **Web app** — React 19 SPA (Vite) on Vercel.
 2. **In-browser terminal** — a mode-aware interactive shell at `/terminal` with the same command set as the CLI.
 3. **CLI** — `piicasso` on npm and PyPI; local analysis + API client.
 
@@ -154,7 +154,7 @@ Override the API base with the `PIICASSO_API` environment variable or `piicasso 
 
 ```
                   ┌──────────────┐
-   Browser ──────▶│   Vercel     │  React 18 SPA + in-browser terminal
+   Browser ──────▶│   Vercel     │  React 19 SPA + in-browser terminal
                   │  (Frontend)  │  Tailwind + Framer Motion
                   └──────┬───────┘
                          │
@@ -205,8 +205,10 @@ Override the API base with the `PIICASSO_API` environment variable or `piicasso 
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| React | 18 | UI framework |
-| Tailwind CSS | 3.x | Utility-first styling |
+| React | 19 | UI framework |
+| Vite | 6.x | Build tool + dev server |
+| React Router | 7.x | Client-side routing |
+| Tailwind CSS | 4.x | Utility-first styling |
 | Framer Motion | 12.x | Page + component animations |
 | react-globe.gl | latest | 3D threat globe (Three.js) |
 | Chart.js / react-chartjs-2 | latest | Radar + bar charts |
@@ -217,7 +219,7 @@ Override the API base with the `PIICASSO_API` environment variable or `piicasso 
 
 | Package | Stack | Install |
 |---------|-------|---------|
-| [piicasso](https://www.npmjs.com/package/piicasso) (npm) | Node ≥18, commander, chalk, axios | `npm i -g piicasso` |
+| [piicasso](https://www.npmjs.com/package/piicasso) (npm) | Node ≥20, commander, chalk, axios | `npm i -g piicasso` |
 | [piicasso](https://pypi.org/project/piicasso/) (PyPI) | Python ≥3.9, click, rich, prompt_toolkit, requests | `pip install piicasso` |
 
 ---
@@ -450,14 +452,18 @@ PIIcasso/
 ```bash
 git checkout -b feature/your-feature
 # ... edit ...
-flake8 Piicasso/backend            # backend lint
-cd Piicasso/frontend && npm test   # frontend tests
-cd Piicasso/cli-python && pytest   # CLI tests
+cd Piicasso/backend && ruff check . && ruff format --check .   # backend lint
+cd Piicasso/frontend && npm run lint && npm test                # frontend lint + tests
+cd Piicasso/cli-python && pytest                                 # CLI tests
 git commit -m "feat: add your feature"
 gh pr create
 ```
 
-**Style:** PEP 8 + `black` (backend); Airbnb + `prettier` (frontend). Keep the engine in `piiEngine.js`, `cli-node/src/engine/pii.js`, and `cli-python/src/piicasso/engine/pii.py` in lockstep — changes to one require changes to the other two.
+**Style:** Ruff (backend) — see `Piicasso/backend/pyproject.toml`; ESLint 9 + Prettier (frontend) — see `Piicasso/frontend/eslint.config.js`. Keep the engine in `piiEngine.js`, `cli-node/src/engine/pii.js`, and `cli-python/src/piicasso/engine/pii.py` in lockstep — changes to one require changes to the other two.
+
+**Pre-commit hooks:** `pip install pre-commit && pre-commit install` sets up automatic linting, formatting, mypy (on the seed-strict backend modules), and secret scanning (gitleaks) on every commit. Run `pre-commit run --all-files` to check the whole tree on demand. See `.pre-commit-config.yaml`.
+
+**OpenAPI schema:** `Piicasso/backend/schema.yml` is a committed, CI-enforced snapshot of the API (regenerate with `task schema` after touching any view/serializer — CI fails if it's stale). Most function-based and plain-`APIView` endpoints don't yet have explicit `serializer_class`/`@extend_schema` annotations, so drf-spectacular falls back to generic typing for them; tightening that up is tracked in `UPGRADE_PLAN.md` Phase 1.
 
 ---
 
