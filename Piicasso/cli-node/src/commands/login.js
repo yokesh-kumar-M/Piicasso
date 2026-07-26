@@ -31,6 +31,10 @@ function ask(question, { mask = false } = {}) {
   });
 }
 
+function credentialsPayload(identifier, password) {
+  return { username: identifier, password };
+}
+
 async function run() {
   console.log(dim('Sign in to PIIcasso'));
   console.log(dim(`API: ${store.apiBase()}`));
@@ -42,11 +46,9 @@ async function run() {
     process.exit(1);
   }
 
-  // Backend accepts either field, and the email field is the canonical one
-  // (see core/views.LoginView). Send both for forward-compat.
-  const body = identifier.includes('@')
-    ? { email: identifier, password }
-    : { username: identifier, password };
+  // The backend resolves either a username or email identifier from its
+  // `username` token field.
+  const body = credentialsPayload(identifier, password);
 
   try {
     const res = await axios.post(store.apiBase() + 'user/token/', body, {
@@ -74,4 +76,4 @@ async function run() {
   }
 }
 
-module.exports = { run };
+module.exports = { run, credentialsPayload };

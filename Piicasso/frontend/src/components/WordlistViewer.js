@@ -13,17 +13,16 @@ const WordlistViewer = ({ wordlist }) => {
   };
 
   return (
-    <div className="p-8 text-white max-w-4xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4 text-neon-green">🔥 RockYou.txt Enhanced</h2>
+    <div className="mx-auto max-w-4xl p-8 text-white">
+      <h2 className="text-neon-green mb-4 text-2xl font-semibold">🔥 RockYou.txt Enhanced</h2>
       <button
         onClick={downloadTextFile}
-        className="mb-4 bg-neon-green hover:bg-[#00cc00] py-2 px-4 rounded shadow">
+        className="bg-neon-green mb-4 rounded px-4 py-2 shadow hover:bg-[#00cc00]"
+      >
         Download .txt
       </button>
-      <div className="max-h-[500px] overflow-y-auto bg-zinc-900 p-4 rounded-lg shadow-inner border border-zinc-700">
-        <pre className="whitespace-pre-wrap text-sm text-zinc-200">
-          {wordlist.join('\n')}
-        </pre>
+      <div className="max-h-[500px] overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 p-4 shadow-inner">
+        <pre className="whitespace-pre-wrap text-sm text-zinc-200">{wordlist.join('\n')}</pre>
       </div>
     </div>
   );

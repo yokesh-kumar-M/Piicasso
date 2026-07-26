@@ -1,0 +1,3282 @@
+openapi: 3.0.3
+info:
+  title: PIIcasso — Threat Intelligence API
+  version: 2.0.0
+  description: Enterprise-grade API for AI-powered wordlist generation, team collaboration,
+    threat intelligence, and breach monitoring.
+paths:
+  /api/admin/purge-all/:
+    post:
+      operationId: admin_purge_all_create
+      description: |-
+        Superuser-only destructive endpoint that wipes every piece of operational
+        data: generation history, activity logs, system logs, notifications,
+        messages, and all non-admin users. Requires an explicit confirmation
+        token in the request body to prevent accidental triggering.
+      summary: Purge all operational data
+      tags:
+      - Admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPurgeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminPurgeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminPurgeRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPurgeResponse'
+          description: ''
+    delete:
+      operationId: admin_purge_all_destroy
+      description: |-
+        Superuser-only destructive endpoint that wipes every piece of operational
+        data: generation history, activity logs, system logs, notifications,
+        messages, and all non-admin users. Requires an explicit confirmation
+        token in the request body to prevent accidental triggering.
+      summary: Purge all operational data
+      tags:
+      - Admin
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPurgeResponse'
+          description: ''
+  /api/admin/users/:
+    get:
+      operationId: admin_users_list
+      description: 'Superuser-only: list all users for admin to select and message.'
+      summary: List standard users available for messaging
+      tags:
+      - Admin
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminUserList'
+          description: ''
+  /api/analytics/beacon/:
+    post:
+      operationId: analytics_beacon_create
+      description: |-
+        Authenticated presence heartbeat with optional, explicitly shared location.
+
+        Coordinates are rounded server-side to a coarse grid before storage, even
+        when a custom client submits higher precision. User-provided city names are
+        intentionally discarded to avoid retaining more location data than needed.
+      summary: Publish an authenticated location beacon
+      tags:
+      - Analytics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HelpBeaconRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/HelpBeaconRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/HelpBeaconRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelpBeaconResponse'
+          description: ''
+  /api/analytics/globe-data/:
+    get:
+      operationId: analytics_globe_data_retrieve
+      description: |-
+        Returns geo-located user activity data for the interactive globe.
+        Requires authentication — previously leaked all user login locations
+        (lat/lng/city/username) to anonymous visitors.
+      summary: List live globe activity
+      tags:
+      - Analytics
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobeDataResponse'
+          description: ''
+  /api/auth/password/reset/:
+    post:
+      operationId: auth_password_reset_create
+      summary: Request a password recovery code
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/auth/password/reset/verify/:
+    post:
+      operationId: auth_password_reset_verify_create
+      summary: Reset a password with a recovery code
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetVerifyRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetVerifyRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetVerifyRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/cached/{cache_key}/:
+    get:
+      operationId: cached_retrieve
+      description: Retrieves a recently generated wordlist from Redis via cache_key.
+      summary: Retrieve a cached scored wordlist
+      parameters:
+      - in: path
+        name: cache_key
+        schema:
+          type: string
+        required: true
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CachedWordlistResponse'
+          description: ''
+  /api/download-token/:
+    post:
+      operationId: download_token_create
+      description: |-
+        Generate a short-lived, signed download token for browser window.open() downloads.
+        This replaces passing full JWT access tokens in URL query parameters, which
+        would leak them in server access logs, browser history, and Referer headers.
+      summary: Create a short-lived download token
+      tags:
+      - Intelligence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DownloadTokenRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DownloadTokenRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DownloadTokenRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadTokenResponse'
+          description: ''
+  /api/download/{id}/:
+    get:
+      operationId: download_retrieve
+      summary: Download a generated wordlist
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/export/csv/:
+    get:
+      operationId: export_csv_retrieve
+      summary: Export generation history as CSV
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/file/{file_type}/{id}/:
+    get:
+      operationId: file_retrieve
+      description: |-
+        Download endpoint that accepts a short-lived signed token (not a full JWT).
+        Token is generated by generate_download_token and expires in 60 seconds.
+      summary: Download a file with a short-lived token
+      parameters:
+      - in: path
+        name: file_type
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: token
+        schema:
+          type: string
+        description: Signed token returned by the download-token endpoint.
+        required: true
+      tags:
+      - Intelligence
+      security:
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/health/:
+    get:
+      operationId: health_retrieve
+      description: |-
+        Production health check — verifies both the application layer and
+        database connectivity. Used by load balancers and monitoring.
+      summary: Check application and database health
+      tags:
+      - Health
+      security:
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: ''
+  /api/history/:
+    get:
+      operationId: history_retrieve
+      summary: List generation history
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: One-based page number.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Items per page (maximum 100).
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+          description: ''
+  /api/history/{id}/:
+    delete:
+      operationId: history_destroy
+      summary: Delete a generation history entry
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '204':
+          description: No response body
+  /api/messages/:
+    get:
+      operationId: messages_list
+      description: |-
+        Superuser: GET ?user_id= → thread; GET → user list with unread counts;
+                   POST {recipient_id, content} → send.
+        Regular user: GET → admin conversation; POST {content} → reply to admin.
+      summary: List administration conversations or a message thread
+      parameters:
+      - in: query
+        name: user_id
+        schema:
+          type: integer
+      tags:
+      - Admin
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminConversationEntry'
+          description: ''
+    post:
+      operationId: messages_create
+      description: |-
+        Superuser: GET ?user_id= → thread; GET → user list with unread counts;
+                   POST {recipient_id, content} → send.
+        Regular user: GET → admin conversation; POST {content} → reply to admin.
+      summary: Send a message through the administration channel
+      tags:
+      - Admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminMessageRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminMessageRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminMessageRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConversationEntry'
+          description: ''
+  /api/operations/breach-search/:
+    post:
+      operationId: operations_breach_search_create
+      description: |-
+        Search for data breaches using the Have I Been Pwned API
+        and internal generation history.
+
+        NOTE (5.5): The /api/v3/breachedaccount/ endpoint requires a paid HIBP API key.
+        Set the HIBP_API_KEY environment variable to enable email breach lookups.
+        Without it, only the free password hash endpoint (k-anonymity) works.
+      summary: Search breach intelligence for an account or password
+      tags:
+      - Operations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BreachSearchRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BreachSearchRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BreachSearchRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BreachSearchResponse'
+          description: ''
+  /api/operations/financial-risk/:
+    get:
+      operationId: operations_financial_risk_retrieve
+      description: |-
+        Continuous Threat Exposure Management snapshot.
+
+        Computes a coarse monetary-impact estimate from the signals already
+        present in the database: the user's password analyses, their generation
+        history, and any breach exposures detected during scans. The numbers
+        are conservative reference values modelled on published GDPR / CCPA
+        settlement ranges — they are not a substitute for professional
+        actuarial advice.
+      summary: Calculate the current user's financial risk exposure
+      tags:
+      - Operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialRiskResponse'
+          description: ''
+  /api/operations/messages/:
+    get:
+      operationId: operations_messages_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMessageList'
+          description: ''
+    post:
+      operationId: operations_messages_create
+      tags:
+      - operations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/operations/messages/{id}/:
+    get:
+      operationId: operations_messages_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this message.
+        required: true
+      tags:
+      - operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/operations/messages/{id}/mark_read/:
+    post:
+      operationId: operations_messages_mark_read_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this message.
+        required: true
+      tags:
+      - operations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/operations/notifications/:
+    get:
+      operationId: operations_notifications_retrieve
+      description: Get notifications for the current user, mark as read, mark all
+        as read.
+      summary: List the current user's notifications
+      tags:
+      - Operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+          description: ''
+    post:
+      operationId: operations_notifications_create
+      description: Mark notification(s) as read.
+      summary: Mark one or all notifications as read
+      tags:
+      - Operations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationActionRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationActionRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationActionRequestRequest'
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+    delete:
+      operationId: operations_notifications_destroy
+      description: Clear all notifications for the user.
+      summary: Clear all notifications
+      tags:
+      - Operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '204':
+          description: No response body
+  /api/operations/settings/:
+    get:
+      operationId: operations_settings_list
+      description: Get all system settings.
+      summary: List system settings
+      tags:
+      - Operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SystemSetting'
+          description: ''
+    post:
+      operationId: operations_settings_create
+      description: Update a system setting.
+      summary: Create or update a system setting
+      tags:
+      - Operations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemSettingUpdateRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SystemSettingUpdateRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SystemSettingUpdateRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemSettingUpdateResponse'
+          description: ''
+    delete:
+      operationId: operations_settings_destroy
+      description: Delete a system setting.
+      summary: Delete a system setting
+      tags:
+      - Operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '204':
+          description: No response body
+  /api/password/activity/:
+    get:
+      operationId: password_activity_retrieve
+      summary: List recent password security activity
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserActivityFeedResponse'
+          description: ''
+  /api/password/analyze/:
+    post:
+      operationId: password_analyze_create
+      summary: Analyze password strength and breach exposure
+      tags:
+      - Intelligence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordAnalyzeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordAnalyzeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordAnalyzeRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordAnalyzeResponse'
+          description: ''
+  /api/password/breach-check/:
+    post:
+      operationId: password_breach_check_create
+      summary: Check a password against breach data
+      tags:
+      - Intelligence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordBreachCheckRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordBreachCheckRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordBreachCheckRequestRequest'
+        required: true
+      security:
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordBreachCheckResponse'
+          description: ''
+  /api/password/history/:
+    get:
+      operationId: password_history_retrieve
+      summary: List recent password analyses
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordAnalysisHistoryResponse'
+          description: ''
+  /api/password/preferences/:
+    get:
+      operationId: password_preferences_retrieve
+      summary: Get password security preferences
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+          description: ''
+    put:
+      operationId: password_preferences_update
+      summary: Update password security preferences
+      tags:
+      - Intelligence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferencesUpdateRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserPreferencesUpdateRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserPreferencesUpdateRequestRequest'
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferencesUpdateResponse'
+          description: ''
+  /api/profile/:
+    get:
+      operationId: profile_retrieve
+      description: Returns or updates detailed profile information for the authenticated
+        user.
+      summary: Get the authenticated user's profile
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+          description: ''
+    put:
+      operationId: profile_update
+      description: Returns or updates detailed profile information for the authenticated
+        user.
+      summary: Update the authenticated user's profile
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequestRequest'
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+    patch:
+      operationId: profile_partial_update
+      description: Returns or updates detailed profile information for the authenticated
+        user.
+      summary: Update the authenticated user's profile
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileUpdateRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileUpdateRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileUpdateRequestRequest'
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/report/pdf/{id}/:
+    get:
+      operationId: report_pdf_retrieve
+      summary: Download a generation report as PDF
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/stats/:
+    get:
+      operationId: stats_retrieve
+      summary: Get generation statistics
+      tags:
+      - Intelligence
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatsResponse'
+          description: ''
+  /api/submit/:
+    post:
+      operationId: submit_create
+      summary: Generate a scored targeted wordlist
+      tags:
+      - Intelligence
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PiiserializerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PiiserializerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PiiserializerRequest'
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PiiSubmitResponse'
+          description: ''
+  /api/super-admin/:
+    get:
+      operationId: super_admin_retrieve
+      summary: Get the administration dashboard or a user's generations
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+          enum:
+          - get_generations
+      - in: query
+        name: user_id
+        schema:
+          type: integer
+      tags:
+      - Admin
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuperAdminResponse'
+          description: ''
+    post:
+      operationId: super_admin_create
+      summary: Run an administrative account action
+      tags:
+      - Admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminActionRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminActionRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminActionRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+    delete:
+      operationId: super_admin_destroy
+      summary: Delete a standard user account
+      parameters:
+      - in: query
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Admin
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/system/logs/:
+    get:
+      operationId: system_logs_list
+      description: |-
+        System logs — now requires authentication and superuser access (1.1 fix).
+        Previously publicly readable by any anonymous visitor.
+      summary: List recent system logs
+      tags:
+      - Operations
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SystemLog'
+          description: ''
+  /api/teams/:
+    get:
+      operationId: teams_retrieve
+      description: Retrieves intelligence feed and member details for the current
+        team.
+      summary: Get the current user's team
+      tags:
+      - Teams
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamInfoResponse'
+          description: ''
+  /api/teams/chat/:
+    get:
+      operationId: teams_chat_list
+      description: Secure team communication channel.
+      summary: List team chat messages
+      parameters:
+      - in: query
+        name: after
+        schema:
+          type: integer
+        description: Return messages with an ID greater than this value.
+      tags:
+      - Teams
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamChatMessage'
+          description: ''
+    post:
+      operationId: teams_chat_create
+      description: Secure team communication channel.
+      summary: Send a team chat message
+      tags:
+      - Teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamChatRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TeamChatRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TeamChatRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamChatMessage'
+          description: ''
+  /api/teams/create/:
+    post:
+      operationId: teams_create_create
+      description: Establishes a new tactical team and assigns the creator as LEADER.
+      summary: Create a team
+      tags:
+      - Teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTeamResponse'
+          description: ''
+  /api/teams/join/:
+    post:
+      operationId: teams_join_create
+      description: Joins an existing team using a verified invite code.
+      summary: Join a team with an invite code
+      tags:
+      - Teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinTeamRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JoinTeamRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JoinTeamRequestRequest'
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/teams/leave/:
+    post:
+      operationId: teams_leave_create
+      description: Handles operator extraction from current unit or unit decommissioning.
+      summary: Leave the current team
+      tags:
+      - Teams
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/terminal/:
+    post:
+      operationId: terminal_create
+      description: |-
+        Simulated terminal for the cybersecurity-themed UI.
+        All commands are whitelisted and return hardcoded output.
+        No real system commands are ever executed.
+      summary: Run a whitelisted simulated terminal command
+      tags:
+      - Operations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminalRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TerminalRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TerminalRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalResponse'
+          description: ''
+  /api/user/auth/google/:
+    post:
+      operationId: user_auth_google_create
+      description: |-
+        Google OAuth login — verifies Google ID tokens using the google-auth library
+        with proper audience (client ID) checking (1.4 fix).
+
+        Previously used the deprecated tokeninfo debug endpoint which:
+        - Did not verify the audience claim
+        - Accepted tokens from ANY Google app
+      summary: Authenticate with a Google ID token
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPairResponse'
+          description: ''
+  /api/user/auth/password/reset/:
+    post:
+      operationId: user_auth_password_reset_create
+      summary: Request a password recovery code
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/user/auth/password/reset/verify/:
+    post:
+      operationId: user_auth_password_reset_verify_create
+      summary: Reset a password with a recovery code
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetVerifyRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetVerifyRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetVerifyRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/user/ping/:
+    get:
+      operationId: user_ping_retrieve
+      description: Health check endpoint to verify the server is awake.
+      summary: Check API availability
+      tags:
+      - Health
+      security:
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+          description: ''
+  /api/user/register/:
+    post:
+      operationId: user_register_create
+      summary: Register a local account
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequestRequest'
+        required: true
+      security:
+      - Bearer: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+  /api/user/token/:
+    post:
+      operationId: user_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      summary: Authenticate with a username or email
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordLoginRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordLoginRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordLoginRequestRequest'
+        required: true
+      security:
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPairResponse'
+          description: ''
+  /api/user/token/refresh/:
+    post:
+      operationId: user_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      security:
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+components:
+  schemas:
+    AdminActionRequestRequest:
+      type: object
+      properties:
+        action:
+          enum:
+          - promote_admin
+          - demote_admin
+          - block
+          - unblock
+          - change_password
+          type: string
+          description: |-
+            * `promote_admin` - promote_admin
+            * `demote_admin` - demote_admin
+            * `block` - block
+            * `unblock` - unblock
+            * `change_password` - change_password
+          x-spec-enum-id: 2137abf9ae8a2414
+        user_id:
+          type: integer
+          minimum: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - action
+      - user_id
+    AdminConversationEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        username:
+          type: string
+        unread:
+          type: integer
+          minimum: 0
+        sender:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        is_me:
+          type: boolean
+        is_read:
+          type: boolean
+      required:
+      - id
+    AdminGeneration:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        timestamp:
+          type: string
+          format: date-time
+        ip_address:
+          type: string
+          nullable: true
+        wordlist_count:
+          type: integer
+          minimum: 0
+      required:
+      - id
+      - ip_address
+      - timestamp
+      - wordlist_count
+    AdminMessageRequestRequest:
+      type: object
+      properties:
+        recipient_id:
+          type: integer
+          minimum: 1
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - content
+    AdminPurgeRequestRequest:
+      type: object
+      properties:
+        confirm:
+          type: string
+          minLength: 1
+      required:
+      - confirm
+    AdminPurgeResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        deleted:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+      required:
+      - deleted
+      - message
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        is_superuser:
+          type: boolean
+        is_active:
+          type: boolean
+        date_joined:
+          type: string
+          format: date-time
+        location:
+          type: string
+        pass_display:
+          type: string
+        generation_count:
+          type: integer
+          minimum: 0
+      required:
+      - date_joined
+      - email
+      - generation_count
+      - id
+      - is_active
+      - is_superuser
+      - location
+      - pass_display
+      - username
+    AdminUserList:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        is_active:
+          type: boolean
+      required:
+      - email
+      - id
+      - is_active
+      - username
+    Breach:
+      type: object
+      properties:
+        name:
+          type: string
+        domain:
+          type: string
+        breach_date:
+          type: string
+        data_classes:
+          type: array
+          items:
+            type: string
+        is_verified:
+          type: boolean
+        description:
+          type: string
+      required:
+      - breach_date
+      - data_classes
+      - description
+      - domain
+      - is_verified
+      - name
+    BreachSearchRequestRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 254
+      required:
+      - query
+    BreachSearchResponse:
+      type: object
+      properties:
+        breaches:
+          type: array
+          items:
+            $ref: '#/components/schemas/Breach'
+        password_exposures:
+          type: integer
+          minimum: 0
+        internal_matches:
+          type: integer
+          minimum: 0
+        query:
+          type: string
+        rate_limited:
+          type: boolean
+        hibp_error:
+          type: string
+        hibp_note:
+          type: string
+        risk_score:
+          type: integer
+          maximum: 100
+          minimum: 0
+      required:
+      - breaches
+      - internal_matches
+      - password_exposures
+      - query
+      - risk_score
+    CachedWordlistResponse:
+      type: object
+      properties:
+        wordlist:
+          type: array
+          items:
+            $ref: '#/components/schemas/WordlistEntry'
+        id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+      required:
+      - id
+      - status
+      - wordlist
+    CreateTeamRequestRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+      required:
+      - name
+    CreateTeamResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        id:
+          type: integer
+          minimum: 1
+      required:
+      - code
+      - id
+      - message
+    DownloadTokenRequestRequest:
+      type: object
+      properties:
+        file_type:
+          enum:
+          - wordlist
+          - report
+          type: string
+          description: |-
+            * `wordlist` - wordlist
+            * `report` - report
+          x-spec-enum-id: 967aacb4fefca9d9
+        record_id:
+          type: integer
+          minimum: 1
+      required:
+      - file_type
+      - record_id
+    DownloadTokenResponse:
+      type: object
+      properties:
+        download_token:
+          type: string
+      required:
+      - download_token
+    FinancialRiskResponse:
+      type: object
+      properties:
+        total_exposure:
+          type: number
+          format: double
+          minimum: 0
+        gdpr_fines:
+          type: number
+          format: double
+          minimum: 0
+        ccpa_fines:
+          type: number
+          format: double
+          minimum: 0
+        remediation_cost:
+          type: number
+          format: double
+          minimum: 0
+        breach_probability:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        severity:
+          type: string
+        breakdown:
+          $ref: '#/components/schemas/RiskBreakdown'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskRecommendation'
+        trajectory:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskTrajectoryPoint'
+        generated_at:
+          type: string
+          format: date-time
+      required:
+      - breach_probability
+      - breakdown
+      - ccpa_fines
+      - gdpr_fines
+      - generated_at
+      - recommendations
+      - remediation_cost
+      - severity
+      - total_exposure
+      - trajectory
+    GenerationMetrics:
+      type: object
+      properties:
+        effectiveness_score:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        risk_density:
+          type: number
+          format: double
+          maximum: 100
+          minimum: 0
+        threat_level:
+          type: string
+        total_words:
+          type: integer
+          minimum: 0
+        matched_words:
+          type: integer
+          minimum: 0
+      required:
+      - effectiveness_score
+      - matched_words
+      - risk_density
+      - threat_level
+      - total_words
+    GlobeDataResponse:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserActivity'
+          readOnly: true
+        live_count:
+          type: integer
+          minimum: 0
+        server_time:
+          type: string
+          format: date-time
+      required:
+      - live_count
+      - points
+      - server_time
+    GoogleLoginRequestRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+          minLength: 1
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lng:
+          type: number
+          format: double
+          nullable: true
+        city:
+          type: string
+          minLength: 1
+        country_code:
+          type: string
+          minLength: 1
+          maxLength: 3
+      required:
+      - token
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          enum:
+          - healthy
+          - degraded
+          type: string
+          description: |-
+            * `healthy` - healthy
+            * `degraded` - degraded
+          x-spec-enum-id: 5d29c0e69ded73db
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        database:
+          enum:
+          - ok
+          - error
+          type: string
+          description: |-
+            * `ok` - ok
+            * `error` - error
+          x-spec-enum-id: a3da9ae335225ce8
+      required:
+      - database
+      - status
+      - timestamp
+      - version
+    HelpBeaconRequestRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          minLength: 1
+        latitude:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+          nullable: true
+        city:
+          type: string
+          minLength: 1
+        country_code:
+          type: string
+          minLength: 1
+          maxLength: 3
+      required:
+      - message
+    HelpBeaconResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        echo:
+          type: string
+      required:
+      - echo
+      - status
+    HistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        timestamp:
+          type: string
+          format: date-time
+        pii_summary: {}
+        wordlist_count:
+          type: integer
+          minimum: 0
+        ip_address:
+          type: string
+          nullable: true
+      required:
+      - id
+      - ip_address
+      - pii_summary
+      - timestamp
+      - wordlist_count
+    HistoryResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryItem'
+        total:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+        total_pages:
+          type: integer
+          minimum: 0
+      required:
+      - page
+      - page_size
+      - results
+      - total
+      - total_pages
+    JoinTeamRequestRequest:
+      type: object
+      properties:
+        invite_code:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sender:
+          type: integer
+          readOnly: true
+        sender_name:
+          type: string
+          readOnly: true
+        recipient:
+          type: integer
+          nullable: true
+        recipient_name:
+          type: string
+          readOnly: true
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        is_read:
+          type: boolean
+          readOnly: true
+      required:
+      - content
+      - id
+      - is_read
+      - recipient_name
+      - sender
+      - sender_name
+      - timestamp
+    MessageRequest:
+      type: object
+      properties:
+        recipient:
+          type: integer
+          nullable: true
+        content:
+          type: string
+          minLength: 1
+      required:
+      - content
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        notification_type:
+          enum:
+          - GENERATION
+          - TEAM
+          - MESSAGE
+          - SYSTEM
+          - SECURITY
+          - ADMIN
+          type: string
+          description: |-
+            * `GENERATION` - Wordlist Generated
+            * `TEAM` - Team Activity
+            * `MESSAGE` - New Message
+            * `SYSTEM` - System Alert
+            * `SECURITY` - Security Alert
+            * `ADMIN` - Admin Action
+          x-spec-enum-id: b5bfa21dc666a5c8
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        is_read:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        link:
+          type: string
+          readOnly: true
+      required:
+      - description
+      - id
+      - link
+      - notification_type
+      - timestamp
+      - title
+    NotificationActionRequestRequest:
+      type: object
+      properties:
+        action:
+          enum:
+          - mark_all_read
+          type: string
+          description: '* `mark_all_read` - mark_all_read'
+          x-spec-enum-id: 754ad3964859e967
+        id:
+          type: integer
+          minimum: 1
+    NotificationListResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+          readOnly: true
+        unread_count:
+          type: integer
+          minimum: 0
+      required:
+      - notifications
+      - unread_count
+    PaginatedMessageList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    PasswordAnalysisHistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        vulnerability_level:
+          type: string
+        strength_score:
+          type: integer
+          maximum: 100
+          minimum: 0
+        crack_time_estimate:
+          type: string
+        breach_count:
+          type: integer
+          minimum: 0
+        vulnerabilities_count:
+          type: integer
+          minimum: 0
+        vulnerabilities_found:
+          type: array
+          items:
+            type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - breach_count
+      - crack_time_estimate
+      - created_at
+      - id
+      - recommendations
+      - strength_score
+      - vulnerabilities_count
+      - vulnerabilities_found
+      - vulnerability_level
+    PasswordAnalysisHistoryResponse:
+      type: object
+      properties:
+        analyses:
+          type: array
+          items:
+            $ref: '#/components/schemas/PasswordAnalysisHistoryItem'
+      required:
+      - analyses
+    PasswordAnalyzeRequestRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        pii_data: {}
+      required:
+      - password
+    PasswordAnalyzeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        score:
+          type: integer
+          maximum: 100
+          minimum: 0
+        vulnerabilities:
+          type: array
+          items:
+            type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        crack_time:
+          type: string
+        level:
+          type: string
+        entropy:
+          type: integer
+          minimum: 0
+        breach_count:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - crack_time
+      - level
+      - recommendations
+      - score
+      - vulnerabilities
+    PasswordBreachCheckRequestRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+    PasswordBreachCheckResponse:
+      type: object
+      properties:
+        breached:
+          type: boolean
+          nullable: true
+        count:
+          type: integer
+          minimum: 0
+          nullable: true
+        message:
+          type: string
+      required:
+      - breached
+      - count
+    PasswordLoginRequestRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lng:
+          type: number
+          format: double
+          nullable: true
+        city:
+          type: string
+          minLength: 1
+        country_code:
+          type: string
+          minLength: 1
+          maxLength: 3
+      required:
+      - password
+      - username
+    PasswordResetRequestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+      required:
+      - email
+    PasswordResetVerifyRequestRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        otp:
+          type: string
+          writeOnly: true
+          minLength: 6
+          maxLength: 6
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - new_password
+      - otp
+    PatchedUserProfileUpdateRequestRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+          minLength: 1
+        current_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+    PiiSubmitResponse:
+      type: object
+      properties:
+        wordlist:
+          type: array
+          items:
+            $ref: '#/components/schemas/WordlistEntry'
+        id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+        fallback:
+          type: boolean
+        metrics:
+          $ref: '#/components/schemas/GenerationMetrics'
+      required:
+      - fallback
+      - id
+      - metrics
+      - status
+      - wordlist
+    PiiserializerRequest:
+      type: object
+      description: |-
+        PII data serializer — aligned with frontend PIIForm.js field names (2.1 fix).
+
+        The frontend sends fields like: birth_year, phone_suffix, gov_id, passport_id,
+        childhood_nickname, social_handles, etc. This serializer now accepts ALL of those
+        field names so data is not silently dropped.
+
+        Legacy field names (dob, phone_digits, ssn_last4, etc.) are kept for backward
+        compatibility with any existing stored data or API consumers.
+      properties:
+        pattern_mode:
+          enum:
+          - standard
+          - corporate
+          - leetspeak
+          - deep
+          type: string
+          description: |-
+            * `standard` - standard
+            * `corporate` - corporate
+            * `leetspeak` - leetspeak
+            * `deep` - deep
+          x-spec-enum-id: 03755e1c33d46e5b
+          default: standard
+        full_name:
+          type: string
+          default: ''
+          maxLength: 256
+        birth_year:
+          type: string
+          default: ''
+          maxLength: 256
+        dob:
+          type: string
+          default: ''
+          maxLength: 256
+        phone_suffix:
+          type: string
+          default: ''
+          maxLength: 256
+        phone_digits:
+          type: string
+          default: ''
+          maxLength: 256
+        gov_id:
+          type: string
+          default: ''
+          maxLength: 256
+        passport_id:
+          type: string
+          default: ''
+          maxLength: 256
+        mother_maiden:
+          type: string
+          default: ''
+          maxLength: 256
+        ssn_last4:
+          type: string
+          default: ''
+          maxLength: 256
+        blood_type:
+          type: string
+          default: ''
+          maxLength: 256
+        height:
+          type: string
+          default: ''
+          maxLength: 256
+        username:
+          type: string
+          default: ''
+          maxLength: 256
+        email:
+          type: string
+          default: ''
+          maxLength: 256
+        pet_names:
+          type: string
+          default: ''
+          maxLength: 256
+        spouse_name:
+          type: string
+          default: ''
+          maxLength: 256
+        childhood_nickname:
+          type: string
+          default: ''
+          maxLength: 256
+        social_handles:
+          type: string
+          default: ''
+          maxLength: 256
+        relationship_status:
+          type: string
+          default: ''
+          maxLength: 256
+        close_contacts:
+          type: string
+          default: ''
+          maxLength: 256
+        group_affiliations:
+          type: string
+          default: ''
+          maxLength: 256
+        child_names:
+          type: string
+          default: ''
+          maxLength: 256
+        father_name:
+          type: string
+          default: ''
+          maxLength: 256
+        sibling_names:
+          type: string
+          default: ''
+          maxLength: 256
+        best_friend:
+          type: string
+          default: ''
+          maxLength: 256
+        hometown:
+          type: string
+          default: ''
+          maxLength: 256
+        school_name:
+          type: string
+          default: ''
+          maxLength: 256
+        last_location:
+          type: string
+          default: ''
+          maxLength: 256
+        travel_history:
+          type: string
+          default: ''
+          maxLength: 256
+        live_coordinates:
+          type: string
+          default: ''
+          maxLength: 256
+        frequent_places:
+          type: string
+          default: ''
+          maxLength: 256
+        current_city:
+          type: string
+          default: ''
+          maxLength: 256
+        street_name:
+          type: string
+          default: ''
+          maxLength: 256
+        zip_code:
+          type: string
+          default: ''
+          maxLength: 256
+        state:
+          type: string
+          default: ''
+          maxLength: 256
+        country:
+          type: string
+          default: ''
+          maxLength: 256
+        vacation_spot:
+          type: string
+          default: ''
+          maxLength: 256
+        favourite_movies:
+          type: string
+          default: ''
+          maxLength: 256
+        sports_team:
+          type: string
+          default: ''
+          maxLength: 256
+        first_car_model:
+          type: string
+          default: ''
+          maxLength: 256
+        shopping_sites:
+          type: string
+          default: ''
+          maxLength: 256
+        habit_patterns:
+          type: string
+          default: ''
+          maxLength: 256
+        search_keywords:
+          type: string
+          default: ''
+          maxLength: 256
+        content_timing:
+          type: string
+          default: ''
+          maxLength: 256
+        favourite_food:
+          type: string
+          default: ''
+          maxLength: 256
+        musician:
+          type: string
+          default: ''
+          maxLength: 256
+        movies:
+          type: string
+          default: ''
+          maxLength: 256
+        hobbies:
+          type: string
+          default: ''
+          maxLength: 256
+        books:
+          type: string
+          default: ''
+          maxLength: 256
+        games:
+          type: string
+          default: ''
+          maxLength: 256
+        food:
+          type: string
+          default: ''
+          maxLength: 256
+        employer_name:
+          type: string
+          default: ''
+          maxLength: 256
+        social_media_handle:
+          type: string
+          default: ''
+          maxLength: 256
+        company:
+          type: string
+          default: ''
+          maxLength: 256
+        job_title:
+          type: string
+          default: ''
+          maxLength: 256
+        department:
+          type: string
+          default: ''
+          maxLength: 256
+        employee_id:
+          type: string
+          default: ''
+          maxLength: 256
+        boss_name:
+          type: string
+          default: ''
+          maxLength: 256
+        past_company:
+          type: string
+          default: ''
+          maxLength: 256
+        university:
+          type: string
+          default: ''
+          maxLength: 256
+        degree:
+          type: string
+          default: ''
+          maxLength: 256
+        bank_suffix:
+          type: string
+          default: ''
+          maxLength: 256
+        crypto_wallet:
+          type: string
+          default: ''
+          maxLength: 256
+        vehicle_reg:
+          type: string
+          default: ''
+          maxLength: 256
+        property_id:
+          type: string
+          default: ''
+          maxLength: 256
+        plate_number_partial:
+          type: string
+          default: ''
+          maxLength: 256
+        car_model:
+          type: string
+          default: ''
+          maxLength: 256
+        license_plate:
+          type: string
+          default: ''
+          maxLength: 256
+        bank_name:
+          type: string
+          default: ''
+          maxLength: 256
+        brand_affinity:
+          type: string
+          default: ''
+          maxLength: 256
+        device_type:
+          type: string
+          default: ''
+          maxLength: 256
+        subscription:
+          type: string
+          default: ''
+          maxLength: 256
+      additionalProperties: false
+    RegistrationRequestRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lng:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - email
+      - password
+      - username
+    RiskBreakdown:
+      type: object
+      properties:
+        critical:
+          type: integer
+          minimum: 0
+        high:
+          type: integer
+          minimum: 0
+        medium:
+          type: integer
+          minimum: 0
+        low:
+          type: integer
+          minimum: 0
+        total_analyses:
+          type: integer
+          minimum: 0
+        breach_hits:
+          type: integer
+          minimum: 0
+        average_strength:
+          type: number
+          format: double
+        passwords_generated:
+          type: integer
+          minimum: 0
+      required:
+      - average_strength
+      - breach_hits
+      - critical
+      - high
+      - low
+      - medium
+      - passwords_generated
+      - total_analyses
+    RiskRecommendation:
+      type: object
+      properties:
+        level:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      required:
+      - detail
+      - level
+      - title
+    RiskTrajectoryPoint:
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: number
+          format: double
+      required:
+      - label
+      - value
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+      required:
+      - status
+    SuperAdminResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUser'
+        logs:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        activities:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        total_generations:
+          type: integer
+          minimum: 0
+        generations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminGeneration'
+    SystemLog:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        level:
+          enum:
+          - INFO
+          - WARNING
+          - ERROR
+          - CRITICAL
+          - SUCCESS
+          type: string
+          description: |-
+            * `INFO` - Info
+            * `WARNING` - Warning
+            * `ERROR` - Error
+            * `CRITICAL` - Critical
+            * `SUCCESS` - Success
+          x-spec-enum-id: 619c4a3f295e7df0
+        message:
+          type: string
+        source:
+          type: string
+          maxLength: 50
+      required:
+      - message
+      - timestamp
+    SystemSetting:
+      type: object
+      properties:
+        key:
+          type: string
+          maxLength: 100
+        value:
+          type: string
+        description:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_by_name:
+          type: string
+          readOnly: true
+          default: System
+      required:
+      - key
+      - updated_at
+      - updated_by_name
+    SystemSettingUpdateRequestRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          minLength: 1
+        value:
+          type: string
+        description:
+          type: string
+      required:
+      - key
+      - value
+    SystemSettingUpdateResponse:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        message:
+          type: string
+      required:
+      - key
+      - message
+      - value
+    TeamChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        sender:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        is_me:
+          type: boolean
+      required:
+      - content
+      - id
+      - is_me
+      - sender
+      - timestamp
+    TeamChatRequestRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - content
+    TeamInfoResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+        name:
+          type: string
+        invite_code:
+          type: string
+        my_role:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+        feed:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - active
+    TeamMember:
+      type: object
+      properties:
+        username:
+          type: string
+        role:
+          type: string
+        joined_at:
+          type: string
+          format: date-time
+        active_status:
+          type: string
+      required:
+      - active_status
+      - joined_at
+      - role
+      - username
+    TerminalRequestRequest:
+      type: object
+      properties:
+        command:
+          type: string
+      required:
+      - command
+    TerminalResponse:
+      type: object
+      properties:
+        output:
+          type: array
+          items:
+            type: string
+      required:
+      - output
+    TokenPairResponse:
+      type: object
+      properties:
+        refresh:
+          type: string
+          readOnly: true
+        access:
+          type: string
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        is_superuser:
+          type: boolean
+          readOnly: true
+      required:
+      - access
+      - is_superuser
+      - refresh
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    UserActivity:
+      type: object
+      description: |-
+        Serializer for globe data. Excludes 'description' field to prevent
+        leaking usernames and operational details to all authenticated users.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          nullable: true
+          readOnly: true
+        activity_type:
+          enum:
+          - LOGIN
+          - GENERATE
+          - SCAN
+          - BREACH
+          - SQUAD_JOIN
+          - TEAM_JOIN
+          - CONFIG
+          type: string
+          description: |-
+            * `LOGIN` - User Login
+            * `GENERATE` - Wordlist Generated
+            * `SCAN` - Network Scan
+            * `BREACH` - Data Breach Detected
+            * `SQUAD_JOIN` - Squadron Joined
+            * `TEAM_JOIN` - Team Joined
+            * `CONFIG` - Configuration Change
+          x-spec-enum-id: 16d93ae9080e70e7
+        timestamp:
+          type: string
+          format: date-time
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+        color:
+          type: string
+          maxLength: 20
+        intensity:
+          type: number
+          format: double
+        city:
+          type: string
+          maxLength: 100
+      required:
+      - activity_type
+      - id
+      - timestamp
+      - user_id
+    UserActivityFeedItem:
+      type: object
+      properties:
+        id: {}
+        type:
+          type: string
+        message:
+          type: string
+        details: {}
+        time:
+          type: string
+          format: date-time
+        status:
+          type: string
+      required:
+      - id
+      - message
+      - status
+      - time
+      - type
+    UserActivityFeedResponse:
+      type: object
+      properties:
+        activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserActivityFeedItem'
+      required:
+      - activities
+    UserPreferences:
+      type: object
+      properties:
+        default_mode:
+          type: string
+          description: Either "user" or "security".
+        last_mode:
+          type: string
+          description: Either "user" or "security".
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - default_mode
+      - last_mode
+    UserPreferencesUpdateRequestRequest:
+      type: object
+      properties:
+        default_mode:
+          type: string
+          minLength: 1
+          description: Either "user" or "security".
+        last_mode:
+          type: string
+          minLength: 1
+          description: Either "user" or "security".
+    UserPreferencesUpdateResponse:
+      type: object
+      properties:
+        default_mode:
+          type: string
+          description: Either "user" or "security".
+        last_mode:
+          type: string
+          description: Either "user" or "security".
+        updated_at:
+          type: string
+          format: date-time
+        message:
+          type: string
+      required:
+      - default_mode
+      - last_mode
+      - message
+    UserProfileResponse:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        date_joined:
+          type: string
+          format: date-time
+        is_superuser:
+          type: boolean
+        is_active:
+          type: boolean
+        has_usable_password:
+          type: boolean
+        auth_type:
+          type: string
+        team:
+          allOf:
+          - $ref: '#/components/schemas/UserProfileTeam'
+          nullable: true
+        unread_messages:
+          type: integer
+          minimum: 0
+        stats:
+          $ref: '#/components/schemas/UserProfileStats'
+      required:
+      - auth_type
+      - date_joined
+      - email
+      - first_name
+      - has_usable_password
+      - is_active
+      - is_superuser
+      - last_name
+      - stats
+      - team
+      - unread_messages
+      - username
+    UserProfileStats:
+      type: object
+      properties:
+        total_generations:
+          type: integer
+          minimum: 0
+        total_words_generated:
+          type: integer
+          minimum: 0
+        last_generation:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - last_generation
+      - total_generations
+      - total_words_generated
+    UserProfileTeam:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        joined_at:
+          type: string
+          format: date-time
+      required:
+      - joined_at
+      - name
+      - role
+    UserProfileUpdateRequestRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+          minLength: 1
+        current_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+    UserStatsResponse:
+      type: object
+      properties:
+        operations:
+          type: integer
+          minimum: 0
+        data_points:
+          type: integer
+          minimum: 0
+        uptime:
+          type: string
+        threats:
+          type: integer
+          minimum: 0
+      required:
+      - data_points
+      - operations
+      - threats
+      - uptime
+    WordlistEntry:
+      type: object
+      properties:
+        password:
+          type: string
+        score:
+          type: integer
+          maximum: 100
+          minimum: 0
+      required:
+      - password
+      - score
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Auth
+  description: Authentication & registration
+- name: Intelligence
+  description: Wordlist generation & history
+- name: Teams
+  description: Team management & chat
+- name: Operations
+  description: System logs, messages, notifications
+- name: Analytics
+  description: Globe data & activity tracking
+- name: Admin
+  description: Super-admin operations
+- name: Health
+  description: System health & monitoring

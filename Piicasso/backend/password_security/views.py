@@ -1,12 +1,10 @@
 import hashlib
-import re
 import logging
 import math
+import re
 
 from django.contrib.auth import get_user_model
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -14,10 +12,23 @@ from rest_framework.decorators import (
     permission_classes,
     throttle_classes,
 )
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from rest_framework.throttling import UserRateThrottle
+from backend.schema_serializers import (
+    PasswordAnalysisHistoryResponseSerializer,
+    PasswordAnalyzeRequestSerializer,
+    PasswordAnalyzeResponseSerializer,
+    PasswordBreachCheckRequestSerializer,
+    PasswordBreachCheckResponseSerializer,
+    UserActivityFeedResponseSerializer,
+    UserPreferencesSerializer,
+    UserPreferencesUpdateRequestSerializer,
+    UserPreferencesUpdateResponseSerializer,
+)
 
 from .hibp import k_anonymity_breach_count
 
@@ -93,19 +104,21 @@ KEYBOARD_PATTERNS = {
 
 
 def hash_password(password):
-    """Keyed HMAC-SHA256 used ONLY for duplicate detection, never for auth.
+    """Keyed PBKDF2-SHA256 fingerprint used only for duplicate detection.
 
     Peppering with SECRET_KEY means a database leak does not hand an attacker
-    raw, offline-crackable SHA-256 password hashes. (Existing rows hashed with
+    raw, cheaply crackable password fingerprints. (Existing rows hashed with
     the old unkeyed scheme simply won't match new ones — dedupe is best-effort
     and non-critical.)
     """
-    import hmac
     from django.conf import settings
 
-    return hmac.new(
-        settings.SECRET_KEY.encode(), password.encode(), hashlib.sha256
-    ).hexdigest()
+    return hashlib.pbkdf2_hmac(
+        "sha256",
+        password.encode("utf-8"),
+        settings.SECRET_KEY.encode("utf-8"),
+        600_000,
+    ).hex()
 
 
 def calculate_entropy(password):
@@ -172,7 +185,7 @@ def analyze_password_strength(password, pii_data=None):
 
     pii_data = pii_data or {}
     pii_values = []
-    for key, value in pii_data.items():
+    for _key, value in pii_data.items():
         if value and isinstance(value, str) and len(value) > 2:
             pii_values.append(value.lower())
 
@@ -212,15 +225,9 @@ def analyze_password_strength(password, pii_data=None):
     if has_digit and has_special:
         score += 10
 
-    common_check = (
-        password_lower.replace("0", "o")
-        .replace("1", "i")
-        .replace("3", "e")
-        .replace("4", "a")
-    )
+    common_check = password_lower.replace("0", "o").replace("1", "i").replace("3", "e").replace("4", "a")
     if any(
-        common in COMMON_PASSWORDS
-        or COMMON_PASSWORDS.intersection(common_check.split())
+        common in COMMON_PASSWORDS or COMMON_PASSWORDS.intersection(common_check.split())
         for common in [password_lower, common_check]
     ):
         score = max(score - 50, 5)
@@ -231,9 +238,9 @@ def analyze_password_strength(password, pii_data=None):
     for pii_value in pii_values:
         if len(pii_value) >= 4 and pii_value in password_lower:
             score = max(score - 30, 5)
-            vulnerabilities.append(
-                f"Contains personal information: {pii_value[:10]}..."
-            )
+            # Findings are persisted and returned to clients. Describe the
+            # category without copying raw PII into a second plaintext field.
+            vulnerabilities.append("Contains personal information")
             recommendations.append("Avoid using personal information in passwords")
             has_personal = True
             break
@@ -289,7 +296,6 @@ def analyze_password_strength(password, pii_data=None):
     }
 
 
-
 class PasswordAnalyzeView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -300,16 +306,21 @@ class PasswordAnalyzeView(APIView):
     def get_client_ip(self, request):
         # Shared, spoof-resistant resolver (trusted-proxy aware).
         from wordgen.utils import get_client_ip as _get_client_ip
+
         return _get_client_ip(request)
 
+    @extend_schema(
+        summary="Analyze password strength and breach exposure",
+        request=PasswordAnalyzeRequestSerializer,
+        responses={200: PasswordAnalyzeResponseSerializer},
+        tags=["Intelligence"],
+    )
     def post(self, request):
         password = request.data.get("password", "")
         pii_data = request.data.get("pii_data", {})
 
         if not password:
-            return Response(
-                {"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         analysis_result = analyze_password_strength(password, pii_data)
 
@@ -318,14 +329,15 @@ class PasswordAnalyzeView(APIView):
             analysis_result["breach_count"] = breach_count
 
             if breach_count > 0:
-                analysis_result["vulnerabilities"].append(
-                    f"Found in {breach_count} data breaches"
-                )
+                analysis_result["vulnerabilities"].append(f"Found in {breach_count} data breaches")
                 analysis_result["recommendations"].append(
                     "Change this password immediately - it's been exposed in breaches"
                 )
                 analysis_result["level"] = "critical"
-                analysis_result["score"] = max(analysis_result["score"], 10)
+                # A confirmed breach is an upper bound on strength, regardless
+                # of composition. Never raise a weak score or leave a strong
+                # score intact after HIBP reports exposure.
+                analysis_result["score"] = min(analysis_result["score"], 10)
         else:
             analysis_result["breach_count"] = 0
 
@@ -359,7 +371,7 @@ class PasswordAnalyzeView(APIView):
                 },
             )
         except Exception as e:
-            logger.error(f"Failed to save analysis: {e}")
+            logger.error("Failed to save analysis (%s)", type(e).__name__)
 
         return Response(analysis_result, status=status.HTTP_200_OK)
 
@@ -368,13 +380,16 @@ class PasswordAnalysisHistoryView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List recent password analyses",
+        responses={200: PasswordAnalysisHistoryResponseSerializer},
+        tags=["Intelligence"],
+    )
     def get(self, request):
         try:
             from .models import PasswordAnalysis
 
-            analyses = PasswordAnalysis.objects.filter(user=request.user).order_by(
-                "-created_at"
-            )[:50]
+            analyses = PasswordAnalysis.objects.filter(user=request.user).order_by("-created_at")[:50]
 
             results = []
             for a in analyses:
@@ -394,7 +409,7 @@ class PasswordAnalysisHistoryView(APIView):
 
             return Response({"analyses": results}, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error(f"Failed to fetch history: {e}")
+            logger.error("Failed to fetch history (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to fetch history"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -405,11 +420,16 @@ class UserPreferencesView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Get password security preferences",
+        responses={200: UserPreferencesSerializer},
+        tags=["Intelligence"],
+    )
     def get(self, request):
         try:
             from .models import UserPreference
 
-            pref, created = UserPreference.objects.get_or_create(user=request.user)
+            pref, _created = UserPreference.objects.get_or_create(user=request.user)
             return Response(
                 {
                     "default_mode": pref.default_mode,
@@ -419,12 +439,18 @@ class UserPreferencesView(APIView):
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
-            logger.error(f"Failed to get preferences: {e}")
+            logger.error("Failed to get preferences (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to get preferences"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @extend_schema(
+        summary="Update password security preferences",
+        request=UserPreferencesUpdateRequestSerializer,
+        responses={200: UserPreferencesUpdateResponseSerializer},
+        tags=["Intelligence"],
+    )
     def put(self, request):
         try:
             from .models import UserPreference
@@ -433,15 +459,11 @@ class UserPreferencesView(APIView):
             last_mode = request.data.get("last_mode", "user")
 
             if default_mode not in ["user", "security"]:
-                return Response(
-                    {"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST)
             if last_mode not in ["user", "security"]:
-                return Response(
-                    {"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"error": "Invalid mode"}, status=status.HTTP_400_BAD_REQUEST)
 
-            pref, created = UserPreference.objects.get_or_create(user=request.user)
+            pref, _created = UserPreference.objects.get_or_create(user=request.user)
             pref.default_mode = default_mode
             pref.last_mode = last_mode
             pref.save()
@@ -455,13 +477,19 @@ class UserPreferencesView(APIView):
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
-            logger.error(f"Failed to update preferences: {e}")
+            logger.error("Failed to update preferences (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to update preferences"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
+@extend_schema(
+    summary="Check a password against breach data",
+    request=PasswordBreachCheckRequestSerializer,
+    responses={200: PasswordBreachCheckResponseSerializer},
+    tags=["Intelligence"],
+)
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([AllowAny])
@@ -470,9 +498,7 @@ def check_password_breach(request):
     password = request.data.get("password", "")
 
     if not password:
-        return Response(
-            {"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Password is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     breach_count = k_anonymity_breach_count(password)
 
@@ -492,14 +518,17 @@ class UserActivityFeedView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List recent password security activity",
+        responses={200: UserActivityFeedResponseSerializer},
+        tags=["Intelligence"],
+    )
     def get(self, request):
-        from .models import PasswordAuditLog, PasswordAnalysis
+        from .models import PasswordAnalysis, PasswordAuditLog
 
         activities = []
 
-        audit_logs = PasswordAuditLog.objects.filter(user=request.user).order_by(
-            "-timestamp"
-        )[:20]
+        audit_logs = PasswordAuditLog.objects.filter(user=request.user).order_by("-timestamp")[:20]
 
         for log in audit_logs:
             action_labels = {
@@ -517,12 +546,8 @@ class UserActivityFeedView(APIView):
             }
 
             status_map = {
-                "analyze": "success"
-                if log.details.get("strength_score", 0) >= 50
-                else "warning",
-                "breach_check": "danger"
-                if log.details.get("breach_count", 0) > 0
-                else "success",
+                "analyze": "success" if log.details.get("strength_score", 0) >= 50 else "warning",
+                "breach_check": "danger" if log.details.get("breach_count", 0) > 0 else "success",
                 "view_history": "info",
                 "export": "info",
             }
@@ -538,9 +563,7 @@ class UserActivityFeedView(APIView):
                 }
             )
 
-        recent_analyses = PasswordAnalysis.objects.filter(user=request.user).order_by(
-            "-created_at"
-        )[:5]
+        recent_analyses = PasswordAnalysis.objects.filter(user=request.user).order_by("-created_at")[:5]
 
         for analysis in recent_analyses:
             breach_status = "danger" if analysis.breach_count > 0 else "success"

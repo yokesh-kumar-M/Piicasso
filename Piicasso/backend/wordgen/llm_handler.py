@@ -1,10 +1,43 @@
-import os
-import re
 import itertools
 import logging
-import requests
+import os
+import re
 
-logger = logging.getLogger('wordgen')
+from google import genai
+from google.genai import types
+from pydantic import BaseModel, Field, field_validator
+
+logger = logging.getLogger("wordgen")
+
+DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
+
+
+class WordlistResponse(BaseModel):
+    """Validated structured output returned by the external model."""
+
+    wordlist: list[str] = Field(min_length=1, max_length=1000)
+
+    @field_validator("wordlist")
+    @classmethod
+    def normalize_candidates(cls, values):
+        normalized = []
+        seen = set()
+        for value in values:
+            if not isinstance(value, str):
+                raise ValueError("Every wordlist candidate must be a string")
+            candidate = value.strip()
+            if not candidate:
+                continue
+            if "\n" in candidate or "\r" in candidate:
+                raise ValueError("Wordlist candidates cannot contain line breaks")
+            if len(candidate) > 256:
+                raise ValueError("Wordlist candidates cannot exceed 256 characters")
+            if candidate not in seen:
+                normalized.append(candidate)
+                seen.add(candidate)
+        if not normalized:
+            raise ValueError("The model returned no usable wordlist candidates")
+        return normalized
 
 
 def mask_pii_for_api(pii_data):
@@ -12,9 +45,9 @@ def mask_pii_for_api(pii_data):
     Optional masker: remove or mask extremely sensitive fields before sending to external LLM.
     """
     safe = dict(pii_data)
-    for k in ['ssn_last4', 'bank_name', 'crypto_wallet', 'gov_id', 'passport_id', 'bank_suffix']:
-        if k in safe and safe[k]:
-            safe[k] = '[MASKED]'
+    for k in ["ssn_last4", "bank_name", "crypto_wallet", "gov_id", "passport_id", "bank_suffix"]:
+        if safe.get(k):
+            safe[k] = "[MASKED]"
     return safe
 
 
@@ -32,63 +65,63 @@ def build_prompt(pii_data, pattern_mode="standard"):
         return str(val)
 
     identity = f"""
-    Full Name: {fmt('full_name')}
-    DOB/Year: {fmt('birth_year')}
-    Phone Digits: {fmt('phone_suffix')}
-    Username: {fmt('username')}
-    Email Handle: {fmt('email')}
+    Full Name: {fmt("full_name")}
+    DOB/Year: {fmt("birth_year")}
+    Phone Digits: {fmt("phone_suffix")}
+    Username: {fmt("username")}
+    Email Handle: {fmt("email")}
     """
 
     family = f"""
-    Spouse: {fmt('spouse_name')}
-    Children: {fmt('child_names')}
-    Pets: {fmt('pet_names')}
-    Mother's Maiden: {fmt('mother_maiden')}
-    Father's Name: {fmt('father_name')}
-    Siblings: {fmt('sibling_names')}
-    Best Friend: {fmt('best_friend')}
-    Childhood Nickname: {fmt('childhood_nickname')}
+    Spouse: {fmt("spouse_name")}
+    Children: {fmt("child_names")}
+    Pets: {fmt("pet_names")}
+    Mother's Maiden: {fmt("mother_maiden")}
+    Father's Name: {fmt("father_name")}
+    Siblings: {fmt("sibling_names")}
+    Best Friend: {fmt("best_friend")}
+    Childhood Nickname: {fmt("childhood_nickname")}
     """
 
     work = f"""
-    Company: {fmt('employer_name')}
-    Job Title: {fmt('job_title')}
-    Department: {fmt('department')}
-    Employee ID: {fmt('employee_id')}
-    Boss: {fmt('boss_name')}
-    Past Company: {fmt('past_company')}
-    University: {fmt('university')}
-    Degree/Major: {fmt('degree')}
-    School: {fmt('school_name')}
+    Company: {fmt("employer_name")}
+    Job Title: {fmt("job_title")}
+    Department: {fmt("department")}
+    Employee ID: {fmt("employee_id")}
+    Boss: {fmt("boss_name")}
+    Past Company: {fmt("past_company")}
+    University: {fmt("university")}
+    Degree/Major: {fmt("degree")}
+    School: {fmt("school_name")}
     """
 
     location = f"""
-    Current City: {fmt('current_city')}
-    Hometown: {fmt('hometown')}
-    Street: {fmt('street_name')}
-    Zip Code: {fmt('zip_code')}
-    State: {fmt('state')}
-    Country: {fmt('country')}
-    Vacation Spot: {fmt('vacation_spot')}
-    Last Location: {fmt('last_location')}
+    Current City: {fmt("current_city")}
+    Hometown: {fmt("hometown")}
+    Street: {fmt("street_name")}
+    Zip Code: {fmt("zip_code")}
+    State: {fmt("state")}
+    Country: {fmt("country")}
+    Vacation Spot: {fmt("vacation_spot")}
+    Last Location: {fmt("last_location")}
     """
 
     interests = f"""
-    Sports Team: {fmt('sports_team')}
-    Musician: {fmt('musician')}
-    Movies: {fmt('favourite_movies')}
-    Hobbies: {fmt('hobbies')}
-    Books: {fmt('books')}
-    Games: {fmt('games')}
-    Favorite Food: {fmt('favourite_food')}
+    Sports Team: {fmt("sports_team")}
+    Musician: {fmt("musician")}
+    Movies: {fmt("favourite_movies")}
+    Hobbies: {fmt("hobbies")}
+    Books: {fmt("books")}
+    Games: {fmt("games")}
+    Favorite Food: {fmt("favourite_food")}
     """
 
     assets = f"""
-    Car Model: {fmt('first_car_model')}
-    License Plate: {fmt('plate_number_partial')}
-    Brand Affinity: {fmt('brand_affinity')}
-    Device: {fmt('device_type')}
-    Subscription: {fmt('subscription')}
+    Car Model: {fmt("first_car_model")}
+    License Plate: {fmt("plate_number_partial")}
+    Brand Affinity: {fmt("brand_affinity")}
+    Device: {fmt("device_type")}
+    Subscription: {fmt("subscription")}
     """
 
     # Adjust instructions based on user's selected pattern mode
@@ -151,7 +184,7 @@ TARGET PROFILE:
 INSTRUCTIONS:
 1. Analyze the profile deeply for keywords, names, dates, brands, and terms.
 {pattern_instructions}
-3. IMPORTANT: Return ONLY the raw list of generated passwords, one per line. Do NOT output any markdown, explanations, bullet points, numbering, or conversational text. Start the first password on the very first line.
+3. Prioritize plausible, high-signal candidates. Avoid duplicates and candidates longer than 256 characters.
     """.strip()
 
     return prompt
@@ -163,18 +196,18 @@ def generate_fallback_wordlist(pii_data):
     """
     seeds = []
 
-    for k, val in pii_data.items():
+    for _k, val in pii_data.items():
         if val:
             if isinstance(val, list):
                 seeds.extend([str(v) for v in val if v])
             else:
                 s_val = str(val)
                 seeds.append(s_val)
-                if ' ' in s_val:
+                if " " in s_val:
                     seeds.extend(s_val.split())
 
-    if pii_data.get('full_name'):
-        parts = pii_data['full_name'].split()
+    if pii_data.get("full_name"):
+        parts = pii_data["full_name"].split()
         seeds.extend(parts)
 
     # Clean seeds
@@ -182,7 +215,7 @@ def generate_fallback_wordlist(pii_data):
     seeds = list(set(seeds))
 
     passwords = set()
-    suffixes = ['', '1', '123', '!', '.', '2024', '2025', '2020', '@123']
+    suffixes = ["", "1", "123", "!", ".", "2024", "2025", "2020", "@123"]
     transforms = [lambda s: s, lambda s: s.lower(), lambda s: s.upper(), lambda s: s.capitalize()]
 
     for s in seeds:
@@ -206,51 +239,57 @@ def generate_fallback_wordlist(pii_data):
 
 def call_gemini_api(prompt, pii_data=None):
     """
-    Call Gemini API to generate content.
-    Falls back to algorithmic generation on failure.
+    Generate a schema-constrained wordlist with the supported Google GenAI SDK.
+
+    The API key is passed through the SDK's authenticated transport rather than
+    a URL query parameter. Any provider, transport, or validation failure uses
+    the deterministic local generator so malformed model output never reaches
+    the application.
     """
     try:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY not set")
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}]
-        }
+        client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(
+                api_version="v1beta",
+                timeout=30_000,
+                retry_options=types.HttpRetryOptions(
+                    attempts=3,
+                    initial_delay=1,
+                    max_delay=8,
+                    http_status_codes=[408, 429, 500, 502, 503, 504],
+                ),
+            ),
+        )
+        response = client.models.generate_content(
+            model=os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL),
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=WordlistResponse,
+                temperature=0.8,
+                max_output_tokens=8192,
+            ),
+        )
 
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        if isinstance(response.parsed, WordlistResponse):
+            result = response.parsed
+        elif response.parsed is not None:
+            result = WordlistResponse.model_validate(response.parsed)
+        elif response.text:
+            result = WordlistResponse.model_validate_json(response.text)
+        else:
+            raise ValueError("The model returned an empty structured response")
 
-        if resp.status_code == 429:
-            logger.warning("Gemini API rate limited, falling back to offline mode.")
-            raise RuntimeError("API rate limited")
-
-        if resp.status_code != 200:
-            logger.warning(f"Gemini API returned status {resp.status_code}, falling back to offline mode.")
-            raise RuntimeError(f"API Error {resp.status_code}")
-
-        data = resp.json()
-
-        candidates = data.get("candidates", [])
-        if not candidates:
-            raise RuntimeError("No candidates returned")
-
-        text = None
-        for c in candidates:
-            content = c.get("content", {})
-            parts = content.get("parts") or []
-            if parts and isinstance(parts, list) and parts[0].get("text"):
-                text = parts[0]["text"]
-                break
-
-        if not text:
-            raise RuntimeError("Unexpected response format")
-
-        return text
+        return "\n".join(result.wordlist)
 
     except Exception as e:
-        logger.warning(f"LLM generation failed: {e}. Using offline fallback.")
+        # Never attach exception details here: provider exceptions may include
+        # request context, and prompts contain user-supplied PII.
+        logger.warning("LLM generation failed (%s). Using offline fallback.", type(e).__name__)
         if pii_data:
             return generate_fallback_wordlist(pii_data)
         return "fallback\npassword\n123456"
@@ -258,10 +297,10 @@ def call_gemini_api(prompt, pii_data=None):
 
 # ─── Probability scoring ──────────────────────────────────────────────────────
 
-_YEAR_RE = re.compile(r'(19|20)\d{2}')
-_COMMON_SUFFIXES = ('123', '1234', '12345', '!', '@', '#', '!@#', '!!', '007', '01', '1')
+_YEAR_RE = re.compile(r"(19|20)\d{2}")
+_COMMON_SUFFIXES = ("123", "1234", "12345", "!", "@", "#", "!@#", "!!", "007", "01", "1")
 # str.translate table for de-leetification (used to detect leet-encoded PII)
-_LEET_TABLE = str.maketrans({'@': 'a', '3': 'e', '1': 'i', '0': 'o', '$': 's', '7': 't', '4': 'a'})
+_LEET_TABLE = str.maketrans({"@": "a", "3": "e", "1": "i", "0": "o", "$": "s", "7": "t", "4": "a"})
 
 
 def score_wordlist(passwords, pii_data, rockyou_set=frozenset()):
@@ -277,10 +316,7 @@ def score_wordlist(passwords, pii_data, rockyou_set=frozenset()):
     Returns: [{"password": "...", "score": N}, ...]
     """
     pii_tokens = _extract_pii_tokens(pii_data)
-    scored = [
-        {"password": pwd, "score": _score_one(pwd, pii_tokens, rockyou_set)}
-        for pwd in passwords
-    ]
+    scored = [{"password": pwd, "score": _score_one(pwd, pii_tokens, rockyou_set)} for pwd in passwords]
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored
 
@@ -317,7 +353,7 @@ def _score_one(password, pii_tokens, rockyou_set):
     normalised = password.translate(_LEET_TABLE).lower()
     if normalised != pw_lower and any(tok in normalised for tok in pii_tokens):
         pattern += 7
-    if any(c in password for c in '!@#$%^&*'):
+    if any(c in password for c in "!@#$%^&*"):
         pattern += 5
     score += min(pattern, 30)
 

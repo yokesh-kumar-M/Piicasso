@@ -20,6 +20,17 @@ _TIMEOUT = 10
 _CACHE_TTL = 86_400  # 24 hours
 
 
+def _hibp_digest(password: str) -> str:
+    """Return the SHA-1 digest mandated by HIBP's k-anonymity protocol.
+
+    This digest is never used for authentication or password storage. HIBP's
+    range API requires SHA-1, and only its first five characters leave the
+    process.
+    """
+    # codeql[py/weak-sensitive-data-hashing]
+    return hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()
+
+
 def k_anonymity_breach_count(password: str) -> int:
     """
     Return the number of times *password* appears in HIBP's Pwned Passwords
@@ -34,9 +45,7 @@ def k_anonymity_breach_count(password: str) -> int:
     if cached is not None:
         return cached
 
-    sha1 = hashlib.sha1(
-        password.encode("utf-8"), usedforsecurity=False
-    ).hexdigest().upper()
+    sha1 = _hibp_digest(password)
     prefix, suffix = sha1[:5], sha1[5:]
 
     try:
@@ -63,7 +72,7 @@ def k_anonymity_breach_count(password: str) -> int:
         return count
 
     except Exception as e:
-        logger.warning(f"HIBP k-anonymity lookup failed: {e}")
+        logger.warning("HIBP k-anonymity lookup failed (%s)", type(e).__name__)
         return -1
 
 
@@ -71,15 +80,14 @@ def k_anonymity_breach_count(password: str) -> int:
 
 
 def _cache_key(password: str) -> str:
-    sha1 = hashlib.sha1(
-        password.encode("utf-8"), usedforsecurity=False
-    ).hexdigest().upper()
+    sha1 = _hibp_digest(password)
     return f"hibp_breach:{sha1}"
 
 
 def _get_cached(password: str):
     try:
         from django.core.cache import cache
+
         return cache.get(_cache_key(password))
     except Exception:
         return None
@@ -88,6 +96,7 @@ def _get_cached(password: str):
 def _set_cached(password: str, count: int) -> None:
     try:
         from django.core.cache import cache
+
         cache.set(_cache_key(password), count, _CACHE_TTL)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("HIBP cache write failed (%s)", type(e).__name__)

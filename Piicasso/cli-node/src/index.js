@@ -73,10 +73,12 @@ function build() {
 
   // ─── API-backed ────────────────────────────────────────────────────────
   program
-    .command('submit <file>')
-    .description('upload a file to the backend for AI-backed PII analysis')
+    .command('submit')
+    .description('submit a structured PII profile for AI-backed wordlist generation')
+    .requiredOption('-p, --profile <key=value...>', 'profile pairs accepted by the backend')
+    .addOption(new Option('--pattern-mode <mode>', 'generation strategy').choices(['standard', 'corporate', 'leetspeak', 'deep']).default('standard'))
     .option('--json', 'emit raw JSON')
-    .action((file, opts) => require('./commands/submit').run({ file, ...opts }));
+    .action(opts => require('./commands/submit').run(opts));
 
   program
     .command('history')
@@ -92,10 +94,10 @@ function build() {
     .action((query, opts) => require('./commands/darkweb').run({ query, ...opts }));
 
   program
-    .command('risk <target>')
-    .description('compute a financial-risk score for the named target')
+    .command('risk')
+    .description('show the authenticated user financial-risk snapshot')
     .option('--json', 'emit raw JSON')
-    .action((target, opts) => require('./commands/risk').run({ target, ...opts }));
+    .action(opts => require('./commands/risk').run(opts));
 
   program
     .command('inbox')
@@ -137,9 +139,7 @@ function main(argv) {
   });
 }
 
-if (require.main === module || require.main === require('module')) {
-  main();
-} else {
+if (require.main === module) {
   main();
 }
 

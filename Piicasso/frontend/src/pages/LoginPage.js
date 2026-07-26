@@ -24,7 +24,7 @@ const LoginPage = () => {
     setLoading(true);
 
     // Simulate brief auth delay (matches original)
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, 800));
 
     const res = await login(username, password);
     setLoading(false);
@@ -42,7 +42,9 @@ const LoginPage = () => {
 
   return (
     <AuthShell>
-      <h1 className="h-display" style={{ fontSize: 36, marginBottom: 8 }}>Sign in</h1>
+      <h1 className="h-display" style={{ fontSize: 36, marginBottom: 8 }}>
+        Sign in
+      </h1>
       <p style={{ color: 'var(--fg-2)', marginBottom: 32, fontSize: 14 }}>
         New to PIIcasso?{' '}
         <Link to="/register" style={{ color: 'var(--accent-500)', textDecoration: 'underline' }}>
@@ -75,8 +77,8 @@ const LoginPage = () => {
             <Link
               to="/forgot-password"
               style={{ fontSize: 12, color: 'var(--fg-2)', textDecoration: 'none' }}
-              onMouseEnter={e => (e.target.style.color = 'var(--fg-0)')}
-              onMouseLeave={e => (e.target.style.color = 'var(--fg-2)')}
+              onMouseEnter={(e) => (e.target.style.color = 'var(--fg-0)')}
+              onMouseLeave={(e) => (e.target.style.color = 'var(--fg-2)')}
             >
               Forgot?
             </Link>
@@ -103,13 +105,19 @@ const LoginPage = () => {
           type="submit"
           disabled={loading}
           className="v3-btn v3-btn-accent"
-          style={{ marginTop: 8, padding: '13px 18px', justifyContent: 'center', width: '100%', opacity: loading ? 0.7 : 1 }}
+          style={{
+            marginTop: 8,
+            padding: '13px 18px',
+            justifyContent: 'center',
+            width: '100%',
+            opacity: loading ? 0.7 : 1,
+          }}
         >
           {loading
             ? 'Signing in…'
             : mode === 'security'
-            ? 'Continue to Mission Control →'
-            : 'Continue to your dashboard →'}
+              ? 'Continue to Mission Control →'
+              : 'Continue to your dashboard →'}
         </button>
       </form>
 
@@ -127,11 +135,11 @@ const LoginPage = () => {
           className="eyebrow"
           style={{ marginBottom: 8, color: 'var(--fg-3)', fontSize: 10, letterSpacing: '0.1em' }}
         >
-          You're signing in as
+          You&apos;re signing in as
         </div>
         <ModePill mode={mode} onChange={switchMode} />
         <p style={{ fontSize: 12, color: 'var(--fg-3)', marginTop: 8, lineHeight: 1.5 }}>
-          The mode determines which dashboard you'll land in. You can switch any time.
+          The mode determines which dashboard you&apos;ll land in. You can switch any time.
         </p>
       </div>
     </AuthShell>

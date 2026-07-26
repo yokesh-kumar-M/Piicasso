@@ -11,17 +11,17 @@ export default function MobileTabBar({ activeKey }) {
   const { mode } = useContext(ModeContext);
 
   const securityTabs = [
-    { key: 'mission',   label: 'MISSIONS',  icon: '◈', path: '/security/dashboard' },
+    { key: 'mission', label: 'MISSIONS', icon: '◈', path: '/security/dashboard' },
     { key: 'wordlists', label: 'WORDLISTS', icon: '≡', path: '/workspace' },
-    { key: 'intel',     label: 'INTEL',     icon: '◉', path: '/darkweb' },
-    { key: 'targets',   label: 'TARGETS',   icon: '◎', path: '/operation' },
+    { key: 'intel', label: 'INTEL', icon: '◉', path: '/darkweb' },
+    { key: 'targets', label: 'TARGETS', icon: '◎', path: '/operation' },
   ];
 
   const userTabs = [
-    { key: 'overview',   label: 'HOME',      icon: '◈', path: '/user/dashboard' },
-    { key: 'passwords',  label: 'PASSWORDS', icon: '≡', path: '/user/history' },
-    { key: 'leaks',      label: 'LEAKS',     icon: '◉', path: '/darkweb' },
-    { key: 'learn',      label: 'LEARN',     icon: '☉', path: '/user/learn' },
+    { key: 'overview', label: 'HOME', icon: '◈', path: '/user/dashboard' },
+    { key: 'passwords', label: 'PASSWORDS', icon: '≡', path: '/user/history' },
+    { key: 'leaks', label: 'LEAKS', icon: '◉', path: '/darkweb' },
+    { key: 'learn', label: 'LEARN', icon: '☉', path: '/user/learn' },
   ];
 
   const tabs = mode === 'security' ? securityTabs : userTabs;
@@ -75,19 +75,23 @@ export default function MobileTabBar({ activeKey }) {
                 transition: 'color 0.12s',
               }}
             >
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 16,
-                lineHeight: 1,
-              }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 16,
+                  lineHeight: 1,
+                }}
+              >
                 {icon}
               </span>
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 8,
-                letterSpacing: '0.08em',
-                fontWeight: isActive ? 700 : 400,
-              }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 8,
+                  letterSpacing: '0.08em',
+                  fontWeight: isActive ? 700 : 400,
+                }}
+              >
                 {label}
               </span>
             </button>

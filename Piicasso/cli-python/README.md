@@ -41,10 +41,10 @@ piicasso wordgen --profile name=John --profile dob=1998 --limit 40
 ```bash
 piicasso login                              # prompts for email + password
 piicasso whoami
-piicasso submit ./report.txt
+piicasso submit --profile full_name="Ada Lovelace" --profile birth_year=1815
 piicasso history --limit 20
 piicasso darkweb "john@example.com"
-piicasso risk    "Acme Corp"
+piicasso risk
 piicasso inbox
 piicasso logout
 ```
@@ -79,6 +79,11 @@ Switch with `piicasso mode user|security` or inside the REPL with
 
 All four are pure-Python, deterministic, and require no network.
 
+`submit` accepts the backend's structured PII fields as repeatable
+`--profile key=value` options. Use `--pattern-mode` to select `standard`,
+`corporate`, `leetspeak`, or `deep`; arbitrary text files are intentionally
+not uploaded as PII profiles.
+
 ## Build & publish (maintainers)
 
 ```bash
@@ -90,4 +95,4 @@ twine upload dist/*          # to PyPI
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Apache-2.0 — see [LICENSE](LICENSE).

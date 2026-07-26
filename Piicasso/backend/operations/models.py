@@ -1,47 +1,49 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
+
 class SystemLog(models.Model):
     LEVEL_CHOICES = [
-        ('INFO', 'Info'),
-        ('WARNING', 'Warning'),
-        ('ERROR', 'Error'),
-        ('CRITICAL', 'Critical'),
-        ('SUCCESS', 'Success'),
+        ("INFO", "Info"),
+        ("WARNING", "Warning"),
+        ("ERROR", "Error"),
+        ("CRITICAL", "Critical"),
+        ("SUCCESS", "Success"),
     ]
 
     timestamp = models.DateTimeField(auto_now_add=True)
-    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='INFO')
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="INFO")
     message = models.TextField()
-    source = models.CharField(max_length=50, default='SYSTEM')
+    source = models.CharField(max_length=50, default="SYSTEM")
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=['timestamp']),
-            models.Index(fields=['level']),
-            models.Index(fields=['source']),
+            models.Index(fields=["timestamp"]),
+            models.Index(fields=["level"]),
+            models.Index(fields=["source"]),
         ]
 
     def __str__(self):
         return f"[{self.timestamp}] {self.level}: {self.message}"
 
+
 class Message(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages")
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-    
+
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=['timestamp']),
-            models.Index(fields=['recipient', 'is_read']),
-            models.Index(fields=['sender']),
-            models.Index(fields=['sender', 'recipient']),  # 2.4 fix: composite index for conversation queries
+            models.Index(fields=["timestamp"]),
+            models.Index(fields=["recipient", "is_read"]),
+            models.Index(fields=["sender"]),
+            models.Index(fields=["sender", "recipient"]),  # 2.4 fix: composite index for conversation queries
         ]
 
     def __str__(self):
@@ -50,28 +52,29 @@ class Message(models.Model):
 
 class Notification(models.Model):
     """Real-time notifications for users."""
+
     NOTIFICATION_TYPES = [
-        ('GENERATION', 'Wordlist Generated'),
-        ('TEAM', 'Team Activity'),
-        ('MESSAGE', 'New Message'),
-        ('SYSTEM', 'System Alert'),
-        ('SECURITY', 'Security Alert'),
-        ('ADMIN', 'Admin Action'),
+        ("GENERATION", "Wordlist Generated"),
+        ("TEAM", "Team Activity"),
+        ("MESSAGE", "New Message"),
+        ("SYSTEM", "System Alert"),
+        ("SECURITY", "Security Alert"),
+        ("ADMIN", "Admin Action"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='SYSTEM')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default="SYSTEM")
     title = models.CharField(max_length=200)
-    description = models.TextField(blank=True, default='')
+    description = models.TextField(blank=True, default="")
     is_read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
-    link = models.CharField(max_length=255, blank=True, default='')  # Frontend route to navigate to
+    link = models.CharField(max_length=255, blank=True, default="")  # Frontend route to navigate to
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=['user', 'is_read']),
-            models.Index(fields=['timestamp']),
+            models.Index(fields=["user", "is_read"]),
+            models.Index(fields=["timestamp"]),
         ]
 
     def __str__(self):
@@ -80,20 +83,21 @@ class Notification(models.Model):
 
 class SystemSetting(models.Model):
     """Key-value configuration store for admin-toggleable settings."""
+
     key = models.CharField(max_length=100, unique=True, db_index=True)
-    value = models.TextField(default='')
-    description = models.TextField(blank=True, default='')
+    value = models.TextField(default="")
+    description = models.TextField(blank=True, default="")
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
-        ordering = ['key']
+        ordering = ["key"]
 
     def __str__(self):
         return f"{self.key} = {self.value}"
 
     @classmethod
-    def get(cls, key, default=''):
+    def get(cls, key, default=""):
         """Get a setting value by key."""
         try:
             return cls.objects.get(key=key).value
@@ -104,10 +108,9 @@ class SystemSetting(models.Model):
             raise
 
     @classmethod
-    def set(cls, key, value, user=None, description=''):
+    def set(cls, key, value, user=None, description=""):
         """Set a setting value."""
-        obj, created = cls.objects.update_or_create(
-            key=key,
-            defaults={'value': str(value), 'updated_by': user, 'description': description}
+        obj, _created = cls.objects.update_or_create(
+            key=key, defaults={"value": str(value), "updated_by": user, "description": description}
         )
         return obj

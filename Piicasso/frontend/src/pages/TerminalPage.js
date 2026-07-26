@@ -20,41 +20,46 @@ const TerminalPage = () => {
   const accentBorder = isSecurity ? 'border-red-500/30' : 'border-cyan-500/30';
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-transparent">
+    <div className="flex min-h-screen w-full flex-col bg-transparent">
       {/* Top strip */}
-      <header className={`pt-24 md:pt-28 px-4 md:px-10 lg:px-16 pb-4 border-b ${accentBorder} transition-colors duration-300`}>
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+      <header
+        className={`border-b px-4 pb-4 pt-24 md:px-10 md:pt-28 lg:px-16 ${accentBorder} transition-colors duration-300`}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <TerminalSquare className={`w-6 h-6 transition-colors duration-300 ${accent}`} />
+            <TerminalSquare className={`h-6 w-6 transition-colors duration-300 ${accent}`} />
             <div>
-              <h1 className="text-lg md:text-xl font-bold tracking-widest uppercase text-white font-mono">
+              <h1 className="font-mono text-lg font-bold uppercase tracking-widest text-white md:text-xl">
                 PIIcasso Terminal
               </h1>
-              <p className="text-[10px] md:text-xs font-mono uppercase tracking-widest text-gray-500 mt-0.5">
-                Interactive shell // mode: <span className={`transition-colors duration-300 ${accent}`}>{mode}</span>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-gray-500 md:text-xs">
+                Interactive shell // mode:{' '}
+                <span className={`transition-colors duration-300 ${accent}`}>{mode}</span>
               </p>
             </div>
           </div>
 
           <Link
             to="/"
-            className={`flex items-center gap-2 text-xs md:text-sm font-mono uppercase tracking-widest text-gray-400 hover:text-white transition-colors duration-300`}
+            className={`flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-gray-400 transition-colors duration-300 hover:text-white md:text-sm`}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">back to home</span>
           </Link>
         </div>
       </header>
 
       {/* Terminal pane */}
-      <main className="flex-1 w-full px-4 md:px-10 lg:px-16 py-6 md:py-8">
-        <div className="max-w-6xl mx-auto h-[70vh] md:h-[72vh]">
+      <main className="w-full flex-1 px-4 py-6 md:px-10 md:py-8 lg:px-16">
+        <div className="mx-auto h-[70vh] max-w-6xl md:h-[72vh]">
           <Terminal />
         </div>
 
         {/* Hint strip */}
-        <div className="max-w-6xl mx-auto mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] md:text-xs font-mono uppercase tracking-widest text-gray-500">
-          <span>tip: type <span className={accent}>help</span> for commands</span>
+        <div className="mx-auto mt-4 flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[10px] uppercase tracking-widest text-gray-500 md:text-xs">
+          <span>
+            tip: type <span className={accent}>help</span> for commands
+          </span>
           <span className="hidden sm:inline">↑ / ↓ command history</span>
           <span className="hidden md:inline">tab autocomplete</span>
           <span className="hidden md:inline">switch user · switch security to flip mode</span>

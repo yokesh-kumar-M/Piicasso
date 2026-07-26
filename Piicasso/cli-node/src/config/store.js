@@ -38,10 +38,17 @@ function read() {
   }
 }
 
-/** Persist `obj` to disk (atomic-ish: write then rename is overkill for a CLI). */
+/** Persist `obj` atomically so an interrupted token rotation cannot corrupt auth. */
 function write(obj) {
   ensureDir();
-  fs.writeFileSync(configPath(), JSON.stringify(obj, null, 2), { mode: 0o600 });
+  const target = configPath();
+  const temporary = `${target}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(obj, null, 2), { mode: 0o600 });
+    fs.renameSync(temporary, target);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+  }
 }
 
 /** Merge `patch` into the stored config. */

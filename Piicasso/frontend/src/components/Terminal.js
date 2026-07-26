@@ -46,16 +46,16 @@ const ABOUT_TEXT = [
 ];
 
 const HELP_LINES = [
-  { cmd: 'help',                desc: 'show this help text' },
-  { cmd: 'clear',               desc: 'wipe the terminal history' },
-  { cmd: 'mode',                desc: 'print the current app mode' },
+  { cmd: 'help', desc: 'show this help text' },
+  { cmd: 'clear', desc: 'wipe the terminal history' },
+  { cmd: 'mode', desc: 'print the current app mode' },
   { cmd: 'switch <user|security>', desc: 'change the global app mode' },
-  { cmd: 'whoami',              desc: 'show the authenticated user' },
-  { cmd: 'routes',              desc: 'list known app routes' },
-  { cmd: 'goto <path>',         desc: 'navigate to a route via react-router' },
-  { cmd: 'echo <text>',         desc: 'echo back the given text' },
-  { cmd: 'about',               desc: 'short blurb about PIIcasso' },
-  { cmd: 'exit',                desc: 'leave the terminal (returns to /)' },
+  { cmd: 'whoami', desc: 'show the authenticated user' },
+  { cmd: 'routes', desc: 'list known app routes' },
+  { cmd: 'goto <path>', desc: 'navigate to a route via react-router' },
+  { cmd: 'echo <text>', desc: 'echo back the given text' },
+  { cmd: 'about', desc: 'short blurb about PIIcasso' },
+  { cmd: 'exit', desc: 'leave the terminal (returns to /)' },
 ];
 
 const Terminal = () => {
@@ -94,10 +94,13 @@ const Terminal = () => {
     const banner = [
       { kind: 'banner', text: '╔══════════════════════════════════════════════════════════╗' },
       { kind: 'banner', text: '║              PIIcasso Interactive Terminal               ║' },
-      { kind: 'banner', text: `║                Mode: ${(m || 'user').toUpperCase().padEnd(8)}                          ║` },
+      {
+        kind: 'banner',
+        text: `║                Mode: ${(m || 'user').toUpperCase().padEnd(8)}                          ║`,
+      },
       { kind: 'banner', text: '╚══════════════════════════════════════════════════════════╝' },
-      { kind: 'dim',    text: "Type 'help' to list available commands." },
-      { kind: 'dim',    text: '' },
+      { kind: 'dim', text: "Type 'help' to list available commands." },
+      { kind: 'dim', text: '' },
     ];
     return banner;
   }, []);
@@ -126,165 +129,136 @@ const Terminal = () => {
   const lastModeRef = useRef(mode);
   useEffect(() => {
     if (lastModeRef.current !== mode) {
-      setHistory(prev => [
-        ...prev,
-        { kind: 'ok', text: `[mode] active mode is now '${mode}'` },
-      ]);
+      setHistory((prev) => [...prev, { kind: 'ok', text: `[mode] active mode is now '${mode}'` }]);
       lastModeRef.current = mode;
     }
   }, [mode]);
 
   const append = useCallback((lines) => {
-    setHistory(prev => [...prev, ...lines]);
+    setHistory((prev) => [...prev, ...lines]);
   }, []);
 
-  const handleCommand = useCallback((raw) => {
-    const trimmed = raw.trim();
-    // Always echo the command (with the prompt prefix) into history.
-    const promptEcho = {
-      kind: 'cmd',
-      text: `${isSecurity ? 'sec@piicasso:~#' : 'user@piicasso:~$'} ${trimmed}`,
-    };
+  const handleCommand = useCallback(
+    (raw) => {
+      const trimmed = raw.trim();
+      // Always echo the command (with the prompt prefix) into history.
+      const promptEcho = {
+        kind: 'cmd',
+        text: `${isSecurity ? 'sec@piicasso:~#' : 'user@piicasso:~$'} ${trimmed}`,
+      };
 
-    if (!trimmed) {
-      append([promptEcho]);
-      return;
-    }
-
-    const [cmd, ...rest] = trimmed.split(/\s+/);
-    const arg = rest.join(' ');
-
-    switch (cmd.toLowerCase()) {
-      case 'help': {
-        const lines = [
-          promptEcho,
-          { kind: 'out', text: 'Available commands:' },
-          ...HELP_LINES.map(h => ({
-            kind: 'out',
-            text: `  ${h.cmd.padEnd(28)} ${h.desc}`,
-          })),
-          { kind: 'dim', text: '' },
-        ];
-        append(lines);
+      if (!trimmed) {
+        append([promptEcho]);
         return;
       }
-      case 'clear': {
-        setHistory(buildBanner(mode));
-        return;
-      }
-      case 'mode': {
-        append([
-          promptEcho,
-          { kind: 'ok', text: `current mode: ${mode}` },
-        ]);
-        return;
-      }
-      case 'switch': {
-        const target = (arg || '').toLowerCase();
-        if (target !== 'user' && target !== 'security') {
+
+      const [cmd, ...rest] = trimmed.split(/\s+/);
+      const arg = rest.join(' ');
+
+      switch (cmd.toLowerCase()) {
+        case 'help': {
+          const lines = [
+            promptEcho,
+            { kind: 'out', text: 'Available commands:' },
+            ...HELP_LINES.map((h) => ({
+              kind: 'out',
+              text: `  ${h.cmd.padEnd(28)} ${h.desc}`,
+            })),
+            { kind: 'dim', text: '' },
+          ];
+          append(lines);
+          return;
+        }
+        case 'clear': {
+          setHistory(buildBanner(mode));
+          return;
+        }
+        case 'mode': {
+          append([promptEcho, { kind: 'ok', text: `current mode: ${mode}` }]);
+          return;
+        }
+        case 'switch': {
+          const target = (arg || '').toLowerCase();
+          if (target !== 'user' && target !== 'security') {
+            append([promptEcho, { kind: 'err', text: 'usage: switch <user|security>' }]);
+            return;
+          }
+          if (target === mode) {
+            append([promptEcho, { kind: 'dim', text: `already in '${target}' mode` }]);
+            return;
+          }
+          append([promptEcho, { kind: 'ok', text: `switching mode -> ${target}` }]);
+          // Fire-and-forget. ModeContext is sync for the local state update.
+          try {
+            switchMode(target);
+          } catch (_) {
+            /* noop */
+          }
+          return;
+        }
+        case 'whoami': {
+          if (isAuthenticated && user) {
+            const id = user.email || user.username || 'authenticated';
+            const role = user.is_superuser ? 'superuser' : 'standard';
+            append([
+              promptEcho,
+              { kind: 'out', text: `user: ${id}` },
+              { kind: 'out', text: `role: ${role}` },
+            ]);
+          } else {
+            append([promptEcho, { kind: 'dim', text: 'guest (not authenticated)' }]);
+          }
+          return;
+        }
+        case 'routes': {
           append([
             promptEcho,
-            { kind: 'err', text: "usage: switch <user|security>" },
+            { kind: 'out', text: 'registered application routes:' },
+            ...APP_ROUTES.map((r) => ({
+              kind: 'out',
+              text: `  ${r.path.padEnd(22)} ${r.label}`,
+            })),
           ]);
           return;
         }
-        if (target === mode) {
-          append([
-            promptEcho,
-            { kind: 'dim', text: `already in '${target}' mode` },
-          ]);
+        case 'goto': {
+          if (!arg) {
+            append([promptEcho, { kind: 'err', text: 'usage: goto <path>' }]);
+            return;
+          }
+          const path = arg.startsWith('/') ? arg : `/${arg}`;
+          append([promptEcho, { kind: 'ok', text: `navigating -> ${path}` }]);
+          // Slight defer so the user sees the line before route change.
+          setTimeout(() => navigate(path), 80);
           return;
         }
-        append([
-          promptEcho,
-          { kind: 'ok', text: `switching mode -> ${target}` },
-        ]);
-        // Fire-and-forget. ModeContext is sync for the local state update.
-        try { switchMode(target); } catch (_) { /* noop */ }
-        return;
-      }
-      case 'whoami': {
-        if (isAuthenticated && user) {
-          const id = user.email || user.username || 'authenticated';
-          const role = user.is_superuser ? 'superuser' : 'standard';
-          append([
-            promptEcho,
-            { kind: 'out', text: `user: ${id}` },
-            { kind: 'out', text: `role: ${role}` },
-          ]);
-        } else {
-          append([
-            promptEcho,
-            { kind: 'dim', text: 'guest (not authenticated)' },
-          ]);
-        }
-        return;
-      }
-      case 'routes': {
-        append([
-          promptEcho,
-          { kind: 'out', text: 'registered application routes:' },
-          ...APP_ROUTES.map(r => ({
-            kind: 'out',
-            text: `  ${r.path.padEnd(22)} ${r.label}`,
-          })),
-        ]);
-        return;
-      }
-      case 'goto': {
-        if (!arg) {
-          append([
-            promptEcho,
-            { kind: 'err', text: 'usage: goto <path>' },
-          ]);
+        case 'echo': {
+          append([promptEcho, { kind: 'out', text: arg }]);
           return;
         }
-        const path = arg.startsWith('/') ? arg : `/${arg}`;
-        append([
-          promptEcho,
-          { kind: 'ok', text: `navigating -> ${path}` },
-        ]);
-        // Slight defer so the user sees the line before route change.
-        setTimeout(() => navigate(path), 80);
-        return;
+        case 'about': {
+          append([promptEcho, ...ABOUT_TEXT.map((t) => ({ kind: 'out', text: t }))]);
+          return;
+        }
+        case 'exit': {
+          append([promptEcho, { kind: 'ok', text: 'goodbye.' }]);
+          setTimeout(() => navigate('/'), 120);
+          return;
+        }
+        default: {
+          append([promptEcho, { kind: 'err', text: `command not found: ${cmd}` }]);
+        }
       }
-      case 'echo': {
-        append([
-          promptEcho,
-          { kind: 'out', text: arg },
-        ]);
-        return;
-      }
-      case 'about': {
-        append([
-          promptEcho,
-          ...ABOUT_TEXT.map(t => ({ kind: 'out', text: t })),
-        ]);
-        return;
-      }
-      case 'exit': {
-        append([
-          promptEcho,
-          { kind: 'ok', text: 'goodbye.' },
-        ]);
-        setTimeout(() => navigate('/'), 120);
-        return;
-      }
-      default: {
-        append([
-          promptEcho,
-          { kind: 'err', text: `command not found: ${cmd}` },
-        ]);
-      }
-    }
-  }, [append, buildBanner, isAuthenticated, isSecurity, mode, navigate, switchMode, user]);
+    },
+    [append, buildBanner, isAuthenticated, isSecurity, mode, navigate, switchMode, user],
+  );
 
   const onKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const value = input;
       if (value.trim()) {
-        setCmdLog(prev => [...prev, value.trim()]);
+        setCmdLog((prev) => [...prev, value.trim()]);
       }
       setLogIdx(-1);
       handleCommand(value);
@@ -316,9 +290,9 @@ const Terminal = () => {
       e.preventDefault();
       const stub = input.trim().toLowerCase();
       if (!stub) return;
-      const candidates = HELP_LINES
-        .map(h => h.cmd.split(' ')[0])
-        .filter(c => c.startsWith(stub));
+      const candidates = HELP_LINES.map((h) => h.cmd.split(' ')[0]).filter((c) =>
+        c.startsWith(stub),
+      );
       if (candidates.length === 1) {
         setInput(candidates[0] + ' ');
       } else if (candidates.length > 1) {
@@ -330,41 +304,54 @@ const Terminal = () => {
   // Map a history line kind to a Tailwind class. Errors are always red.
   const lineClass = (kind) => {
     switch (kind) {
-      case 'banner': return theme.bannerLine;
-      case 'cmd':    return 'text-gray-200';
-      case 'err':    return 'text-red-500';
-      case 'ok':     return theme.accent;
-      case 'dim':    return 'text-gray-500';
+      case 'banner':
+        return theme.bannerLine;
+      case 'cmd':
+        return 'text-gray-200';
+      case 'err':
+        return 'text-red-500';
+      case 'ok':
+        return theme.accent;
+      case 'dim':
+        return 'text-gray-500';
       case 'out':
-      default:       return 'text-gray-300';
+      default:
+        return 'text-gray-300';
     }
   };
 
   return (
+    // Click-anywhere-in-panel focuses the real (keyboard-operable) input
+    // below, so this isn't itself a discrete interactive control.
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       onClick={() => inputRef.current?.focus()}
-      className={`relative w-full h-full rounded-xl border ${theme.ring} ${theme.glow} bg-black/95 transition-colors duration-300 overflow-hidden`}
+      className={`relative h-full w-full rounded-xl border ${theme.ring} ${theme.glow} overflow-hidden bg-black/95 transition-colors duration-300`}
     >
       {/* Title bar */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-white/10 bg-black/80">
-        <span className="w-3 h-3 rounded-full bg-red-500/70" />
-        <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
-        <span className="w-3 h-3 rounded-full bg-green-500/70" />
-        <span className={`ml-3 text-xs font-mono uppercase tracking-widest transition-colors duration-300 ${theme.accent}`}>
+      <div className="flex items-center gap-2 border-b border-white/10 bg-black/80 px-4 py-2">
+        <span className="h-3 w-3 rounded-full bg-red-500/70" />
+        <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
+        <span className="h-3 w-3 rounded-full bg-green-500/70" />
+        <span
+          className={`ml-3 font-mono text-xs uppercase tracking-widest transition-colors duration-300 ${theme.accent}`}
+        >
           piicasso // {isSecurity ? 'security shell' : 'user shell'}
         </span>
-        <span className="ml-auto text-[10px] font-mono text-gray-500 hidden sm:inline">
+        <span className="ml-auto hidden font-mono text-[10px] text-gray-500 sm:inline">
           {APP_ROUTES.length} routes indexed
         </span>
       </div>
 
       {/* Decorative scan line */}
-      <div className={`pointer-events-none absolute left-0 right-0 top-10 h-px bg-gradient-to-r ${theme.scanLine}`} />
+      <div
+        className={`pointer-events-none absolute left-0 right-0 top-10 h-px bg-gradient-to-r ${theme.scanLine}`}
+      />
 
       {/* Scrollable history */}
       <div
         ref={scrollerRef}
-        className="px-4 py-4 font-mono text-sm leading-relaxed overflow-y-auto custom-scrollbar"
+        className="custom-scrollbar overflow-y-auto px-4 py-4 font-mono text-sm leading-relaxed"
         style={{ height: 'calc(100% - 88px)' }}
       >
         {history.map((line, i) => (
@@ -378,9 +365,7 @@ const Terminal = () => {
       </div>
 
       {/* Prompt input — Enter is handled by the input's onKeyDown so no form submit needed */}
-      <div
-        className="absolute left-0 right-0 bottom-0 px-4 py-3 border-t border-white/10 bg-black/90 flex items-center gap-2 font-mono text-sm"
-      >
+      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 border-t border-white/10 bg-black/90 px-4 py-3 font-mono text-sm">
         <span className={`shrink-0 transition-colors duration-300 ${theme.promptText}`}>
           {theme.prompt}
         </span>
@@ -394,14 +379,14 @@ const Terminal = () => {
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
-            className={`w-full bg-transparent outline-none border-none caret-transparent text-gray-100 placeholder:text-gray-600 transition-colors duration-300`}
+            className={`w-full border-none bg-transparent text-gray-100 caret-transparent outline-none transition-colors duration-300 placeholder:text-gray-600`}
             placeholder="type a command — try 'help'"
             aria-label="terminal input"
           />
           {/* Animated cursor — sits after the typed value */}
           <span
             aria-hidden
-            className={`absolute top-1/2 -translate-y-1/2 inline-block w-2 h-4 ${theme.caret} animate-pulse transition-colors duration-300`}
+            className={`absolute top-1/2 inline-block h-4 w-2 -translate-y-1/2 ${theme.caret} animate-pulse transition-colors duration-300`}
             style={{ left: `${Math.min(input.length, 80) * 0.55}rem` }}
           />
         </div>

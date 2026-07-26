@@ -1,0 +1,69 @@
+# Pre-commit hooks for PIIcasso.
+#
+# Install:  pip install pre-commit && pre-commit install
+# Run all:  pre-commit run --all-files
+#
+# Python and JS/TS hooks are scoped to their subdirectories with `files:`
+# regexes since backend and frontend live under Piicasso/. The ESLint,
+# Prettier, and mypy hooks invoke the project's own pinned tool versions via
+# npm scripts and the cross-platform backend venv helper rather than separate
+# pre-commit-managed mirrors, so local runs cannot drift from CI.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+        exclude: '\.(bat|cmd)$'
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      - id: ruff-check
+        files: ^Piicasso/backend/
+        args: ['--fix']
+      - id: ruff-format
+        files: ^Piicasso/backend/
+
+  - repo: local
+    hooks:
+      - id: backend-mypy
+        name: mypy (backend seed-strict modules)
+        description: >
+          Scoped to the modules already brought to mypy strictness (see
+          pyproject.toml [[tool.mypy.overrides]]). The rest of the backend
+          has pre-existing type errors not yet triaged — see
+          UPGRADE_PLAN.md Phase 1.
+        entry: python scripts/run_backend_tool.py mypy wordgen/utils.py wordgen/throttles.py wordgen/llm_handler.py generator/fields.py backend/settings.py
+        language: system
+        files: ^Piicasso/backend/(wordgen/(utils|throttles|llm_handler)|generator/fields|backend/settings)\.py$
+        pass_filenames: false
+
+      - id: frontend-eslint
+        name: ESLint (frontend)
+        entry: npm --prefix Piicasso/frontend run lint
+        language: system
+        files: ^Piicasso/frontend/src/.*\.(js|jsx|ts|tsx)$
+        pass_filenames: false
+
+      - id: frontend-prettier
+        name: Prettier check (frontend)
+        entry: npm --prefix Piicasso/frontend run format:check
+        language: system
+        files: ^Piicasso/frontend/(src/|eslint\.config\.js|vite\.config\.js)
+        pass_filenames: false

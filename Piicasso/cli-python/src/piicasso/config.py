@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import stat
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -52,18 +53,30 @@ def load_config() -> Dict[str, Any]:
 
 
 def save_config(data: Dict[str, Any]) -> None:
-    """Atomically write the config back to disk."""
+    """Atomically write the complete config back to disk."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    tmp = CONFIG_FILE.with_suffix(".tmp")
-    with tmp.open("w", encoding="utf-8") as fh:
-        json.dump(data, fh, indent=2, sort_keys=True)
-    os.replace(tmp, CONFIG_FILE)
-    # Best-effort tighten perms on POSIX. Windows has no concept of 0600.
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".{CONFIG_FILE.name}.",
+        suffix=".tmp",
+        dir=CONFIG_DIR,
+    )
+    tmp = Path(tmp_name)
     try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(data, fh, indent=2, sort_keys=True)
+            fh.flush()
+            os.fsync(fh.fileno())
+
+        # Tighten permissions before publishing the file so JWTs are never
+        # briefly exposed with the process umask's default permissions.
         if os.name == "posix":
-            os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)
-    except OSError:  # pragma: no cover - permission tightening is opportunistic
-        pass
+            os.chmod(tmp, stat.S_IRUSR | stat.S_IWUSR)
+        os.replace(tmp, CONFIG_FILE)
+    finally:
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:  # pragma: no cover - best-effort cleanup
+            pass
 
 
 def get_api_base() -> str:
@@ -94,11 +107,15 @@ def set_mode(mode: str) -> None:
 
 
 def set_tokens(access: str, refresh: str, email: Optional[str] = None) -> None:
+    """Persist an access/refresh pair together in one atomic config update."""
     data = load_config()
     data["access"] = access
     data["refresh"] = refresh
-    if email:
-        data["email"] = email
+    if email is not None:
+        if email:
+            data["email"] = email
+        else:
+            data.pop("email", None)
     save_config(data)
 
 

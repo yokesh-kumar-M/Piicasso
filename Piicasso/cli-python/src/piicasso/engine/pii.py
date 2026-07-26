@@ -11,7 +11,6 @@ import math
 import re
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
-
 # ---------------------------------------------------------------------------
 # Regex patterns — order matters: earlier wins on overlap.
 # Flags mirror the JS originals; ``re.IGNORECASE`` is set where the JS source
@@ -46,9 +45,7 @@ PII_PATTERNS: List[Dict[str, Any]] = [
     {
         "type": "DOB",
         "label": "dob",
-        "re": re.compile(
-            r"\b(?:0?[1-9]|1[0-2])[/-](?:0?[1-9]|[12]\d|3[01])[/-](?:19|20)\d{2}\b"
-        ),
+        "re": re.compile(r"\b(?:0?[1-9]|1[0-2])[/-](?:0?[1-9]|[12]\d|3[01])[/-](?:19|20)\d{2}\b"),
         "weight": 0.22,
     },
     {
@@ -132,9 +129,9 @@ def detect_entities(text: str) -> List[Dict[str, Any]]:
 def redact_text(text: str, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Split ``text`` into a list of segments::
 
-        [{"kind": "text", "text": "Hello "},
-         {"kind": "redact", "text": "j@x.com", "label": "email", "type": "EMAIL"},
-         ...]
+    [{"kind": "text", "text": "Hello "},
+     {"kind": "redact", "text": "j@x.com", "label": "email", "type": "EMAIL"},
+     ...]
     """
     if not entities:
         return [{"kind": "text", "text": text}]
@@ -192,18 +189,14 @@ _COMMON_TOKENS: Tuple[str, ...] = (
     "summer",
 )
 
-_SEQUENTIAL_RE = re.compile(
-    r"0123|1234|2345|3456|4567|5678|6789|abcd|qwer|asdf", re.IGNORECASE
-)
+_SEQUENTIAL_RE = re.compile(r"0123|1234|2345|3456|4567|5678|6789|abcd|qwer|asdf", re.IGNORECASE)
 _REPEAT_RE = re.compile(r"(.)\1{2,}")
 _YEAR_SUFFIX_RE = re.compile(r"(19|20)\d{2}$")
 _NON_ALNUM_RE = re.compile(r"[^a-z0-9]")
 _NON_ALNUM_MIXED_RE = re.compile(r"[^a-zA-Z0-9]")
 
 
-def score_password(
-    pw: str, profile: Optional[Mapping[str, Any]] = None
-) -> Dict[str, Any]:
+def score_password(pw: str, profile: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     """Score a password against an optional profile.
 
     Returns::
@@ -380,13 +373,7 @@ def generate_wordlist(profile: Mapping[str, Any], limit: int = 40) -> List[str]:
             _add(base + s)
             _add(base.lower() + s)
         # Cheap leetspeak.
-        leet = (
-            base.lower()
-            .replace("a", "@")
-            .replace("e", "3")
-            .replace("i", "1")
-            .replace("o", "0")
-        )
+        leet = base.lower().replace("a", "@").replace("e", "3").replace("i", "1").replace("o", "0")
         _add(leet)
 
     if len(tokens) >= 2:

@@ -5,12 +5,12 @@ import { scorePassword } from '../lib/piiEngine.js';
 import axiosInstance from '../api/axios.js';
 
 const PII_FIELDS = [
-  { name: 'full_name',    label: 'Full Name',       placeholder: 'ex: Alex Johnson' },
-  { name: 'dob',          label: 'Birth Year',      placeholder: 'ex: 1990' },
-  { name: 'username',     label: 'Username',        placeholder: 'ex: alexj99' },
-  { name: 'pet_names',    label: 'Pet Name',        placeholder: 'ex: Rex' },
-  { name: 'spouse_name',  label: 'Partner / Spouse',placeholder: 'ex: Jamie' },
-  { name: 'current_city', label: 'City',            placeholder: 'ex: Chennai' },
+  { name: 'full_name', label: 'Full Name', placeholder: 'ex: Alex Johnson' },
+  { name: 'dob', label: 'Birth Year', placeholder: 'ex: 1990' },
+  { name: 'username', label: 'Username', placeholder: 'ex: alexj99' },
+  { name: 'pet_names', label: 'Pet Name', placeholder: 'ex: Rex' },
+  { name: 'spouse_name', label: 'Partner / Spouse', placeholder: 'ex: Jamie' },
+  { name: 'current_city', label: 'City', placeholder: 'ex: Chennai' },
 ];
 
 const StatCard = ({ label, value, hint }) => (
@@ -22,7 +22,9 @@ const StatCard = ({ label, value, hint }) => (
       {value}
     </div>
     {hint && (
-      <div style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
+      <div
+        style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', marginTop: 4 }}
+      >
         {hint}
       </div>
     )}
@@ -76,22 +78,33 @@ function UserPasswordAnalyzer({ username, onAnalyzed }) {
 
   return (
     <div className="card" style={{ padding: 32, marginBottom: 28 }}>
-      <div className="eyebrow" style={{ marginBottom: 6 }}>Password Resilience Test</div>
+      <div className="eyebrow" style={{ marginBottom: 6 }}>
+        Password Resilience Test
+      </div>
       <h2 className="h-display" style={{ fontSize: 22, marginBottom: 24, color: 'var(--fg-0)' }}>
         How well would your password hold up against someone who knows you?
       </h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 12,
+          marginBottom: 20,
+        }}
+      >
         {PII_FIELDS.map((f) => (
           <div key={f.name}>
-            <div style={{
-              fontSize: 10,
-              color: 'var(--fg-3)',
-              fontFamily: 'var(--font-mono)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: 4,
-            }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: 'var(--fg-3)',
+                fontFamily: 'var(--font-mono)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                marginBottom: 4,
+              }}
+            >
               {f.label}
             </div>
             <input
@@ -116,13 +129,15 @@ function UserPasswordAnalyzer({ username, onAnalyzed }) {
         ))}
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr auto',
-        gap: 12,
-        alignItems: 'stretch',
-        marginBottom: result || error ? 24 : 0,
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto',
+          gap: 12,
+          alignItems: 'stretch',
+          marginBottom: result || error ? 24 : 0,
+        }}
+      >
         <div style={{ position: 'relative' }}>
           <input
             value={pw}
@@ -146,16 +161,18 @@ function UserPasswordAnalyzer({ username, onAnalyzed }) {
             }}
           />
           {preview && (
-            <div style={{
-              position: 'absolute',
-              right: 12,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              fontSize: 11,
-              color: previewColor,
-              fontFamily: 'var(--font-mono)',
-              pointerEvents: 'none',
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                right: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: 11,
+                color: previewColor,
+                fontFamily: 'var(--font-mono)',
+                pointerEvents: 'none',
+              }}
+            >
               {preview.score} · {preview.rating}
             </div>
           )}
@@ -183,101 +200,164 @@ function UserPasswordAnalyzer({ username, onAnalyzed }) {
       </div>
 
       {error && (
-        <div style={{
-          color: 'var(--accent-500)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          marginBottom: 16,
-        }}>
+        <div
+          style={{
+            color: 'var(--accent-500)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            marginBottom: 16,
+          }}
+        >
           ▲ {error}
         </div>
       )}
 
       {result && (
-        <div style={{
-          borderTop: '1px solid var(--ink-4)',
-          paddingTop: 24,
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: 24,
-        }}>
+        <div
+          style={{
+            borderTop: '1px solid var(--ink-4)',
+            paddingTop: 24,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: 24,
+          }}
+        >
           <div>
-            <div style={{
-              fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)',
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8,
-            }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: 'var(--fg-3)',
+                fontFamily: 'var(--font-mono)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                marginBottom: 8,
+              }}
+            >
               Strength Score
             </div>
-            <div style={{
-              fontSize: 52, fontWeight: 500, lineHeight: 1,
-              color: resultColor, letterSpacing: '-0.04em',
-            }}>
+            <div
+              style={{
+                fontSize: 52,
+                fontWeight: 500,
+                lineHeight: 1,
+                color: resultColor,
+                letterSpacing: '-0.04em',
+              }}
+            >
               {result.strength_score}
             </div>
-            <div style={{
-              height: 4, background: 'var(--ink-3)', borderRadius: 2,
-              marginTop: 10, overflow: 'hidden',
-            }}>
-              <div style={{
-                width: `${result.strength_score}%`,
-                height: '100%',
-                background: resultColor,
-                transition: 'width 0.5s ease',
-              }} />
+            <div
+              style={{
+                height: 4,
+                background: 'var(--ink-3)',
+                borderRadius: 2,
+                marginTop: 10,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${result.strength_score}%`,
+                  height: '100%',
+                  background: resultColor,
+                  transition: 'width 0.5s ease',
+                }}
+              />
             </div>
-            <div style={{
-              marginTop: 8, fontSize: 12, color: resultColor,
-              fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.06em',
-            }}>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 12,
+                color: resultColor,
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+              }}
+            >
               {result.vulnerability_level?.toUpperCase()} RISK
             </div>
           </div>
 
           <div>
-            <div style={{
-              fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)',
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8,
-            }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: 'var(--fg-3)',
+                fontFamily: 'var(--font-mono)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                marginBottom: 8,
+              }}
+            >
               Crack Time
             </div>
-            <div style={{
-              fontSize: 20, fontWeight: 500, color: 'var(--fg-0)', marginBottom: 20,
-            }}>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 500,
+                color: 'var(--fg-0)',
+                marginBottom: 20,
+              }}
+            >
               {result.crack_time_estimate}
             </div>
-            <div style={{
-              fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)',
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4,
-            }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: 'var(--fg-3)',
+                fontFamily: 'var(--font-mono)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                marginBottom: 4,
+              }}
+            >
               Data Breaches
             </div>
-            <div style={{
-              fontSize: 20, fontWeight: 500,
-              color: result.breach_count > 0 ? 'var(--warn)' : 'var(--good)',
-            }}>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 500,
+                color: result.breach_count > 0 ? 'var(--warn)' : 'var(--good)',
+              }}
+            >
               {result.breach_count > 0 ? `Found in ${result.breach_count}` : 'Clean ✓'}
             </div>
           </div>
 
           <div>
-            <div style={{
-              fontSize: 10, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)',
-              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8,
-            }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: 'var(--fg-3)',
+                fontFamily: 'var(--font-mono)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                marginBottom: 8,
+              }}
+            >
               Issues Found
             </div>
             {(result.vulnerabilities || []).length === 0 ? (
-              <div style={{
-                fontSize: 12, color: 'var(--good)', fontFamily: 'var(--font-mono)',
-              }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'var(--good)',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
                 ✓ No issues detected
               </div>
             ) : (
               (result.vulnerabilities || []).slice(0, 3).map((v, i) => (
-                <div key={i} style={{
-                  fontSize: 12, color: 'var(--accent-200)',
-                  fontFamily: 'var(--font-mono)', marginBottom: 5,
-                }}>
+                <div
+                  key={i}
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--accent-200)',
+                    fontFamily: 'var(--font-mono)',
+                    marginBottom: 5,
+                  }}
+                >
                   ▲ {v}
                 </div>
               ))
@@ -320,8 +400,11 @@ const UserDashboardPage = () => {
   const stats = profile?.stats || {};
   const lastGenLabel = stats.last_generation
     ? new Date(stats.last_generation).toLocaleString(undefined, {
-      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-    })
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     : '—';
 
   return (
@@ -333,22 +416,26 @@ const UserDashboardPage = () => {
         <h1 className="h-display" style={{ fontSize: 38, marginTop: 4, color: 'var(--fg-0)' }}>
           Hi, {displayName}.
         </h1>
-        <p style={{
-          color: 'var(--fg-2)',
-          fontSize: 14,
-          fontFamily: 'var(--font-mono)',
-          marginTop: 4,
-        }}>
-          Here's how you'd hold up against someone who knows you.
+        <p
+          style={{
+            color: 'var(--fg-2)',
+            fontSize: 14,
+            fontFamily: 'var(--font-mono)',
+            marginTop: 4,
+          }}
+        >
+          Here&apos;s how you&apos;d hold up against someone who knows you.
         </p>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: 16,
-        marginBottom: 28,
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 16,
+          marginBottom: 28,
+        }}
+      >
         <StatCard
           label="Wordlists generated"
           value={statsLoading ? '…' : (stats.total_generations ?? 0)}
@@ -374,12 +461,14 @@ const UserDashboardPage = () => {
       <UserPasswordAnalyzer username={username} onAnalyzed={loadStats} />
 
       <div className="card" style={{ padding: 24 }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 16,
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+          }}
+        >
           <div className="eyebrow">Recent activity</div>
           <button
             onClick={() => navigate('/user/history')}
@@ -400,23 +489,26 @@ const UserDashboardPage = () => {
             Loading…
           </div>
         ) : activity.length === 0 ? (
-          <div style={{
-            color: 'var(--fg-3)',
-            fontSize: 13,
-            fontFamily: 'var(--font-mono)',
-            padding: '24px 0',
-            textAlign: 'center',
-          }}>
+          <div
+            style={{
+              color: 'var(--fg-3)',
+              fontSize: 13,
+              fontFamily: 'var(--font-mono)',
+              padding: '24px 0',
+              textAlign: 'center',
+            }}
+          >
             Nothing here yet — run your first password analysis above.
           </div>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
             {activity.slice(0, 6).map((evt) => {
-              const color = evt.status === 'danger'
-                ? 'var(--accent-500)'
-                : evt.status === 'warning'
-                  ? 'var(--warn)'
-                  : 'var(--good)';
+              const color =
+                evt.status === 'danger'
+                  ? 'var(--accent-500)'
+                  : evt.status === 'warning'
+                    ? 'var(--warn)'
+                    : 'var(--good)';
               return (
                 <li
                   key={evt.id}
@@ -440,16 +532,19 @@ const UserDashboardPage = () => {
                       boxShadow: `0 0 8px ${color}`,
                     }}
                   />
-                  <div style={{ fontSize: 13, color: 'var(--fg-0)' }}>
-                    {evt.message}
-                  </div>
-                  <div style={{
-                    fontSize: 11,
-                    color: 'var(--fg-3)',
-                    fontFamily: 'var(--font-mono)',
-                  }}>
+                  <div style={{ fontSize: 13, color: 'var(--fg-0)' }}>{evt.message}</div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--fg-3)',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
                     {new Date(evt.time).toLocaleString(undefined, {
-                      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
                     })}
                   </div>
                 </li>

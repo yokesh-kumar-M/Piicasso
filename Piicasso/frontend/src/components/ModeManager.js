@@ -22,12 +22,15 @@ const ModeManager = () => {
     // Routes that only exist in security mode.
     // /darkweb and /inbox are intentionally omitted — they serve both modes.
     const securityOnlyPages = [
-      '/security/dashboard', '/operation',
-      '/teams', '/workspace', '/system-admin', '/result',
+      '/security/dashboard',
+      '/operation',
+      '/teams',
+      '/workspace',
+      '/system-admin',
+      '/result',
     ];
 
-    const isAuthPage = ['/login', '/register', '/forgot-password']
-      .includes(location.pathname);
+    const isAuthPage = ['/login', '/register', '/forgot-password'].includes(location.pathname);
     if (isAuthPage) return;
 
     if (mode === 'user' && securityOnlyPages.includes(location.pathname)) {

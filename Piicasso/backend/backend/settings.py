@@ -9,29 +9,26 @@ Required Production Environment Variables:
 - DJANGO_SECRET_KEY=<strong, unique key>
 - FIELD_ENCRYPTION_KEY=<Fernet key from cryptography>
 - GOOGLE_CLIENT_ID=<from Google OAuth>
-- GEMINI_API_KEY=<from Google AI Studio>
-- DATABASE_URL=<PostgreSQL connection string>
+- GEMINI_API_KEY=<optional; deterministic fallback is used when absent>
+- DATABASE_URL=<PostgreSQL connection string, or POSTGRES_* variables>
 - REDIS_URL=<optional, for caching>
 - SENTRY_DSN=<from Sentry project>
 """
 
 import os
 import sys
-import dj_database_url
-from pathlib import Path
-from dotenv import load_dotenv
 from datetime import timedelta
+from pathlib import Path
+
+import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 # ─── SENTRY ERROR TRACKING ──────────────────────────────────────────────────
 sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
-invalid_sentry_dsn = (
-    not sentry_dsn
-    or "your-sentry-dsn" in sentry_dsn
-    or "your-project-id" in sentry_dsn
-)
+invalid_sentry_dsn = not sentry_dsn or "your-sentry-dsn" in sentry_dsn or "your-project-id" in sentry_dsn
 
 if not invalid_sentry_dsn and os.getenv("ENV", "development") != "test":
     import sentry_sdk
@@ -52,7 +49,8 @@ if not invalid_sentry_dsn and os.getenv("ENV", "development") != "test":
 
 # ─── BASE ────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
-os.makedirs(BASE_DIR / "logs", exist_ok=True)
+LOG_DIR = BASE_DIR / "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 ENV = os.getenv("ENV", "development")
@@ -65,13 +63,10 @@ if not SECRET_KEY:
     SECRET_KEY = "dev-insecure-secret-please-change"
 
 # ─── HOSTS & SECURITY HEADERS ───────────────────────────────────────────────
-ALLOWED_HOSTS = [
-    h.strip()
-    for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    if h.strip()
-]
-if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
-    ALLOWED_HOSTS.append(os.getenv("RENDER_EXTERNAL_HOSTNAME"))
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
+_render_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if _render_hostname:
+    ALLOWED_HOSTS.append(_render_hostname)
 
 # Number of trusted reverse proxies in front of the app (Render LB = 1). Used
 # by wordgen.utils.get_client_ip to pick the real client IP from the
@@ -113,7 +108,8 @@ CONTENT_SECURITY_POLICY = (
     "style-src 'self' 'unsafe-inline'; "
     "img-src 'self' data: https:; "
     "font-src 'self' data:; "
-    "connect-src 'self' https://generativelanguage.googleapis.com https://haveibeenpwned.com https://api.pwnedpasswords.com https://ipapi.co; "
+    "connect-src 'self' https://generativelanguage.googleapis.com "
+    "https://haveibeenpwned.com https://api.pwnedpasswords.com https://ipapi.co; "
     "frame-ancestors 'none'; "
     "base-uri 'self'; "
     "form-action 'self';"
@@ -205,9 +201,12 @@ else:
         "NAME": os.getenv("DATABASE_NAME", os.getenv("POSTGRES_DB", str(BASE_DIR / "db.sqlite3"))),
         "USER": os.getenv("DATABASE_USER", os.getenv("POSTGRES_USER", "")),
         "PASSWORD": os.getenv("DATABASE_PASSWORD", os.getenv("POSTGRES_PASSWORD", "")),
-        "HOST": os.getenv("DATABASE_HOST", "db"),
-        "PORT": os.getenv("DATABASE_PORT", "5432"),
-        **({"OPTIONS": {"MAX_CONNS": 20}} if ENV == "production" else {}),
+        "HOST": os.getenv("DATABASE_HOST", os.getenv("POSTGRES_HOST", "db")),
+        "PORT": os.getenv("DATABASE_PORT", os.getenv("POSTGRES_PORT", "5432")),
+        # Persistent connections are supported by both psycopg2 and Django.
+        # `OPTIONS.MAX_CONNS` is not a libpq option and made production
+        # connections fail before reaching PostgreSQL.
+        **({"CONN_MAX_AGE": 600, "CONN_HEALTH_CHECKS": True} if ENV == "production" else {}),
     }
 
 # ─── CACHING ─────────────────────────────────────────────────────────────────
@@ -232,7 +231,7 @@ if ENV == "production":
         SESSION_CACHE_ALIAS = "default"
     else:
         # No Redis in production: fall back to the DATABASE cache backend, not
-        # LocMemCache. LocMemCache is per-process, so with multiple Gunicorn
+        # LocMemCache. LocMemCache is per-process, so with multiple application
         # workers the DRF throttle counters, login-lockout state and OTP
         # attempt caps would be split per-worker and reset on every restart,
         # making brute-force protection unreliable. DatabaseCache is shared
@@ -244,6 +243,7 @@ if ENV == "production":
             "REDIS_URL is not set in production — falling back to the database "
             "cache backend. Set REDIS_URL for shared, high-performance caching.",
             RuntimeWarning,
+            stacklevel=2,
         )
         CACHES = {
             "default": {
@@ -265,9 +265,7 @@ else:
 
 # ─── PASSWORD VALIDATION ────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {"min_length": 10},
@@ -300,9 +298,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
 # ─── JWT AUTHENTICATION ─────────────────────────────────────────────────────
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.getenv("ACCESS_TOKEN_MINUTES", "15"))
-    ),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("ACCESS_TOKEN_MINUTES", "15"))),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("REFRESH_TOKEN_DAYS", "1"))),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -322,9 +318,7 @@ SIMPLE_JWT = {
 # Dev default: localhost only. Production MUST set CORS_ALLOWED_ORIGINS env var.
 _default_cors = "http://localhost:3000,http://127.0.0.1:3000"
 CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_cors).split(",")
-    if origin.strip()
+    origin.strip() for origin in os.getenv("CORS_ALLOWED_ORIGINS", _default_cors).split(",") if origin.strip()
 ]
 CORS_ALLOW_ALL_ORIGINS = False
 
@@ -333,9 +327,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 # the configured CORS origins; override with CSRF_TRUSTED_ORIGINS if needed.
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
-    for o in os.getenv(
-        "CSRF_TRUSTED_ORIGINS", ",".join(CORS_ALLOWED_ORIGINS)
-    ).split(",")
+    for o in os.getenv("CSRF_TRUSTED_ORIGINS", ",".join(CORS_ALLOWED_ORIGINS)).split(",")
     if o.strip().startswith("http")
 ]
 
@@ -343,8 +335,7 @@ CSRF_TRUSTED_ORIGINS = [
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 if not GOOGLE_CLIENT_ID:
     raise ImproperlyConfigured(
-        "GOOGLE_CLIENT_ID environment variable is not set. "
-        "Google OAuth will not work without it."
+        "GOOGLE_CLIENT_ID environment variable is not set. Google OAuth will not work without it."
     )
 FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")
 
@@ -355,8 +346,8 @@ _fek = os.getenv("FIELD_ENCRYPTION_KEY")
 if not _fek:
     raise ImproperlyConfigured(
         "FIELD_ENCRYPTION_KEY environment variable is not set. "
-        "Generate one with: python -c \"from cryptography.fernet import Fernet; "
-        "print(Fernet.generate_key().decode())\""
+        'Generate one with: python -c "from cryptography.fernet import Fernet; '
+        'print(Fernet.generate_key().decode())"'
     )
 FIELD_ENCRYPTION_KEY = _fek
 CORS_ALLOW_CREDENTIALS = True
@@ -375,9 +366,7 @@ CORS_ALLOW_HEADERS = [
 
 # ─── REST FRAMEWORK ─────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
@@ -421,6 +410,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
     "SECURITY": [{"Bearer": []}],
     "COMPONENT_SPLIT_REQUEST": True,
+    "POSTPROCESSING_HOOKS": ["backend.schema_hooks.close_strict_request_objects"],
     "TAGS": [
         {"name": "Auth", "description": "Authentication & registration"},
         {"name": "Intelligence", "description": "Wordlist generation & history"},
@@ -465,7 +455,7 @@ LOGGING = {
         "file_app": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "piicasso.log"),
+            "filename": str(LOG_DIR / "piicasso.log"),
             "maxBytes": 10 * 1024 * 1024,  # 10 MB
             "backupCount": 5,
             "formatter": "verbose",
@@ -473,7 +463,7 @@ LOGGING = {
         "file_security": {
             "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "security.log"),
+            "filename": str(LOG_DIR / "security.log"),
             "maxBytes": 10 * 1024 * 1024,
             "backupCount": 10,
             "formatter": "verbose",
@@ -511,8 +501,7 @@ LOGGING = {
 PIICASSO_SETTINGS = {
     "MAX_WORDLIST_SIZE": int(os.getenv("MAX_WORDLIST_SIZE", "1000")),
     "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY"),
-    "ENABLE_PII_MASKING": os.getenv("ENABLE_PII_MASKING", "True").lower()
-    in ("1", "true", "yes"),
+    "ENABLE_PII_MASKING": os.getenv("ENABLE_PII_MASKING", "True").lower() in ("1", "true", "yes"),
     "DATA_RETENTION_DAYS": int(os.getenv("DATA_RETENTION_DAYS", "30")),
     "ENABLE_AUDIT_LOG": True,
 }
@@ -544,15 +533,11 @@ _redis_url = os.getenv("REDIS_URL", "")
 if _redis_url:
     CELERY_BROKER_URL = os.getenv(
         "CELERY_BROKER_URL",
-        f"{_redis_url}/0"
-        if not _redis_url.endswith(("/0", "/1", "/2"))
-        else _redis_url,
+        f"{_redis_url}/0" if not _redis_url.endswith(("/0", "/1", "/2")) else _redis_url,
     )
     CELERY_RESULT_BACKEND = os.getenv(
         "CELERY_RESULT_BACKEND",
-        f"{_redis_url}/1"
-        if not _redis_url.endswith(("/0", "/1", "/2"))
-        else _redis_url,
+        f"{_redis_url}/1" if not _redis_url.endswith(("/0", "/1", "/2")) else _redis_url,
     )
 else:
     # Use disabled broker if Redis not available
@@ -578,9 +563,7 @@ if ENV == "production":
         }
     else:
         # Fallback to in-memory if Redis not configured
-        CHANNEL_LAYERS = {
-            "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
-        }
+        CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 else:
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 

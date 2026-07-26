@@ -5,12 +5,13 @@ Tests for auth, registration, PII submission, history, admin, terminal, and heal
 """
 
 import json
-from django.test import TestCase, override_settings
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.test import TestCase
 from rest_framework.test import APIClient
-from rest_framework import status
-from unittest.mock import patch, MagicMock
+
 from generator.models import GenerationHistory
 
 
@@ -40,9 +41,7 @@ class RegistrationTest(TestCase):
 
     def test_register_missing_fields(self):
         client = APIClient()
-        response = client.post(
-            "/api/user/register/", {"username": "", "password": ""}, format="json"
-        )
+        response = client.post("/api/user/register/", {"username": "", "password": ""}, format="json")
         self.assertEqual(response.status_code, 400)
 
     def test_register_short_username(self):
@@ -85,9 +84,7 @@ class RegistrationTest(TestCase):
 
 class AuthTokenTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="authuser", password="StrongPass1!", email="auth@test.com"
-        )
+        self.user = User.objects.create_user(username="authuser", password="StrongPass1!", email="auth@test.com")
         self.client = APIClient()
         cache.clear()
 
@@ -105,17 +102,22 @@ class AuthTokenTest(TestCase):
         self.assertIn("refresh", response.data)
 
     def test_login_wrong_password(self):
-        response = self.client.post(
-            "/api/user/token/",
-            {
-                "username": "authuser",
-                "password": "wrong",
-            },
-            format="json",
-        )
+        with self.assertLogs("wordgen.security", level="WARNING") as captured:
+            response = self.client.post(
+                "/api/user/token/",
+                {
+                    "username": "authuser",
+                    "password": "wrong",
+                },
+                format="json",
+            )
         self.assertEqual(response.status_code, 401)
         # Anti-enumeration: same generic message as the unknown-account cases.
         self.assertEqual(response.data["detail"], "Invalid credentials.")
+        log_output = "\n".join(captured.output)
+        self.assertIn("account_fingerprint", log_output)
+        self.assertNotIn("authuser", log_output)
+        self.assertNotIn("wrong", log_output)
 
     def test_login_unknown_email(self):
         response = self.client.post(
@@ -169,9 +171,7 @@ class AuthTokenTest(TestCase):
             format="json",
         )
         refresh = login.data["refresh"]
-        response = self.client.post(
-            "/api/user/token/refresh/", {"refresh": refresh}, format="json"
-        )
+        response = self.client.post("/api/user/token/refresh/", {"refresh": refresh}, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertIn("access", response.data)
 
@@ -201,13 +201,11 @@ class AuthTokenTest(TestCase):
 
 class PasswordResetTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="resetuser", password="OldPass123!", email="reset@test.com"
-        )
+        self.user = User.objects.create_user(username="resetuser", password="OldPass123!", email="reset@test.com")
         self.client = APIClient()
 
     def test_request_reset_existing_email(self):
-        with patch("wordgen.auth_views.send_mail") as mock_mail:
+        with patch("wordgen.auth_views.send_mail"):
             response = self.client.post(
                 "/api/user/auth/password/reset/",
                 {"email": "reset@test.com"},
@@ -218,9 +216,7 @@ class PasswordResetTest(TestCase):
         self.assertIn("recovery code", response.data["message"].lower())
 
     def test_request_reset_nonexistent_email(self):
-        response = self.client.post(
-            "/api/user/auth/password/reset/", {"email": "no@test.com"}, format="json"
-        )
+        response = self.client.post("/api/user/auth/password/reset/", {"email": "no@test.com"}, format="json")
         # Same response to mask email existence
         self.assertEqual(response.status_code, 200)
 
@@ -255,15 +251,11 @@ class PasswordResetTest(TestCase):
 
 class PiiSubmitTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="piiuser", password="StrongPass1!"
-        )
+        self.user = User.objects.create_user(username="piiuser", password="StrongPass1!")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    @patch(
-        "wordgen.llm_handler.call_gemini_api", return_value="password1\npassword2\npassword3"
-    )
+    @patch("wordgen.llm_handler.call_gemini_api", return_value="password1\npassword2\npassword3")
     @patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"})
     def test_submit_success(self, mock_gemini):
         response = self.client.post(
@@ -283,6 +275,24 @@ class PiiSubmitTest(TestCase):
         response = self.client.post("/api/submit/", {})
         self.assertEqual(response.status_code, 400)
 
+    def test_submit_rejects_unknown_profile_fields(self):
+        response = self.client.post(
+            "/api/submit/",
+            {"full_name": "Ada Lovelace", "frist_name": "misspelled"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("frist_name", response.data)
+
+    def test_submit_rejects_oversized_profile_fields(self):
+        response = self.client.post(
+            "/api/submit/",
+            {"full_name": "x" * 257},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("full_name", response.data)
+
     def test_submit_unauthenticated(self):
         client = APIClient()  # No auth
         response = client.post("/api/submit/", {"full_name": "Test"})
@@ -290,17 +300,17 @@ class PiiSubmitTest(TestCase):
 
     def test_submit_sanitizes_html(self):
         """1.6 fix: HTML tags should be escaped in stored PII data."""
-        with patch("wordgen.llm_handler.call_gemini_api", return_value="pass1"):
-            with patch.dict(
-                "os.environ", {"GEMINI_API_KEY": "test-key"}
-            ):
-                response = self.client.post(
-                    "/api/submit/",
-                    {
-                        "full_name": '<script>alert("xss")</script>',
-                    },
-                    format="json",
-                )
+        with (
+            patch("wordgen.llm_handler.call_gemini_api", return_value="pass1"),
+            patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}),
+        ):
+            response = self.client.post(
+                "/api/submit/",
+                {
+                    "full_name": '<script>alert("xss")</script>',
+                },
+                format="json",
+            )
         self.assertEqual(response.status_code, 201)
         record = GenerationHistory.objects.filter(user=self.user).last()
         self.assertIsNotNone(record)
@@ -310,12 +320,8 @@ class PiiSubmitTest(TestCase):
 
 class HistoryTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="histuser", password="StrongPass1!"
-        )
-        self.other_user = User.objects.create_user(
-            username="other", password="StrongPass1!"
-        )
+        self.user = User.objects.create_user(username="histuser", password="StrongPass1!")
+        self.other_user = User.objects.create_user(username="other", password="StrongPass1!")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -354,12 +360,8 @@ class HistoryTest(TestCase):
 
 class AdminTest(TestCase):
     def setUp(self):
-        self.admin = User.objects.create_superuser(
-            username="admin", password="AdminPass1!", email="admin@test.com"
-        )
-        self.user = User.objects.create_user(
-            username="normaluser", password="UserPass1!"
-        )
+        self.admin = User.objects.create_superuser(username="admin", password="AdminPass1!", email="admin@test.com")
+        self.user = User.objects.create_user(username="normaluser", password="UserPass1!")
         self.admin_client = APIClient()
         self.admin_client.force_authenticate(user=self.admin)
         self.user_client = APIClient()
@@ -410,9 +412,7 @@ class AdminTest(TestCase):
 
     def test_cannot_delete_admin(self):
         other_admin = User.objects.create_superuser("admin2", password="Pass1234!")
-        response = self.admin_client.delete(
-            f"/api/super-admin/?user_id={other_admin.id}"
-        )
+        response = self.admin_client.delete(f"/api/super-admin/?user_id={other_admin.id}")
         self.assertEqual(response.status_code, 400)
 
 
@@ -448,20 +448,14 @@ class SimulatedTerminalTest(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_help_command(self):
-        response = self.client.post(
-            "/api/terminal/", {"command": "help"}, format="json"
-        )
+        response = self.client.post("/api/terminal/", {"command": "help"}, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any("Available" in line for line in response.data["output"]))
 
     def test_unauthorized_command(self):
-        response = self.client.post(
-            "/api/terminal/", {"command": "rm -rf /"}, format="json"
-        )
+        response = self.client.post("/api/terminal/", {"command": "rm -rf /"}, format="json")
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(
-            any("not authorized" in line for line in response.data["output"])
-        )
+        self.assertTrue(any("not authorized" in line for line in response.data["output"]))
 
     def test_unauthenticated_access(self):
         client = APIClient()
@@ -522,9 +516,7 @@ class DownloadTokenTest(TestCase):
 
     def test_cannot_generate_token_for_other_users_record(self):
         other = User.objects.create_user("other", password="Pass1234!")
-        other_record = GenerationHistory.objects.create(
-            user=other, pii_data={"full_name": "Other"}, wordlist=["pass2"]
-        )
+        other_record = GenerationHistory.objects.create(user=other, pii_data={"full_name": "Other"}, wordlist=["pass2"])
         response = self.client.post(
             "/api/download-token/",
             {
@@ -608,9 +600,7 @@ class SecurityRegressionTest(TestCase):
         # The previously hardcoded "admin" email must no longer auto-promote
         # anyone to superuser at login time.
         magic_email = "yokeshkumar1704@gmail.com"
-        user = User.objects.create_user(
-            username="notadmin", password="StrongPass1!", email=magic_email
-        )
+        user = User.objects.create_user(username="notadmin", password="StrongPass1!", email=magic_email)
         response = self.client.post(
             "/api/user/token/",
             {"username": "notadmin", "password": "StrongPass1!"},

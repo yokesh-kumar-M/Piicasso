@@ -42,8 +42,9 @@ export const ModeProvider = ({ children }) => {
       return;
     }
 
-    axiosInstance.get('password/preferences/')
-      .then(res => {
+    axiosInstance
+      .get('password/preferences/')
+      .then((res) => {
         const { last_mode } = res.data;
         if (last_mode) setMode(last_mode);
       })
@@ -65,22 +66,27 @@ export const ModeProvider = ({ children }) => {
 
   const openModeModal = useCallback(() => setShowModeModal(true), []);
   const closeModeModal = useCallback(() => setShowModeModal(false), []);
-  const selectModeAndClose = useCallback((selectedMode) => {
-    switchMode(selectedMode);
-    setShowModeModal(false);
-  }, [switchMode]);
+  const selectModeAndClose = useCallback(
+    (selectedMode) => {
+      switchMode(selectedMode);
+      setShowModeModal(false);
+    },
+    [switchMode],
+  );
 
   return (
-    <ModeContext.Provider value={{
-      mode,
-      switchMode,
-      setMode: switchMode,
-      showModeModal,
-      openModeModal,
-      closeModeModal,
-      selectModeAndClose,
-      loading,
-    }}>
+    <ModeContext.Provider
+      value={{
+        mode,
+        switchMode,
+        setMode: switchMode,
+        showModeModal,
+        openModeModal,
+        closeModeModal,
+        selectModeAndClose,
+        loading,
+      }}
+    >
       {children}
     </ModeContext.Provider>
   );

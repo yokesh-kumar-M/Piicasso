@@ -1,0 +1,95 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = [
+    "migrations",
+    ".venv",
+    "venv",
+    "env",
+]
+
+[tool.ruff.lint]
+# E,F   = pycodestyle/pyflakes core (flake8 parity)
+# I     = isort (import sorting)
+# UP    = pyupgrade (modern Python idioms)
+# B     = flake8-bugbear (likely bugs)
+# S     = flake8-bandit (security)
+# DJ    = flake8-django
+# C4    = flake8-comprehensions
+# SIM   = flake8-simplify
+# PTH   = flake8-use-pathlib
+select = ["E", "F", "I", "UP", "B", "S", "DJ", "C4", "SIM", "RUF"]
+ignore = [
+    "E402",   # module-level import not at top — carried over from .flake8
+    "S101",   # assert usage — required in Django/pytest test files
+    "S105", "S106", "S107",  # hardcoded-password-* — noisy false positives on kwarg names like `password=`
+    "RUF012", # mutable-class-default — fires on every Django model `choices = [...]`; standard Django idiom
+    "RUF001", "RUF002", "RUF003",  # ambiguous-unicode — false positives on the project's "─── HEADER ───" comment dividers
+]
+# os.path -> pathlib (flake8-use-pathlib, "PTH") deliberately deferred: the
+# codebase uses os.path idiomatically throughout (settings.py, management
+# commands); migrating it is a real refactor, not a hygiene fix, and belongs
+# in its own PR rather than bundled into initial tooling adoption.
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: assert-heavy, occasional broad excepts, fixture data with realistic-looking secrets.
+"*/tests.py" = ["S101", "S105", "S106", "S108"]
+"**/tests/**" = ["S101", "S105", "S106", "S108"]
+# Django settings intentionally builds config from env at import time; migrations are generated code.
+"backend/settings.py" = ["S105", "S106"]
+"**/migrations/**" = ["E501", "RUF012"]
+# LLM prompt-template strings: line length here is prose sent verbatim to
+# Gemini. Reformatting is a prompt-engineering change, not a lint fix, and a
+# `# noqa` comment can't be placed inside the triple-quoted literal without
+# corrupting the actual prompt text — so this is ignored at the file level.
+"wordgen/llm_handler.py" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "backend", "core", "wordgen", "generator", "operations",
+    "analytics", "password_security", "teams",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+mypy_path = "."
+ignore_missing_imports = true
+# Intentionally lenient repo-wide start: strictness is ratcheted up per-module
+# (see [[tool.mypy.overrides]]) rather than turned on everywhere at once, so
+# adopting mypy doesn't block on a full-codebase type-annotation pass.
+disallow_untyped_defs = false
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unreachable = true
+exclude = ["migrations/", "\\.venv/", "venv/"]
+
+[tool.django-stubs]
+django_settings_module = "backend.settings"
+
+# Modules brought to full strictness first — small, dependency-light, high value
+# to have correct (security-sensitive utils, throttling, pure functions).
+# wordgen.llm_handler is deliberately NOT in this list yet: it's 8 functions of
+# behavior-sensitive AI-generation code (prompt building, Gemini calls, scoring)
+# — annotating it properly deserves its own reviewed PR, not a drive-by as part
+# of initial tooling adoption.
+[[tool.mypy.overrides]]
+module = [
+    "wordgen.utils",
+    "wordgen.throttles",
+]
+disallow_untyped_defs = true
+
+# generator.fields: the isinstance(key, (list, tuple)) guard in _get_fernet()
+# is defensive code for FIELD_ENCRYPTION_KEY arriving as a non-str (e.g. from a
+# future settings source). mypy correctly notes it's unreachable given today's
+# `str`-typed settings value — but this is PII-encryption code (Fernet key
+# resolution for EncryptedJSONField), so the guard is kept rather than removed
+# to satisfy the checker. Silence unreachable-only for this module.
+[[tool.mypy.overrides]]
+module = ["generator.fields"]
+warn_unreachable = false

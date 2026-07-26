@@ -7,10 +7,8 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <div className="text-neon-green text-xl animate-pulse">
-          Authenticating...
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+        <div className="text-neon-green animate-pulse text-xl">Authenticating...</div>
       </div>
     );
   }

@@ -57,5 +57,15 @@ refer/
 
 # ─── Local Development Docker ──────────────────────────────────────────────────
 *Dockerfile.dev
+!Piicasso/backend/Dockerfile.dev
+!Piicasso/frontend/Dockerfile.dev
 
 _worktrees/
+
+# ─── Tooling caches (Ruff/mypy/coverage/Turborepo) ──────────────────────────────
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+coverage.xml
+.turbo/

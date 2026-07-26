@@ -6,8 +6,6 @@ tests just ensure the Python port is loading and producing reasonable output.
 
 from __future__ import annotations
 
-import pytest
-
 from piicasso.engine.pii import (
     detect_entities,
     generate_wordlist,

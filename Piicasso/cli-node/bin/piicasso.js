@@ -7,4 +7,4 @@
  */
 'use strict';
 
-require('../src/index');
+require('../src/index').main();

@@ -20,43 +20,49 @@ export default function DesignAppShell({ children, activeKey }) {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const { mode, switchMode } = useContext(ModeContext);
-const [inboxOpen, setInboxOpen] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
     const load = () => {
-      axios.get('operations/notifications/')
-        .then(r => { if (!cancelled) setNotifications(r.data.notifications || []); })
+      axios
+        .get('operations/notifications/')
+        .then((r) => {
+          if (!cancelled) setNotifications(r.data.notifications || []);
+        })
         .catch(() => {});
     };
     load();
     const interval = setInterval(load, 30000);
-    return () => { cancelled = true; clearInterval(interval); };
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleMarkAllRead = () => {
     axios.post('operations/notifications/', { action: 'mark_all_read' }).catch(() => {});
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
   };
 
   const isSecurityMode = mode === 'security';
 
   const securityItems = [
-    ['mission',   'Missions',     '◈', '/security/dashboard'],
-    ['history',   'History',      '≡', '/security/history'],
-    ['wordlists', 'Wordlists',    '≡', '/workspace'],
-    ['intel',     'Threat Intel', '◉', '/darkweb'],
-    ['targets',   'Targets',      '◎', '/operation'],
+    ['mission', 'Missions', '◈', '/security/dashboard'],
+    ['history', 'History', '≡', '/security/history'],
+    ['wordlists', 'Wordlists', '≡', '/workspace'],
+    ['intel', 'Threat Intel', '◉', '/darkweb'],
+    ['targets', 'Targets', '◎', '/operation'],
     ...(user?.is_superuser ? [['audit', 'Audit', '☷', '/system-admin']] : []),
   ];
 
   const userItems = [
-    ['overview',  'Overview',     '◈', '/user/dashboard'],
+    ['overview', 'Overview', '◈', '/user/dashboard'],
     ['passwords', 'My Passwords', '≡', '/user/history'],
-    ['leaks',     'Leak Monitor', '◉', '/darkweb'],
-    ['learn',     'Learn',        '☉', '/user/learn'],
+    ['leaks', 'Leak Monitor', '◉', '/darkweb'],
+    ['learn', 'Learn', '☉', '/user/learn'],
   ];
 
   const items = isSecurityMode ? securityItems : userItems;
@@ -73,7 +79,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
     return `${Math.floor(diff / 86400)}d`;
   };
 
-  const unread = notifications.filter(n => !n.is_read).length;
+  const unread = notifications.filter((n) => !n.is_read).length;
 
   const handleModeChange = (m) => {
     switchMode(m);
@@ -81,20 +87,29 @@ const [inboxOpen, setInboxOpen] = useState(false);
   };
 
   const sidebar = (
-    <aside style={{
-      background: 'var(--ink-1)',
-      borderRight: '1px solid var(--ink-4)',
-      padding: 20,
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'sticky',
-      top: 0,
-    }}>
+    <aside
+      style={{
+        background: 'var(--ink-1)',
+        borderRight: '1px solid var(--ink-4)',
+        padding: 20,
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'sticky',
+        top: 0,
+      }}
+    >
       {/* Logo */}
       <button
         onClick={() => navigate('/')}
-        style={{ marginBottom: 28, display: 'inline-flex', background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
+        style={{
+          marginBottom: 28,
+          display: 'inline-flex',
+          background: 'none',
+          border: 0,
+          padding: 0,
+          cursor: 'pointer',
+        }}
       >
         <Logo />
       </button>
@@ -128,7 +143,14 @@ const [inboxOpen, setInboxOpen] = useState(false);
                 border: 'none',
               }}
             >
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-500)', width: 14, flexShrink: 0 }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--accent-500)',
+                  width: 14,
+                  flexShrink: 0,
+                }}
+              >
                 {icon}
               </span>
               {label}
@@ -138,7 +160,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
         {/* Inbox toggle */}
         <button
-          onClick={() => setInboxOpen(o => !o)}
+          onClick={() => setInboxOpen((o) => !o)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -154,19 +176,23 @@ const [inboxOpen, setInboxOpen] = useState(false);
             border: 'none',
           }}
         >
-          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-500)', width: 14 }}>✉</span>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-500)', width: 14 }}>
+            ✉
+          </span>
           Inbox
           {unread > 0 && (
-            <span style={{
-              marginLeft: 'auto',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '2px 7px',
-              borderRadius: 999,
-              background: 'var(--accent-500)',
-              color: 'var(--ink-0)',
-            }}>
+            <span
+              style={{
+                marginLeft: 'auto',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 700,
+                padding: '2px 7px',
+                borderRadius: 999,
+                background: 'var(--accent-500)',
+                color: 'var(--ink-0)',
+              }}
+            >
               {unread}
             </span>
           )}
@@ -175,23 +201,37 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
       {/* Inbox dropdown */}
       {inboxOpen && (
-        <div style={{
-          marginTop: 12,
-          background: 'var(--ink-0)',
-          border: '1px solid var(--ink-4)',
-          borderRadius: 10,
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            padding: '10px 14px',
-            borderBottom: '1px solid var(--ink-4)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: 'var(--ink-1)',
-          }}>
+        <div
+          style={{
+            marginTop: 12,
+            background: 'var(--ink-0)',
+            border: '1px solid var(--ink-4)',
+            borderRadius: 10,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              padding: '10px 14px',
+              borderBottom: '1px solid var(--ink-4)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'var(--ink-1)',
+            }}
+          >
             <span className="eyebrow">Inbox</span>
-            <button onClick={handleMarkAllRead} style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)', background: 'none', border: 0, cursor: 'pointer' }}>
+            <button
+              onClick={handleMarkAllRead}
+              style={{
+                fontSize: 10,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--fg-3)',
+                background: 'none',
+                border: 0,
+                cursor: 'pointer',
+              }}
+            >
               MARK READ
             </button>
           </div>
@@ -207,33 +247,65 @@ const [inboxOpen, setInboxOpen] = useState(false);
                   alignItems: 'flex-start',
                 }}
               >
-                <span style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  marginTop: 6,
-                  background: (n.notification_type === 'SECURITY' || n.notification_type === 'SYSTEM') ? 'var(--accent-500)' : 'var(--fg-3)',
-                  boxShadow: (n.notification_type === 'SECURITY' || n.notification_type === 'SYSTEM') ? '0 0 6px var(--accent-glow)' : 'none',
-                  flexShrink: 0,
-                  display: 'inline-block',
-                }} />
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    marginTop: 6,
+                    background:
+                      n.notification_type === 'SECURITY' || n.notification_type === 'SYSTEM'
+                        ? 'var(--accent-500)'
+                        : 'var(--fg-3)',
+                    boxShadow:
+                      n.notification_type === 'SECURITY' || n.notification_type === 'SYSTEM'
+                        ? '0 0 6px var(--accent-glow)'
+                        : 'none',
+                    flexShrink: 0,
+                    display: 'inline-block',
+                  }}
+                />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg-0)' }}>{n.title}</div>
-                  <div style={{ fontSize: 11, color: 'var(--fg-2)', lineHeight: 1.4, marginTop: 2 }}>{n.description}</div>
-                  <div style={{ fontSize: 10, color: 'var(--fg-4)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>{relativeTime(n.timestamp)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg-0)' }}>
+                    {n.title}
+                  </div>
+                  <div
+                    style={{ fontSize: 11, color: 'var(--fg-2)', lineHeight: 1.4, marginTop: 2 }}
+                  >
+                    {n.description}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: 'var(--fg-4)',
+                      fontFamily: 'var(--font-mono)',
+                      marginTop: 4,
+                    }}
+                  >
+                    {relativeTime(n.timestamp)}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{
-            padding: '8px 14px',
-            textAlign: 'center',
-            borderTop: '1px solid var(--ink-4)',
-            background: 'var(--ink-1)',
-          }}>
+          <div
+            style={{
+              padding: '8px 14px',
+              textAlign: 'center',
+              borderTop: '1px solid var(--ink-4)',
+              background: 'var(--ink-1)',
+            }}
+          >
             <button
               onClick={() => navigate('/inbox')}
-              style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--accent-500)', background: 'none', border: 0, cursor: 'pointer' }}
+              style={{
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--accent-500)',
+                background: 'none',
+                border: 0,
+                cursor: 'pointer',
+              }}
             >
               VIEW ALL →
             </button>
@@ -243,14 +315,16 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
       {/* Bottom actions */}
       <div style={{ marginTop: 'auto', display: 'grid', gap: 10 }}>
-        <div style={{
-          paddingTop: 12,
-          borderTop: '1px solid var(--ink-4)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          color: 'var(--fg-3)',
-          letterSpacing: '0.06em',
-        }}>
+        <div
+          style={{
+            paddingTop: 12,
+            borderTop: '1px solid var(--ink-4)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            color: 'var(--fg-3)',
+            letterSpacing: '0.06em',
+          }}
+        >
           ⌘K search
         </div>
       </div>
@@ -297,7 +371,7 @@ const [inboxOpen, setInboxOpen] = useState(false);
         </button>
         <ModePill mode={mode} onChange={handleModeChange} compact />
         <button
-          onClick={() => setMobileMenuOpen(o => !o)}
+          onClick={() => setMobileMenuOpen((o) => !o)}
           style={{
             background: 'var(--ink-3)',
             border: '1px solid var(--ink-5)',
@@ -315,20 +389,25 @@ const [inboxOpen, setInboxOpen] = useState(false);
 
       {/* Mobile slide-down nav */}
       {mobileMenuOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 49,
-          left: 0,
-          right: 0,
-          zIndex: 40,
-          background: 'var(--ink-1)',
-          borderBottom: '1px solid var(--ink-4)',
-          padding: '12px 16px',
-        }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 49,
+            left: 0,
+            right: 0,
+            zIndex: 40,
+            background: 'var(--ink-1)',
+            borderBottom: '1px solid var(--ink-4)',
+            padding: '12px 16px',
+          }}
+        >
           {items.map(([k, label, icon, path]) => (
             <button
               key={k}
-              onClick={() => { navigate(path); setMobileMenuOpen(false); }}
+              onClick={() => {
+                navigate(path);
+                setMobileMenuOpen(false);
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -345,7 +424,9 @@ const [inboxOpen, setInboxOpen] = useState(false);
                 border: 'none',
               }}
             >
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-500)' }}>{icon}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-500)' }}>
+                {icon}
+              </span>
               {label}
             </button>
           ))}
@@ -361,29 +442,31 @@ const [inboxOpen, setInboxOpen] = useState(false);
           gridTemplateColumns: '240px 1fr',
         }}
       >
-        <div className="dsh-sidebar">
-          {sidebar}
-        </div>
+        <div className="dsh-sidebar">{sidebar}</div>
 
         <main style={{ padding: 0, maxWidth: '100%', overflow: 'hidden' }}>
           {/* Top bar */}
-          <div style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-            display: 'grid',
-            gridTemplateColumns: '1fr auto 1fr',
-            alignItems: 'center',
-            padding: '14px 32px',
-            borderBottom: '1px solid var(--ink-4)',
-            background: 'color-mix(in oklab, var(--ink-0) 88%, transparent)',
-            backdropFilter: 'blur(12px)',
-          }}>
+          <div
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              display: 'grid',
+              gridTemplateColumns: '1fr auto 1fr',
+              alignItems: 'center',
+              padding: '14px 32px',
+              borderBottom: '1px solid var(--ink-4)',
+              background: 'color-mix(in oklab, var(--ink-0) 88%, transparent)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-3)' }}>
               ● {isSecurityMode ? 'active session' : 'password vault'} · synced
             </div>
             <ModePill mode={mode} onChange={handleModeChange} />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, alignItems: 'center' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, alignItems: 'center' }}
+            >
               <button
                 onClick={() => navigate('/profile')}
                 style={{
@@ -397,19 +480,25 @@ const [inboxOpen, setInboxOpen] = useState(false);
               >
                 ⚙
               </button>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                paddingLeft: 12,
-                marginLeft: 4,
-                borderLeft: '1px solid var(--ink-4)',
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  paddingLeft: 12,
+                  marginLeft: 4,
+                  borderLeft: '1px solid var(--ink-4)',
+                }}
+              >
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg-0)', lineHeight: 1.2 }}>
+                  <div
+                    style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg-0)', lineHeight: 1.2 }}
+                  >
                     {user?.username || 'User'}
                   </div>
-                  <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)' }}>
+                  <div
+                    style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--fg-3)' }}
+                  >
                     {isSecurityMode ? 'analyst' : 'standard'}
                   </div>
                 </div>
