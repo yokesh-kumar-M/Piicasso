@@ -1,7 +1,7 @@
 #!/bin/sh
-# Start a dummy HTTP server in the background to satisfy Render's port binding check
-# This prevents the deploy from failing when Render expects it to be a Web Service.
-python -m http.server ${PORT:-10000} &
+set -eu
 
-# Start the Celery worker
-exec celery -A backend worker -l info
+exec celery -A backend worker \
+  --loglevel "${CELERY_LOG_LEVEL:-INFO}" \
+  --concurrency "${CELERY_CONCURRENCY:-2}" \
+  --max-tasks-per-child "${CELERY_MAX_TASKS_PER_CHILD:-100}"

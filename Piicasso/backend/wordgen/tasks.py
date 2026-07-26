@@ -107,7 +107,7 @@ def generate_wordlist_task(pii_data, pattern_mode, user_id, cache_key, client_id
         return {"cache_key": cache_key, "count": len(wordlist)}
 
     except Exception as e:
-        logger.error(f"Wordlist generation failed: {e}", exc_info=True)
+        logger.error("Wordlist generation failed error_type=%s", type(e).__name__)
         async_to_sync(channel_layer.group_send)(
             group_name,
             {

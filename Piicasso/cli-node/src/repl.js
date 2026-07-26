@@ -27,10 +27,10 @@ const HELP_LINES = [
   ['redact <text>',         'print text with PII masked (local)'],
   ['score <pw>',            'score a password (local)'],
   ['wordgen -p k=v',        'generate a wordlist (local)'],
-  ['submit <file>',         'upload a file for AI analysis (API)'],
+  ['submit -p key=value',   'submit a structured PII profile (API)'],
   ['history',               'list recent analyses (API)'],
   ['darkweb <q>',           'breach-search (API)'],
-  ['risk <target>',         'financial-risk score (API)'],
+  ['risk',                  'financial-risk snapshot (API)'],
   ['inbox',                 'list messages (API)'],
   ['login | logout',        'manage credentials'],
   ['config get|set <k>',    'inspect / mutate config'],
@@ -57,13 +57,13 @@ async function dispatch(name, argv) {
     case 'wordgen':
       return require('./commands/wordgen').run(parseFlags(argv, { profileFlag: true, limitFlag: true }));
     case 'submit':
-      return require('./commands/submit').run({ file: argv[0] });
+      return require('./commands/submit').run(parseFlags(argv, { profileFlag: true, patternModeFlag: true }));
     case 'history':
       return require('./commands/history').run(parseFlags(argv, { limitFlag: true }));
     case 'darkweb':
       return require('./commands/darkweb').run({ query: argv.join(' ') });
     case 'risk':
-      return require('./commands/risk').run({ target: argv.join(' ') });
+      return require('./commands/risk').run({});
     case 'inbox':
       return require('./commands/inbox').run({});
     case 'login':
@@ -84,7 +84,7 @@ async function dispatch(name, argv) {
 }
 
 /** Parse REPL-style argv into a shape the command handlers expect. */
-function parseFlags(argv, { positional, profileFlag, limitFlag } = {}) {
+function parseFlags(argv, { positional, profileFlag, limitFlag, patternModeFlag } = {}) {
   const opts = {};
   const positionals = [];
   const profiles = [];
@@ -92,11 +92,13 @@ function parseFlags(argv, { positional, profileFlag, limitFlag } = {}) {
     const a = argv[i];
     if ((a === '-p' || a === '--profile') && argv[i + 1]) { profiles.push(argv[++i]); continue; }
     if ((a === '-l' || a === '--limit') && argv[i + 1])   { opts.limit = parseInt(argv[++i], 10); continue; }
+    if (a === '--pattern-mode' && argv[i + 1]) { opts.patternMode = argv[++i]; continue; }
     if (a === '-f' || a === '--file') { opts.file = argv[++i]; continue; }
     if (a === '--json') { opts.json = true; continue; }
     positionals.push(a);
   }
   if (profileFlag) opts.profile = profiles;
+  if (patternModeFlag && !opts.patternMode) opts.patternMode = 'standard';
   if (positional && positionals.length) opts[positional] = positionals.join(' ');
   if (!limitFlag && positional !== 'text' && positional !== 'password' && positionals.length) {
     opts._ = positionals;

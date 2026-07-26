@@ -5,8 +5,11 @@
 
 -r requirements.txt
 
+pip==26.1.2
+setuptools==83.0.0
 ruff>=0.15.12
 mypy>=2.1.0
 django-stubs>=6.0.6
 djangorestframework-stubs>=3.17.0
 pre-commit>=4.6.0
+pip-audit>=2.10.0

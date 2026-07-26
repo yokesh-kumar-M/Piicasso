@@ -4,6 +4,7 @@ from urllib.parse import quote
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +13,17 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from backend.permissions import IsActiveUserOrMessagesOnly
+from backend.schema_serializers import (
+    BreachSearchRequestSerializer,
+    BreachSearchResponseSerializer,
+    FinancialRiskResponseSerializer,
+    MessageResponseSerializer,
+    NotificationActionRequestSerializer,
+    NotificationListResponseSerializer,
+    SystemSettingDeleteRequestSerializer,
+    SystemSettingUpdateRequestSerializer,
+    SystemSettingUpdateResponseSerializer,
+)
 from password_security.hibp import k_anonymity_breach_count
 
 from .models import Message, Notification, SystemSetting
@@ -25,6 +37,7 @@ User = get_user_model()
 
 
 class MessageViewSet(viewsets.ModelViewSet):
+    queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [IsActiveUserOrMessagesOnly]
     http_method_names = [
@@ -90,6 +103,11 @@ class NotificationListView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List the current user's notifications",
+        responses={200: NotificationListResponseSerializer},
+        tags=["Operations"],
+    )
     def get(self, request):
         notifications = Notification.objects.filter(user=request.user).order_by("-timestamp")[:50]
         unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
@@ -101,6 +119,12 @@ class NotificationListView(APIView):
             }
         )
 
+    @extend_schema(
+        summary="Mark one or all notifications as read",
+        request=NotificationActionRequestSerializer,
+        responses={200: MessageResponseSerializer},
+        tags=["Operations"],
+    )
     def post(self, request):
         """Mark notification(s) as read."""
         action_type = request.data.get("action")
@@ -121,6 +145,12 @@ class NotificationListView(APIView):
 
         return Response({"error": "Invalid action."}, status=400)
 
+    @extend_schema(
+        summary="Clear all notifications",
+        request=None,
+        responses={204: None},
+        tags=["Operations"],
+    )
     def delete(self, request):
         """Clear all notifications for the user."""
         Notification.objects.filter(user=request.user).delete()
@@ -146,6 +176,11 @@ class SystemSettingsView(APIView):
         ]
     )
 
+    @extend_schema(
+        summary="List system settings",
+        responses={200: SystemSettingSerializer(many=True)},
+        tags=["Operations"],
+    )
     def get(self, request):
         """Get all system settings."""
         if not request.user.is_superuser:
@@ -155,6 +190,12 @@ class SystemSettingsView(APIView):
         serializer = SystemSettingSerializer(settings, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Create or update a system setting",
+        request=SystemSettingUpdateRequestSerializer,
+        responses={200: SystemSettingUpdateResponseSerializer},
+        tags=["Operations"],
+    )
     def post(self, request):
         """Update a system setting."""
         if not request.user.is_superuser:
@@ -193,6 +234,12 @@ class SystemSettingsView(APIView):
             }
         )
 
+    @extend_schema(
+        summary="Delete a system setting",
+        request=SystemSettingDeleteRequestSerializer,
+        responses={204: None},
+        tags=["Operations"],
+    )
     def delete(self, request):
         """Delete a system setting."""
         if not request.user.is_superuser:
@@ -228,6 +275,12 @@ class BreachSearchView(APIView):
 
         return [BreachSearchRateThrottle()]
 
+    @extend_schema(
+        summary="Search breach intelligence for an account or password",
+        request=BreachSearchRequestSerializer,
+        responses={200: BreachSearchResponseSerializer},
+        tags=["Operations"],
+    )
     def post(self, request):
         import requests as http_requests
 
@@ -357,6 +410,11 @@ class FinancialRiskView(APIView):
     CCPA_PER_BREACH = 7_500
     REMEDIATION_PER_RECORD = 12
 
+    @extend_schema(
+        summary="Calculate the current user's financial risk exposure",
+        responses={200: FinancialRiskResponseSerializer},
+        tags=["Operations"],
+    )
     def get(self, request):
         from django.db.models import Avg, Sum
 

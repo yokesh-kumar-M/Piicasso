@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1.7
+
+FROM node:24-alpine
+
+ENV NODE_ENV=development
+
+WORKDIR /app
+
+COPY --chown=node:node package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund \
+    && chown -R node:node /app
+
+COPY --chown=node:node . .
+
+USER node
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

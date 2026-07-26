@@ -4,6 +4,7 @@ import math
 import re
 
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -16,6 +17,18 @@ from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from backend.schema_serializers import (
+    PasswordAnalysisHistoryResponseSerializer,
+    PasswordAnalyzeRequestSerializer,
+    PasswordAnalyzeResponseSerializer,
+    PasswordBreachCheckRequestSerializer,
+    PasswordBreachCheckResponseSerializer,
+    UserActivityFeedResponseSerializer,
+    UserPreferencesSerializer,
+    UserPreferencesUpdateRequestSerializer,
+    UserPreferencesUpdateResponseSerializer,
+)
 
 from .hibp import k_anonymity_breach_count
 
@@ -222,7 +235,9 @@ def analyze_password_strength(password, pii_data=None):
     for pii_value in pii_values:
         if len(pii_value) >= 4 and pii_value in password_lower:
             score = max(score - 30, 5)
-            vulnerabilities.append(f"Contains personal information: {pii_value[:10]}...")
+            # Findings are persisted and returned to clients. Describe the
+            # category without copying raw PII into a second plaintext field.
+            vulnerabilities.append("Contains personal information")
             recommendations.append("Avoid using personal information in passwords")
             has_personal = True
             break
@@ -291,6 +306,12 @@ class PasswordAnalyzeView(APIView):
 
         return _get_client_ip(request)
 
+    @extend_schema(
+        summary="Analyze password strength and breach exposure",
+        request=PasswordAnalyzeRequestSerializer,
+        responses={200: PasswordAnalyzeResponseSerializer},
+        tags=["Intelligence"],
+    )
     def post(self, request):
         password = request.data.get("password", "")
         pii_data = request.data.get("pii_data", {})
@@ -310,7 +331,10 @@ class PasswordAnalyzeView(APIView):
                     "Change this password immediately - it's been exposed in breaches"
                 )
                 analysis_result["level"] = "critical"
-                analysis_result["score"] = max(analysis_result["score"], 10)
+                # A confirmed breach is an upper bound on strength, regardless
+                # of composition. Never raise a weak score or leave a strong
+                # score intact after HIBP reports exposure.
+                analysis_result["score"] = min(analysis_result["score"], 10)
         else:
             analysis_result["breach_count"] = 0
 
@@ -344,7 +368,7 @@ class PasswordAnalyzeView(APIView):
                 },
             )
         except Exception as e:
-            logger.error(f"Failed to save analysis: {e}")
+            logger.error("Failed to save analysis (%s)", type(e).__name__)
 
         return Response(analysis_result, status=status.HTTP_200_OK)
 
@@ -353,6 +377,11 @@ class PasswordAnalysisHistoryView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List recent password analyses",
+        responses={200: PasswordAnalysisHistoryResponseSerializer},
+        tags=["Intelligence"],
+    )
     def get(self, request):
         try:
             from .models import PasswordAnalysis
@@ -377,7 +406,7 @@ class PasswordAnalysisHistoryView(APIView):
 
             return Response({"analyses": results}, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error(f"Failed to fetch history: {e}")
+            logger.error("Failed to fetch history (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to fetch history"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -388,6 +417,11 @@ class UserPreferencesView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Get password security preferences",
+        responses={200: UserPreferencesSerializer},
+        tags=["Intelligence"],
+    )
     def get(self, request):
         try:
             from .models import UserPreference
@@ -402,12 +436,18 @@ class UserPreferencesView(APIView):
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
-            logger.error(f"Failed to get preferences: {e}")
+            logger.error("Failed to get preferences (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to get preferences"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @extend_schema(
+        summary="Update password security preferences",
+        request=UserPreferencesUpdateRequestSerializer,
+        responses={200: UserPreferencesUpdateResponseSerializer},
+        tags=["Intelligence"],
+    )
     def put(self, request):
         try:
             from .models import UserPreference
@@ -434,13 +474,19 @@ class UserPreferencesView(APIView):
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
-            logger.error(f"Failed to update preferences: {e}")
+            logger.error("Failed to update preferences (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to update preferences"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
+@extend_schema(
+    summary="Check a password against breach data",
+    request=PasswordBreachCheckRequestSerializer,
+    responses={200: PasswordBreachCheckResponseSerializer},
+    tags=["Intelligence"],
+)
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([AllowAny])
@@ -469,6 +515,11 @@ class UserActivityFeedView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List recent password security activity",
+        responses={200: UserActivityFeedResponseSerializer},
+        tags=["Intelligence"],
+    )
     def get(self, request):
         from .models import PasswordAnalysis, PasswordAuditLog
 

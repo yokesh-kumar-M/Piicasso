@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "piicasso"
-version = "0.1.0"
+version = "2.0.0"
 description = "Command-line interface for PIIcasso — PII exposure intelligence and adversarial wordlist platform."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -35,6 +35,15 @@ dependencies = [
     "prompt_toolkit>=3.0",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0,<10",
+]
+dev = [
+    "pytest>=8.0,<10",
+    "ruff>=0.15,<1",
+]
+
 [project.urls]
 Homepage = "https://github.com/yokesh-kumar-M/Piicasso"
 Issues = "https://github.com/yokesh-kumar-M/Piicasso/issues"
@@ -42,9 +51,6 @@ Repository = "https://github.com/yokesh-kumar-M/Piicasso"
 
 [project.scripts]
 piicasso = "piicasso.cli:main"
-
-[tool.hatch.version]
-path = "src/piicasso/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/piicasso"]
@@ -56,3 +62,19 @@ include = [
     "/README.md",
     "/LICENSE",
 ]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["piicasso"]

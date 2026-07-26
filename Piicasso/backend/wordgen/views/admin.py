@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count, OuterRef, Q, Subquery
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -19,6 +21,16 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from analytics.models import UserActivity
+from backend.schema_serializers import (
+    AdminActionRequestSerializer,
+    AdminConversationEntrySerializer,
+    AdminMessageRequestSerializer,
+    AdminPurgeRequestSerializer,
+    AdminPurgeResponseSerializer,
+    AdminUserListSerializer,
+    MessageResponseSerializer,
+    SuperAdminResponseSerializer,
+)
 from generator.models import GenerationHistory
 from operations.models import SystemLog
 
@@ -37,6 +49,26 @@ class SuperAdminView(APIView):
         if not request.user.is_superuser:
             self.permission_denied(request, message="Restricted entry. System Administrator ONLY.")
 
+    @extend_schema(
+        summary="Get the administration dashboard or a user's generations",
+        parameters=[
+            OpenApiParameter(
+                name="action",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                enum=["get_generations"],
+            ),
+            OpenApiParameter(
+                name="user_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                required=False,
+            ),
+        ],
+        responses={200: SuperAdminResponseSerializer},
+        tags=["Admin"],
+    )
     def get(self, request):
         action = request.query_params.get("action")
 
@@ -104,6 +136,12 @@ class SuperAdminView(APIView):
             }
         )
 
+    @extend_schema(
+        summary="Run an administrative account action",
+        request=AdminActionRequestSerializer,
+        responses={200: MessageResponseSerializer},
+        tags=["Admin"],
+    )
     def post(self, request):
         action = request.data.get("action")
         target_id = request.data.get("user_id")
@@ -177,11 +215,25 @@ class SuperAdminView(APIView):
                 for token in OutstandingToken.objects.filter(user=target_user):
                     BlacklistedToken.objects.get_or_create(token=token)
             except Exception as e:
-                logger.warning(f"Token blacklist during security override failed: {e}")
+                logger.warning("Token blacklist during security override failed (%s)", type(e).__name__)
             return Response({"message": f"Security clearance for {target_user.username} manually overridden."})
 
         return Response({"error": "Invalid action parameter."}, status=400)
 
+    @extend_schema(
+        summary="Delete a standard user account",
+        parameters=[
+            OpenApiParameter(
+                name="user_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                required=True,
+            )
+        ],
+        request=None,
+        responses={200: MessageResponseSerializer},
+        tags=["Admin"],
+    )
     def delete(self, request):
         target_id = request.query_params.get("user_id")
         if not target_id:
@@ -210,6 +262,27 @@ super_admin_view = SuperAdminView.as_view()
 # ─── ADMIN MESSAGING (2.3 fix — optimized N+1 queries) ──────────────────────
 
 
+@extend_schema(
+    methods=["GET"],
+    summary="List administration conversations or a message thread",
+    parameters=[
+        OpenApiParameter(
+            name="user_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+            required=False,
+        )
+    ],
+    responses={200: AdminConversationEntrySerializer(many=True)},
+    tags=["Admin"],
+)
+@extend_schema(
+    methods=["POST"],
+    summary="Send a message through the administration channel",
+    request=AdminMessageRequestSerializer,
+    responses={201: AdminConversationEntrySerializer},
+    tags=["Admin"],
+)
 @api_view(["GET", "POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -356,6 +429,11 @@ def admin_message_view(request):
         )
 
 
+@extend_schema(
+    summary="List standard users available for messaging",
+    responses={200: AdminUserListSerializer(many=True)},
+    tags=["Admin"],
+)
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -370,6 +448,13 @@ def admin_users_list(request):
 # ─── DANGER ZONE: PURGE ALL OPERATIONAL DATA ─────────────────────────────────
 
 
+@extend_schema(
+    methods=["POST", "DELETE"],
+    summary="Purge all operational data",
+    request=AdminPurgeRequestSerializer,
+    responses={200: AdminPurgeResponseSerializer},
+    tags=["Admin"],
+)
 @api_view(["POST", "DELETE"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -405,7 +490,7 @@ def admin_purge_all(request):
 
     SystemLog.objects.create(
         message=(
-            f"PURGE executed by admin {request.user.username}: "
+            f"PURGE executed by admin_id={request.user.id}: "
             f"generations={deleted['generations']} "
             f"activities={deleted['activities']} "
             f"system_logs={deleted['system_logs']} "
@@ -418,8 +503,8 @@ def admin_purge_all(request):
     )
 
     logger.warning(
-        "PURGE executed by %s: %s",
-        request.user.username,
+        "PURGE executed by admin_id=%s: %s",
+        request.user.id,
         deleted,
     )
 

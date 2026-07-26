@@ -102,17 +102,22 @@ class AuthTokenTest(TestCase):
         self.assertIn("refresh", response.data)
 
     def test_login_wrong_password(self):
-        response = self.client.post(
-            "/api/user/token/",
-            {
-                "username": "authuser",
-                "password": "wrong",
-            },
-            format="json",
-        )
+        with self.assertLogs("wordgen.security", level="WARNING") as captured:
+            response = self.client.post(
+                "/api/user/token/",
+                {
+                    "username": "authuser",
+                    "password": "wrong",
+                },
+                format="json",
+            )
         self.assertEqual(response.status_code, 401)
         # Anti-enumeration: same generic message as the unknown-account cases.
         self.assertEqual(response.data["detail"], "Invalid credentials.")
+        log_output = "\n".join(captured.output)
+        self.assertIn("account_fingerprint", log_output)
+        self.assertNotIn("authuser", log_output)
+        self.assertNotIn("wrong", log_output)
 
     def test_login_unknown_email(self):
         response = self.client.post(
@@ -269,6 +274,24 @@ class PiiSubmitTest(TestCase):
     def test_submit_empty_data(self):
         response = self.client.post("/api/submit/", {})
         self.assertEqual(response.status_code, 400)
+
+    def test_submit_rejects_unknown_profile_fields(self):
+        response = self.client.post(
+            "/api/submit/",
+            {"full_name": "Ada Lovelace", "frist_name": "misspelled"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("frist_name", response.data)
+
+    def test_submit_rejects_oversized_profile_fields(self):
+        response = self.client.post(
+            "/api/submit/",
+            {"full_name": "x" * 257},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("full_name", response.data)
 
     def test_submit_unauthenticated(self):
         client = APIClient()  # No auth

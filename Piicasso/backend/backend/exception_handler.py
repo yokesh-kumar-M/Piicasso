@@ -63,7 +63,13 @@ def enterprise_exception_handler(exc, context):
         )
 
     # ── Unhandled 500 errors ────────────────────────────────────────────────
-    logger.error(f"Unhandled exception [request_id={request_id}]: {exc}\n{traceback.format_exc()}")
+    stack_frames = "".join(traceback.format_list(traceback.extract_tb(exc.__traceback__)))
+    logger.error(
+        "Unhandled exception request_id=%s error_type=%s\n%s",
+        request_id,
+        type(exc).__name__,
+        stack_frames,
+    )
 
     return Response(
         _build_payload(

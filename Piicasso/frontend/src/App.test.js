@@ -1,17 +1,10 @@
 import { render } from '@testing-library/react';
 import { useContext } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { test, expect, vi } from 'vitest';
+import { beforeEach, expect, test } from 'vitest';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
-vi.mock('./api/axios', () => ({
-  __esModule: true,
-  default: {
-    defaults: { headers: { common: {} } },
-    get: vi.fn(() => Promise.resolve({ data: {} })),
-    post: vi.fn(),
-  },
-}));
+beforeEach(() => localStorage.clear());
 
 // Smoke test: App renders without crashing
 test('renders without crashing', () => {

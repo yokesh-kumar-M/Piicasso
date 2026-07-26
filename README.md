@@ -1,489 +1,334 @@
-# PIIcasso — Deep Search Intelligence Platform
+# PIIcasso
 
 [![CI](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/ci.yml/badge.svg)](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/piicasso?label=npm&color=cb3837&logo=npm)](https://www.npmjs.com/package/piicasso)
-[![PyPI](https://img.shields.io/pypi/v/piicasso?label=pypi&color=3776AB&logo=python)](https://pypi.org/project/piicasso/)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/yokesh-kumar-M/Piicasso/releases)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Uptime](https://img.shields.io/badge/uptime-99.9%25-brightgreen)](https://betterstack.com)
-[![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django)](https://www.djangoproject.com/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
-[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)](https://www.docker.com/)
+[![npm](https://img.shields.io/npm/v/piicasso?label=npm&logo=npm)](https://www.npmjs.com/package/piicasso)
+[![PyPI](https://img.shields.io/pypi/v/piicasso?label=pypi&logo=python)](https://pypi.org/project/piicasso/)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-> **AI-powered PII intelligence and adversarial wordlist platform** — web app, in-browser terminal, and a global CLI you can install in one line.
+PIIcasso is a PII analysis and security-workflow platform with a React web application, a Django REST API, and Node and Python command-line clients. Local CLI commands can detect and redact PII, score passwords, and generate candidate wordlists without contacting the API. Authenticated workflows use the backend for saved operations, AI-assisted generation, history, messaging, and risk data.
 
----
+> Use PIIcasso only with data and systems you own or are explicitly authorized to test. See [Security and responsible use](#security-and-responsible-use).
 
-## Install in one line
+This README describes the repository and its supported configuration. It is not an uptime report or service-level guarantee.
+
+## Requirements
+
+| Component                | Requirement                                                            |
+| ------------------------ | ---------------------------------------------------------------------- |
+| Frontend and Node CLI    | Node.js **24 or newer** and npm                                        |
+| Backend                  | Python 3.12 recommended                                                |
+| Python CLI               | Python 3.9 or newer                                                    |
+| Container workflow       | Docker Engine with Docker Compose                                      |
+| Production data services | PostgreSQL 15 and Redis 8 are provided by the production Compose stack |
+
+Use the committed lockfiles with `npm ci` when working from source.
+
+## Install a CLI
 
 ```bash
-# Node / npm
-npm install -g piicasso
+# Node.js CLI (requires Node >=24)
+npm install --global piicasso
 
-# Python / pip
+# Python CLI
 pip install piicasso
 ```
 
-Then run `piicasso` to drop into an interactive terminal, or use any subcommand directly:
+Examples below use the Node CLI:
 
 ```bash
-piicasso analyze "Email john@example.com — call 9876543210"
-piicasso wordgen --profile name=John --profile dob=1998
-piicasso score "Tr0ub4dor&3"
-piicasso login          # connect to the hosted backend
-piicasso darkweb "acme corp"
-piicasso risk "acme corp"
+# Local operations: no account or network request
+piicasso analyze "Email jane@example.com or call 9876543210"
+piicasso redact "Email jane@example.com"
+piicasso score "ExamplePassword42!" --profile username=jane birth_year=1990
+piicasso wordgen --profile name=Jane birth_year=1990 --limit 20
+
+# API-backed operations: authenticate first
+piicasso login
+piicasso submit --profile full_name="Jane Doe" birth_year=1990 current_city=Chennai --pattern-mode standard
+piicasso history --limit 10
+piicasso risk
 ```
 
-The CLI is **hybrid**: PII detection, redaction, password scoring, and wordlist generation run **locally** with no network calls. AI-backed features (dark-web search, financial risk, history) hit the hosted API. The web app, the in-browser Terminal at `/terminal`, and both CLI packages share the same `piiEngine` so output is byte-for-byte identical across surfaces.
+`submit` accepts a structured profile, not a file. `risk` takes no target argument; it returns the authenticated user's current financial-risk snapshot. See the [Node CLI documentation](Piicasso/cli-node/README.md) for the complete submit contract and the [Python CLI documentation](Piicasso/cli-python/README.md) for that client's command surface.
 
-Full CLI docs: [`Piicasso/cli-node/README.md`](Piicasso/cli-node/README.md) · [`Piicasso/cli-python/README.md`](Piicasso/cli-python/README.md)
+The local engines are separate implementations. Do not assume byte-identical results between the browser, Node, and Python surfaces unless a specific parity test covers the behavior you depend on.
 
----
+## Repository surfaces
 
-## Live demo
+### Web application
 
-| Service | URL | Status |
-|---------|-----|--------|
-| Frontend (Vercel) | [pii-casso.vercel.app](https://pii-casso.vercel.app) | ![live](https://img.shields.io/badge/status-live-brightgreen) |
-| Backend API (Render) | [core-engine-woeg.onrender.com/api](https://core-engine-woeg.onrender.com/api/) | ![live](https://img.shields.io/badge/status-live-brightgreen) |
-| In-browser Terminal | [/terminal](https://pii-casso.vercel.app/terminal) | ![live](https://img.shields.io/badge/status-live-brightgreen) |
-| API docs (Swagger) | [/api/docs](https://core-engine-woeg.onrender.com/api/docs/) | ![live](https://img.shields.io/badge/status-live-brightgreen) |
+The React 19 and Vite 8 single-page application includes registration and authentication, user and security workflows, operation history, team features, an in-browser command interface, and role-gated administration.
 
----
+### Django API
 
-## What is PIIcasso?
+The Django 5.2 and Django REST Framework backend provides JWT authentication, generation and analysis endpoints, history, messaging, teams, password-security workflows, analytics, and OpenAPI documentation. The production image starts the application through **Daphne ASGI** after applying migrations and ensuring the database-backed cache table exists.
 
-PIIcasso is a full-stack **Deep Search Intelligence Platform** with a dual-mode architecture:
+### Command-line clients
 
-- **Security mode** (tactical dark/red) — Red teams and pentesters generate AI-powered, profile-based wordlists with 3D threat visualization, risk radar charts, and dossier PDF exports.
-- **User mode** (midnight cobalt glass) — Individuals assess their own password strength against PII-based cracking patterns, with breach history visualization and real-time scoring.
+- [`Piicasso/cli-node`](Piicasso/cli-node/README.md): Node.js 24+, Commander, Axios, and Chalk.
+- [`Piicasso/cli-python`](Piicasso/cli-python/README.md): Python 3.9+, Click, Rich, Prompt Toolkit, and Requests.
 
-It ships in three surfaces:
+Both clients combine local utilities with authenticated API calls, but their exact options and output formats can differ. Refer to each package's README.
 
-1. **Web app** — React 19 SPA (Vite) on Vercel.
-2. **In-browser terminal** — a mode-aware interactive shell at `/terminal` with the same command set as the CLI.
-3. **CLI** — `piicasso` on npm and PyPI; local analysis + API client.
+## Node CLI commands
 
-Backend is **Django 5 + DRF** containerized with **Docker + Nginx**, deployed to **Render**, and powered by **Google Gemini** for intelligent wordlist generation.
+| Command                                         | Execution | Description                                            |
+| ----------------------------------------------- | --------- | ------------------------------------------------------ |
+| `analyze [text] [-f path]`                      | Local     | Detect PII entities in text or a file                  |
+| `redact [text] [-f path]`                       | Local     | Replace detected values with `[TYPE]` placeholders     |
+| `score <password> [-p key=value ...]`           | Local     | Score a password against optional profile values       |
+| `wordgen -p key=value ... [-l N]`               | Local     | Generate a bounded candidate wordlist                  |
+| `submit -p key=value ... [--pattern-mode mode]` | API       | Submit a structured profile for AI-assisted generation |
+| `history [-l N]`                                | API       | List recent saved analyses                             |
+| `darkweb <query>`                               | API       | Query the configured breach-search workflow            |
+| `risk`                                          | API       | Read the authenticated user's current risk snapshot    |
+| `inbox`                                         | API       | List operations-inbox messages                         |
+| `login`, `logout`, `whoami`                     | API       | Manage and inspect the stored session                  |
+| `mode [user\|security]`                         | Local     | Read or set the CLI presentation mode                  |
+| `config <list\|get\|set\|unset> [key] [value]`  | Local     | Manage `~/.piicasso/config.json`                       |
+| `repl` or no arguments                          | Mixed     | Start the interactive CLI                              |
 
----
+Commands that expose a `--json` option can emit machine-readable output.
 
-## Surfaces
+### Structured submit contract
 
-### Web app
+The Node CLI accepts one or more `key=value` pairs after `--profile` and validates them against its recognized profile-key set. `--pattern-mode` is one of:
 
-```
-https://pii-casso.vercel.app
-```
+- `standard`
+- `corporate`
+- `leetspeak`
+- `deep`
 
-Full UI with marketing pages, registration/login, dual-mode dashboards, operation history, dark-web search, financial risk radar, team workspaces, and admin console.
+The backend's committed OpenAPI schema documents the recognized submit fields and the same pattern-mode enum. A request must contain meaningful non-pattern PII; undeclared keys and profile values longer than 256 characters are rejected. A successful `201` response is a scored wordlist and metrics envelope, and `--json` prints the complete response.
 
-### In-browser terminal
+## Local development
 
-```
-https://pii-casso.vercel.app/terminal
-```
-
-A fully interactive shell rendered in React. Cyan prompt (`user@piicasso:~$`) in user mode, red prompt (`sec@piicasso:~#`) in security mode. Built-in commands: `help`, `clear`, `mode`, `switch user|security`, `whoami`, `routes`, `goto <path>`, `echo`, `about`, `exit`. Up/Down history, Tab autocomplete.
-
-### CLI (npm + pip)
-
-`piicasso` on both registries — same command surface, same engine, same output. See [CLI commands](#cli-commands) below.
-
----
-
-## CLI commands
-
-| Command | Mode | Description |
-| --- | --- | --- |
-| `analyze [text] [-f path]` | local | Detect PII entities (EMAIL, PHONE, SSN, CARD, DOB, IP, ADDR, ZIP, NAME) |
-| `redact [text] [-f path]` | local | Replace detected PII with `[TYPE]` placeholders |
-| `score <password> [-p k=v ...]` | local | Crackability score (0–100) + rating + entropy + crack time |
-| `wordgen -p k=v ... [-l N]` | local | Adversarial wordlist from a profile |
-| `submit <file>` | API | Upload text for server-side AI analysis |
-| `history [-l N]` | API | List recent analyses |
-| `darkweb <query>` | API | Breach-search across configured dark-web sources |
-| `risk <target>` | API | Financial-risk score (Gemini-backed) |
-| `inbox` | API | List messages |
-| `login` / `logout` / `whoami` | API | Manage credentials |
-| `mode [user\|security]` | local | Show or set local theme |
-| `config <action> [key] [value]` | local | Inspect / mutate `~/.piicasso/config.json` |
-| *(no args)* | — | Enter the interactive REPL |
-
-All commands accept `--json` for machine-readable output where it makes sense.
-
-### Configuration
-
-The CLI stores its state in `~/.piicasso/config.json`:
-
-```json
-{
-  "api":     "https://core-engine-woeg.onrender.com/api/",
-  "mode":    "user",
-  "access":  "<JWT>",
-  "refresh": "<JWT>"
-}
-```
-
-Override the API base with the `PIICASSO_API` environment variable or `piicasso config set api <url>`.
-
----
-
-## Key features
-
-| Feature | Description |
-|---------|-------------|
-| AI wordlist generation | Google Gemini LLM generates profile-based wordlists from PII inputs |
-| PII detection engine | Pure-JS / pure-Python regex engine — same code in web, terminal, and CLI |
-| Smart permutations | Algorithmic generation: leetspeak, date variants, common suffixes |
-| 3D threat globe | WebGL globe (`react-globe.gl`) with live user presence via cache heartbeats |
-| Risk radar | `Chart.js` radar visualization of password vulnerability dimensions |
-| Dossier export | PDF report generation (`reportlab`) of full intelligence output |
-| Live password testing | Real-time strength scoring with breakdown and recommendations |
-| Operation history | Expandable rows showing vulnerabilities and per-entry recommendations |
-| Team management | Multi-user team workspaces with role-based access |
-| Admin panel | Super admin role promotion/demotion with bootstrap command |
-| Dual-mode theming | Body-class system — Security (tactical red) / User (glass morphism) |
-| Mode-aware terminal | `/terminal` page + CLI REPL with cyan/red theming |
-| Responsive | Mobile-first (320px+), tablet (768px+), desktop (1024px+) — 44px touch targets |
-
----
-
-## Architecture
-
-```
-                  ┌──────────────┐
-   Browser ──────▶│   Vercel     │  React 19 SPA + in-browser terminal
-                  │  (Frontend)  │  Tailwind + Framer Motion
-                  └──────┬───────┘
-                         │
-   CLI (npm/pip) ────────┼──────────▶  HTTPS / REST API
-                         │
-                  ┌──────▼───────┐
-                  │    Nginx     │  least_conn + keepalive
-                  │   (Render)   │  Reverse proxy + SSL termination
-                  └──────┬───────┘
-                         │
-                  ┌──────▼───────┐
-                  │  Gunicorn    │  2 workers × N replicas
-                  │  (N pods)    │
-                  └──────┬───────┘
-                         │
-                  ┌──────▼───────┐
-                  │   Django 5   │  DRF · SimpleJWT · Google OAuth
-                  │   API tier   │  Gemini AI · ReportLab · Prometheus
-                  └──────┬───────┘
-                  ┌──────┴───────┐
-              ┌───▼───┐      ┌───▼───┐
-              │  PG   │      │ Redis │  Cache + heartbeats + rate limits
-              └───────┘      └───────┘
-```
-
-**Observability:** Django middleware → Prometheus → Grafana Cloud. Sentry for errors. Better Stack for uptime.
-
----
-
-## Technology stack
-
-### Backend
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Django | 5.x | Web framework |
-| Django REST Framework | latest | REST API |
-| PostgreSQL | 15+ | Primary database |
-| Redis | 7+ | Cache, presence, rate limits |
-| SimpleJWT | latest | JWT auth + refresh tokens |
-| Google Gemini API | v1 | AI wordlist generation |
-| ReportLab | latest | PDF dossier export |
-| Gunicorn | 2x workers | WSGI server, 120s timeout |
-| Prometheus | latest | Metrics middleware |
-| Docker | 24+ | Containerization |
-
-### Frontend
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 19 | UI framework |
-| Vite | 6.x | Build tool + dev server |
-| React Router | 7.x | Client-side routing |
-| Tailwind CSS | 4.x | Utility-first styling |
-| Framer Motion | 12.x | Page + component animations |
-| react-globe.gl | latest | 3D threat globe (Three.js) |
-| Chart.js / react-chartjs-2 | latest | Radar + bar charts |
-| Lucide React | latest | Icon library |
-| @react-oauth/google | latest | Google SSO |
-
-### CLI
-
-| Package | Stack | Install |
-|---------|-------|---------|
-| [piicasso](https://www.npmjs.com/package/piicasso) (npm) | Node ≥20, commander, chalk, axios | `npm i -g piicasso` |
-| [piicasso](https://pypi.org/project/piicasso/) (PyPI) | Python ≥3.9, click, rich, prompt_toolkit, requests | `pip install piicasso` |
-
----
-
-## Quick start (local development)
-
-### Option A — Docker Compose (recommended)
+Clone the repository and create the backend environment file:
 
 ```bash
 git clone https://github.com/yokesh-kumar-M/Piicasso.git
-cd Piicasso/Piicasso
-
-# Configure env
-cp backend/.env.example backend/.env
-# Edit backend/.env (see Environment variables below)
-
-# Start everything
-docker compose up --build
-
-# Scale web workers
-docker compose up --scale web=3
+cd Piicasso
+cp Piicasso/backend/.env.example Piicasso/backend/.env
 ```
 
-Services start at:
+The example environment is production-oriented. For local work, review every value, set `ENV=development`, use development hosts/origins, and either remove the placeholder `DATABASE_URL` to use the local fallback or replace it with a real database URL. `GOOGLE_CLIENT_ID` and a valid `FIELD_ENCRYPTION_KEY` are required for backend startup.
 
-- Frontend: <http://localhost:3000>
-- Backend API: <http://localhost:8000/api/>
-- Nginx proxy: <http://localhost:80>
+Generate a Fernet key with:
 
-### Option B — Manual
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
 
-**Backend**
+### Backend
 
 ```bash
 cd Piicasso/backend
-python -m venv venv
-source venv/bin/activate           # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+python -m venv .venv
+
+# Linux/macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+# .\.venv\Scripts\Activate.ps1
+
+python -m pip install -r requirements-dev.txt
 python manage.py migrate
-python manage.py ensure_admin      # creates default admin
-python manage.py runserver         # http://localhost:8000
+python manage.py runserver
 ```
 
-**Frontend**
+The development API is available at <http://localhost:8000/api/>.
+
+### Frontend
+
+In another terminal:
 
 ```bash
 cd Piicasso/frontend
-npm install
-echo "REACT_APP_API_URL=http://localhost:8000/api/" > .env
-npm start                          # http://localhost:3000
+cp .env.example .env.local
+npm ci
+npm run dev
 ```
 
-**CLI (from source)**
+The Vite development server is configured for <http://localhost:3000>.
+
+### CLIs from source
 
 ```bash
-# Node
+# Node CLI
 cd Piicasso/cli-node
-npm install && npm link            # exposes the global `piicasso` binary
+npm ci
+npm link
+piicasso --version
 
-# Python
-cd Piicasso/cli-python
-pip install -e .                   # installs the `piicasso` entrypoint
+# Python CLI, from the repository root
+python -m pip install -e Piicasso/cli-python
+piicasso --version
 ```
 
----
+## Docker Compose: development vs production
+
+The repository intentionally contains two Compose files with different purposes.
+
+### Root `docker-compose.yml`: local development
+
+Run this file from the repository root:
+
+```bash
+docker compose -f docker-compose.yml up --build
+```
+
+It uses `Dockerfile.dev` images and bind mounts for the Django development server and Vite development server. It also starts Redis and a Celery worker. Expected local ports are frontend `3000`, backend `8000`, and Redis `6379`. It does **not** provision PostgreSQL; database behavior follows `Piicasso/backend/.env`.
+
+### `Piicasso/docker-compose.yml`: production-style self-hosting
+
+Run the nested file explicitly:
+
+```bash
+docker compose -f Piicasso/docker-compose.yml up --build --detach
+```
+
+This topology builds the production frontend and backend images and adds a Celery worker, PostgreSQL, authenticated Redis, Prometheus, Grafana, Loki, and Grafana Alloy. Set the required `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, and `GRAFANA_PASSWORD` substitutions, and provide production secrets in `Piicasso/backend/.env` before starting it. The frontend is published on host port `80`; the backend remains internal to the Compose network and is reached through the frontend proxy.
+
+The backend container runs `Piicasso/backend/start.sh`, which collects shared static assets, applies migrations, creates the database cache table if needed, and then replaces the shell process with Daphne serving `backend.asgi:application`. The frontend production image serves its static Vite build through unprivileged Nginx and proxies HTTP and WebSocket traffic. Prometheus and Loki are private to the Compose network; Grafana is the published observability surface on port `3001`.
+
+Neither Compose file by itself proves that an external deployment is healthy; use the health endpoint and your deployment platform's monitoring.
+
+## Technology stack
+
+| Layer                              | Current repository stack                                        |
+| ---------------------------------- | --------------------------------------------------------------- |
+| Backend                            | Python 3.12 image, Django 5.2, Django REST Framework, SimpleJWT |
+| Production application server      | Daphne 4 / ASGI                                                 |
+| AI integration                     | `google-genai`; model selected by `GEMINI_MODEL`                |
+| Frontend                           | Node 24, React 19, Vite 8, React Router 7, Tailwind CSS 4       |
+| Frontend visualization             | Chart.js and `react-globe.gl`                                   |
+| Node CLI                           | Node 24+, Commander 11, Axios, Chalk                            |
+| Python CLI                         | Python 3.9+, Click, Rich, Requests                              |
+| Production data                    | PostgreSQL 15 and Redis 8                                       |
+| Optional self-hosted observability | Prometheus, Grafana, Loki, Grafana Alloy                        |
 
 ## Environment variables
 
-### Backend (`Piicasso/backend/.env`)
+Start from [`Piicasso/backend/.env.example`](Piicasso/backend/.env.example) and [`Piicasso/frontend/.env.example`](Piicasso/frontend/.env.example). Never commit populated environment files.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DJANGO_SECRET_KEY` | Yes | Django secret key |
-| `DEBUG` | Yes | `True` for dev, `False` for prod |
-| `ENV` | Yes | `development` or `production` |
-| `DATABASE_URL` | Yes | `postgresql://user:pass@host:5432/piicasso` |
-| `REDIS_URL` | No | `redis://localhost:6379/0` |
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret |
-| `ALLOWED_HOSTS` | Yes | Comma-separated hostnames |
-| `CORS_ALLOWED_ORIGINS` | Yes | Comma-separated frontend origins |
-| `SENTRY_DSN` | No | Sentry error tracking DSN |
+### Backend
 
-### Frontend (`Piicasso/frontend/.env`)
+| Variable               | Requirement                  | Purpose                                                                                |
+| ---------------------- | ---------------------------- | -------------------------------------------------------------------------------------- |
+| `DJANGO_SECRET_KEY`    | Production required          | Django signing key                                                                     |
+| `FIELD_ENCRYPTION_KEY` | Required                     | Fernet key for encrypted PII fields; rotation requires a data migration                |
+| `GOOGLE_CLIENT_ID`     | Required by current settings | Google identity verification configuration                                             |
+| `DATABASE_URL`         | Production recommended       | PostgreSQL connection URL; local development can use the configured fallback           |
+| `REDIS_URL`            | Optional                     | Shared cache and rate-limit backend; production falls back to database cache if absent |
+| `GEMINI_API_KEY`       | Optional                     | Enables Gemini generation; the backend has a deterministic fallback when absent        |
+| `GEMINI_MODEL`         | Optional                     | Gemini model name; defaults to `gemini-3.6-flash`                                      |
+| `ALLOWED_HOSTS`        | Production required          | Comma-separated Django host allowlist                                                  |
+| `CORS_ALLOWED_ORIGINS` | Production required          | Comma-separated frontend origins                                                       |
+| `SENTRY_DSN`           | Optional                     | Enables configured backend error reporting                                             |
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `REACT_APP_API_URL` | Yes | Backend API base URL |
-| `REACT_APP_GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
+### Frontend
 
-### CLI (`~/.piicasso/config.json` or env)
+| Variable                     | Requirement                 | Purpose                                                      |
+| ---------------------------- | --------------------------- | ------------------------------------------------------------ |
+| `REACT_APP_API_URL`          | Recommended                 | API base URL including a trailing slash; defaults to `/api/` |
+| `REACT_APP_GOOGLE_CLIENT_ID` | Required for Google sign-in | Browser OAuth client ID                                      |
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PIICASSO_API` | No | Override API base URL for the CLI |
+### CLI
 
----
+| Variable       | Requirement | Purpose                             |
+| -------------- | ----------- | ----------------------------------- |
+| `PIICASSO_API` | Optional    | Overrides the Node CLI API base URL |
 
-## Deployment
+## API contract
 
-### One-click
+The backend OpenAPI snapshot is committed at [`Piicasso/backend/schema.yml`](Piicasso/backend/schema.yml). CI regenerates and validates the schema, then fails on drift. The current schema generation is warning-free and includes the recognized submit profile fields, pattern-mode enum, and typed success envelope.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/yokesh-kumar-M/Piicasso)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yokesh-kumar-M/Piicasso)
+The schema is the documented contract. The PII submission request is explicitly closed (`additionalProperties: false`), matching the server's unknown-field rejection.
 
-### Render (backend)
-
-1. Connect your GitHub repo to Render.
-2. Create a **Web Service** rooted at `Piicasso/backend/` (uses the included Dockerfile).
-3. Set required environment variables in the dashboard.
-4. Auto-deploys on push to `main`.
-
-### Vercel (frontend)
-
-1. Import the repo to Vercel.
-2. Set root directory to `Piicasso/frontend`.
-3. Add `REACT_APP_API_URL` pointing to your Render backend URL.
-4. Auto-deploys on push to `main`.
-
-### Publishing the CLI
+After changing a view or serializer, regenerate the snapshot from the repository root:
 
 ```bash
-# npm
-cd Piicasso/cli-node
-npm login
-npm publish --access public
-
-# PyPI
-cd Piicasso/cli-python
-python -m pip install --upgrade build twine
-python -m build              # produces dist/*.tar.gz + dist/*.whl
-twine check dist/*
-twine upload dist/*
+task schema
 ```
 
----
+## Quality checks
 
-## Production status
+```bash
+# Frontend
+npm ci --prefix Piicasso/frontend
+npm test --prefix Piicasso/frontend
+npm run lint --prefix Piicasso/frontend
+npm run format:check --prefix Piicasso/frontend
+npm run build --prefix Piicasso/frontend
+npm run audit:production --prefix Piicasso/frontend
 
-### Infrastructure
+# Node CLI
+npm ci --prefix Piicasso/cli-node
+npm test --prefix Piicasso/cli-node
 
-| Component | Provider | Config |
-|-----------|----------|--------|
-| Backend hosting | Render | 2 Gunicorn workers, 120s timeout, Singapore region |
-| Frontend hosting | Vercel | Edge CDN, automatic HTTPS |
-| Database | PostgreSQL | Managed (Render or external) |
-| Cache | Redis | Render Redis or Upstash |
-| Nginx | Docker (Render) | `least_conn` + keepalive |
-| npm package | npmjs.com | `piicasso@latest` |
-| PyPI package | pypi.org | `piicasso` |
+# Backend, after installing requirements-dev.txt in its virtual environment
+python scripts/run_backend_tool.py manage.py test --verbosity=2
+python scripts/run_backend_tool.py ruff check .
+python scripts/run_backend_tool.py ruff format --check .
+```
 
-### Observability
+The root [`Taskfile.yml`](Taskfile.yml) also provides `setup`, `dev`, `test`, `lint`, `format`, `typecheck`, and `schema` tasks.
 
-| Tool | Purpose | Coverage |
-|------|---------|----------|
-| Sentry | Error tracking | Backend + frontend |
-| Better Stack | Uptime monitoring | 3 endpoints |
-| Prometheus | Metrics collection | Django middleware |
-| Grafana Cloud | Dashboards | Performance + errors |
+## Deployment configuration
 
-### Security
+- [`render.yaml`](render.yaml) defines the Docker-based backend deployment and health path.
+- [`vercel.json`](vercel.json) defines frontend security headers, SPA routing, and the `/api/` rewrite.
+- [`Piicasso/docker-compose.yml`](Piicasso/docker-compose.yml) is the production-style self-hosted stack.
 
-| Control | Status |
-|---------|--------|
-| HTTPS enforced | ✅ Render + Vercel |
-| Security headers (CSP, HSTS, X-Frame) | ✅ |
-| JWT + refresh tokens | ✅ SimpleJWT |
-| Google OAuth | ✅ Cert caching enabled |
-| CORS configured | ✅ Per-environment origins |
-| Environment secrets | ✅ Never in version control |
-| CLI token storage | ✅ `~/.piicasso/config.json` (POSIX 0600 where supported) |
-
-### Keep-alive
-
-GitHub Actions pings the backend, frontend, and Supabase every 10 minutes to prevent free-tier spin-down. See [Actions → keep-alive](https://github.com/yokesh-kumar-M/Piicasso/actions/workflows/keep-alive.yml).
-
----
+Repository configuration includes hosted target URLs, but this README deliberately does not label them “live” or promise availability. Check the health endpoint and the relevant provider dashboard when operating a deployment.
 
 ## Project layout
 
+```text
+Piicasso/
+├── docker-compose.yml              # Local development stack
+├── README.md
+├── Taskfile.yml
+├── UPGRADE_PLAN.md
+├── render.yaml
+├── vercel.json
+└── Piicasso/
+    ├── backend/                    # Django/DRF API and Daphne startup
+    │   ├── backend/                # Settings, URLs, ASGI application
+    │   ├── generator/              # Generation records and encrypted fields
+    │   ├── operations/             # Logs, messages, notifications
+    │   ├── password_security/      # Password analysis workflows
+    │   ├── teams/                  # Team workflows
+    │   ├── wordgen/                # API views, serializers, Gemini integration
+    │   ├── schema.yml              # CI-enforced OpenAPI snapshot
+    │   └── start.sh                # Migration/cache setup and Daphne startup
+    ├── frontend/                   # React 19 and Vite 8 application
+    ├── cli-node/                   # npm CLI
+    ├── cli-python/                 # Python CLI
+    ├── docker-compose.yml          # Production-style self-hosted stack
+    ├── alloy/                      # Production log-collection configuration
+    ├── grafana/                    # Provisioned dashboards and data sources
+    └── prometheus/                 # Metrics configuration
 ```
-PIIcasso/
-├── Piicasso/
-│   ├── backend/                    # Django API
-│   │   ├── core/                   # Settings + core URLs
-│   │   ├── operations/             # Operation history, breach search, financial risk
-│   │   ├── password_security/      # Password strength + preferences
-│   │   ├── teams/                  # Team management
-│   │   ├── wordgen/                # AI wordlist generation + Gemini integration
-│   │   ├── analytics/              # Analytics + system logs
-│   │   ├── start.sh                # Gunicorn entrypoint (2w, 120s)
-│   │   └── requirements.txt
-│   │
-│   ├── frontend/                   # React SPA
-│   │   └── src/
-│   │       ├── components/         # Terminal.js, Navbar, GlobalMap, ...
-│   │       ├── context/            # AuthContext, ModeContext
-│   │       ├── lib/piiEngine.js    # Shared PII detection engine (JS)
-│   │       └── pages/              # TerminalPage, LandingPage, ...
-│   │
-│   ├── cli-node/                   # npm package `piicasso`
-│   │   ├── bin/piicasso.js         # Node CLI entrypoint
-│   │   ├── src/engine/pii.js       # Engine port (matches piiEngine.js)
-│   │   ├── src/commands/           # One module per subcommand
-│   │   └── src/repl.js             # Interactive REPL
-│   │
-│   ├── cli-python/                 # pip package `piicasso`
-│   │   ├── pyproject.toml          # Hatchling build
-│   │   ├── src/piicasso/engine/    # Python port of piiEngine.js
-│   │   ├── src/piicasso/cli.py     # Click subcommand root
-│   │   └── src/piicasso/repl.py    # Interactive REPL
-│   │
-│   ├── nginx/nginx.conf            # Reverse proxy + load balancing
-│   ├── docker-compose.yml          # Full-stack orchestration
-│   └── Dockerfile                  # Production backend image
-│
-├── .github/workflows/
-│   ├── ci.yml                      # Tests + bundle build
-│   └── keep-alive.yml              # Free-tier keep-alive pings
-├── render.yaml                     # Render service config
-├── vercel.json                     # Vercel project config
-└── README.md
-```
-
----
 
 ## Contributing
 
-```bash
-git checkout -b feature/your-feature
-# ... edit ...
-cd Piicasso/backend && ruff check . && ruff format --check .   # backend lint
-cd Piicasso/frontend && npm run lint && npm test                # frontend lint + tests
-cd Piicasso/cli-python && pytest                                 # CLI tests
-git commit -m "feat: add your feature"
-gh pr create
-```
+1. Create a branch from the current default branch.
+2. Install locked dependencies with `npm ci` and backend development dependencies with `requirements-dev.txt`.
+3. Add or update tests for behavior changes.
+4. Run the relevant checks from [Quality checks](#quality-checks).
+5. If the API contract changed, regenerate `schema.yml`.
+6. Open a pull request that explains behavior, migration, and security implications.
 
-**Style:** Ruff (backend) — see `Piicasso/backend/pyproject.toml`; ESLint 9 + Prettier (frontend) — see `Piicasso/frontend/eslint.config.js`. Keep the engine in `piiEngine.js`, `cli-node/src/engine/pii.js`, and `cli-python/src/piicasso/engine/pii.py` in lockstep — changes to one require changes to the other two.
+Pre-commit hooks are configured in [`.pre-commit-config.yaml`](.pre-commit-config.yaml). Install them with `pre-commit install` or use `task setup`.
 
-**Pre-commit hooks:** `pip install pre-commit && pre-commit install` sets up automatic linting, formatting, mypy (on the seed-strict backend modules), and secret scanning (gitleaks) on every commit. Run `pre-commit run --all-files` to check the whole tree on demand. See `.pre-commit-config.yaml`.
+## Security and responsible use
 
-**OpenAPI schema:** `Piicasso/backend/schema.yml` is a committed, CI-enforced snapshot of the API (regenerate with `task schema` after touching any view/serializer — CI fails if it's stale). Most function-based and plain-`APIView` endpoints don't yet have explicit `serializer_class`/`@extend_schema` annotations, so drf-spectacular falls back to generic typing for them; tightening that up is tracked in `UPGRADE_PLAN.md` Phase 1.
-
----
-
-## Security notice
-
-> PIIcasso is intended strictly for **authorized security testing, penetration testing, and personal password safety education**. Generating wordlists targeting individuals or systems without explicit consent is illegal. The maintainers assume no liability for misuse.
-
----
-
-## Related projects
-
-PIIcasso pairs naturally with the offensive side of an authorised pentest:
-
-- [SprayMaster](https://github.com/yokesh-kumar-M/SprayMaster) — multi-protocol password sprayer. Feed it the wordlists PIIcasso generates.
-- [Clavis](https://github.com/yokesh-kumar-M/clavis) — HSM key-migration testbed with built-in VAPT suite (defender side of the same toolkit).
+- Report vulnerabilities privately through the repository's security-reporting channel; do not include real PII, tokens, or credentials in public issues.
+- Treat generated wordlists and risk data as sensitive.
+- Keep `.env`, CLI credential files, encryption keys, and database exports out of version control.
+- Use the platform only for personal safety work or explicitly authorized security testing.
 
 ## License
 
-**Apache License 2.0** — see [LICENSE](LICENSE).
-
-> Earlier published versions on npm / PyPI may have shipped under MIT. From the next release onward the project is under Apache 2.0 (adds an explicit patent grant; remains permissive).
-
-© 2024-2026 Yokesh Kumar M · [dezprox25@gmail.com](mailto:dezprox25@gmail.com) · [Live app](https://pii-casso.vercel.app) · [npm](https://www.npmjs.com/package/piicasso) · [PyPI](https://pypi.org/project/piicasso/)
+Licensed under the [Apache License 2.0](LICENSE).

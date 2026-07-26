@@ -1,12 +1,16 @@
 # PIIcasso — The 200X Upgrade Plan
 
-> A complete, phased, execution-ready blueprint to take PIIcasso from a strong solo
-> production project to an enterprise-grade, type-safe, observable, async-native,
-> AI-native platform — using open-source tools throughout.
+> A phased roadmap for evolving PIIcasso toward a type-safe, observable,
+> async-native platform using open-source tools.
 >
-> **Audience:** an autonomous coding agent (Sonnet 5) executing the upgrade PR-by-PR.
+> **Audience:** maintainers and coding agents executing the upgrade incrementally.
 > **Scope:** Backend (Django/DRF) + Frontend (React/Vite). CLI and infra touched where they intersect.
 > **Author of plan:** analysis pass, 2026-07-02.
+
+> **Status note (2026-07-26):** this is an aspirational roadmap, not a release-status
+> page. Several foundation items have since landed. Use [`README.md`](README.md) and
+> the current source/configuration for supported behavior. No item in this plan is
+> evidence that a hosted deployment is available or meets an uptime target.
 
 ---
 
@@ -18,10 +22,10 @@ This is an **execution spec**, not a wishlist. Rules for the executing agent:
    targets, the OSS tool to use, and a **Definition of Done (DoD)**. Do not start a
    phase until the previous phase's DoD is green, unless the dependency graph in
    §12 says it is parallelizable.
-2. **Never break the invariants in §3.** They are the safety rails. The app is live
-   (`pii-casso.vercel.app` / `core-engine-woeg.onrender.com`) and handles PII.
-3. **Every PR must keep CI green** (`.github/workflows/ci.yml`): backend tests +
-   `makemigrations --check` + flake8 + frontend build/test + docker build.
+2. **Never break the invariants in §3.** They are the safety rails for a repository
+   that handles PII. Verify external deployment state separately before operating it.
+3. **Every PR must keep the current CI workflow green** (`.github/workflows/ci.yml`).
+   Read that file rather than copying an outdated list of checks from this plan.
 4. **One concern per PR.** A phase is many PRs. Keep them reviewable (<~600 LOC diff).
 5. **Tests before refactors.** When a step says "refactor X," add characterization
    tests for X first, then refactor under green.
@@ -35,30 +39,30 @@ Effort key: **S** = <0.5 day, **M** = 0.5–2 days, **L** = 3–5 days, **XL** =
 
 ## 1. Current-state assessment (honest scorecard)
 
-The project is **already production-grade** in security and deployment. The "200X"
-gap is in **type-safety, testing depth, async utilization, AI modernity, and
-frontend architecture** — not in getting it to "work."
+This scorecard records the original July 2 baseline, not a certification that the
+project or any deployment is production-grade. The progress notes below reflect
+the repository as of July 26; remaining grades are prioritization aids, not audit results.
 
-| Area | Grade | Evidence | Gap to close |
-|---|---|---|---|
-| Backend security | **A-** | CSP/HSTS/XFO middleware, field-level Fernet encryption, JWT w/ rotation+blacklist, throttles per-endpoint, recent CVE/Snyk hardening, XFF-aware client IP | Tokens still bearer-in-localStorage (frontend side); no automated SAST (bandit/semgrep) |
-| Backend framework | **A** | Django 5.2.15 LTS, DRF 3.17, drf-spectacular, dj-database-url, whitenoise | Fine — keep on 5.2 LTS |
-| Async / real-time | **C** | Celery 5.4 + Channels 4.2 + daphne **installed**, `tasks.py` exists | Wordlist generation runs **synchronously** in the request; WebSocket layer barely used |
-| AI / LLM | **C+** | Works, has offline fallback + scoring | `google-generativeai==0.8.3` is **deprecated**; `llm_handler.py` bypasses the SDK with raw REST to `gemini-1.5-flash`; text-parsing (no structured output); single provider; no evals |
-| Data layer | **B-** | Postgres in prod, Fernet-encrypted PII, retention purge command | `db.sqlite3` **committed to git**; no pgvector/search; dev uses SQLite (parity drift) |
-| Backend code quality | **B-** | Readable, documented | `views/generation.py` = **957 LOC**; no type hints/mypy; no service layer; `intelligence/` app (177 LOC) **not in `INSTALLED_APPS`** (dead code) |
-| Backend tests | **B** | ~70 Django tests, Postgres in CI | Uses `unittest`/Django `TestCase` not pytest; no coverage gate; no property/mutation tests |
-| Frontend framework | **B+** | React 19.2, Vite 6, Tailwind 4, Radix + CVA + tailwind-merge | Modern deps, but... |
-| Frontend language | **D** | 100% JavaScript, **JSX-in-`.js`** via esbuild shim, CRA-era `process.env.REACT_APP_*` via `define` | **No TypeScript.** Biggest single lever. |
-| Frontend architecture | **C** | Context + manual axios interceptor | **No server-state lib** (no TanStack Query); monster components (`ProfilePage.js` 1365, `LandingPage.js` 979, `ApiDocsPage.js` 817); auth logic hand-rolled |
-| Frontend auth security | **C-** | Refresh rotation, 30s skew buffer | **Both access + refresh JWT in `localStorage`** → XSS-exfiltratable on a PII product |
-| Frontend tests | **D** | 1 file: `App.test.js` | No component/integration/E2E coverage |
-| Dev experience | **C** | `.flake8`, VS Code settings, Dependabot | No Ruff, no mypy, no pre-commit, no ESLint/Prettier config, no `pyproject.toml`, no Makefile/Taskfile, no devcontainer |
-| CI/CD | **B** | Tests + Snyk + pip-audit + docker build + bundle size | No CodeQL/semgrep/trivy/gitleaks, no coverage gate, no preview envs, no E2E |
-| Observability | **B-** | Prometheus middleware, Sentry, Grafana Cloud, Better Stack | Text logs (not structured JSON), no distributed tracing (OpenTelemetry) |
-| Docs | **C** | Rich README, `piicasso.md` | **Stale**: says "Django 4.x / React 18"; reality is Django 5.2 / React 19 |
-| Repo hygiene | **C** | `.gitignore` present | `db.sqlite3` (442 KB), `error.log`, `server*.log`, `.venv/` artifacts tracked/present |
-| Code sharing (engine) | **C** | Same PII engine in 3 places | Triplicated by hand: `frontend/src/lib/piiEngine.js`, `cli-node/.../pii.js`, `cli-python/.../pii.py` |
+| Area                   | Grade  | Evidence                                                                                                                                                     | Gap to close                                                                                                                                                |
+| ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend security       | **A-** | CSP/HSTS/XFO middleware, field-level Fernet encryption, JWT w/ rotation+blacklist, throttles per-endpoint, recent CVE/Snyk hardening, XFF-aware client IP    | Tokens still bearer-in-localStorage (frontend side); no automated SAST (bandit/semgrep)                                                                     |
+| Backend framework      | **A**  | Django 5.2.15 LTS, DRF 3.17, drf-spectacular, dj-database-url, whitenoise                                                                                    | Fine — keep on 5.2 LTS                                                                                                                                      |
+| Async / real-time      | **C+** | Production starts Daphne/ASGI; Celery 5.4 and Channels 4.2 are installed                                                                                     | Wordlist generation still runs **synchronously** in the request; WebSocket workflow remains limited                                                         |
+| AI / LLM               | **B-** | `google-genai` client, configurable `GEMINI_MODEL`, structured JSON response schema, offline fallback + scoring                                              | Single provider; no prompt eval suite or local-model path                                                                                                   |
+| Data layer             | **B-** | Postgres in prod, Fernet-encrypted PII, retention purge command                                                                                              | `db.sqlite3` **committed to git**; no pgvector/search; dev uses SQLite (parity drift)                                                                       |
+| Backend code quality   | **B-** | Readable, documented                                                                                                                                         | `views/generation.py` = **957 LOC**; no type hints/mypy; no service layer; `intelligence/` app (177 LOC) **not in `INSTALLED_APPS`** (dead code)            |
+| Backend tests          | **B**  | ~70 Django tests, Postgres in CI                                                                                                                             | Uses `unittest`/Django `TestCase` not pytest; no coverage gate; no property/mutation tests                                                                  |
+| Frontend framework     | **B+** | Node 24, React 19.2, Vite 8, Tailwind 4, Radix + CVA + tailwind-merge                                                                                        | Modern dependencies; TypeScript migration remains open                                                                                                      |
+| Frontend language      | **D**  | 100% JavaScript, **JSX-in-`.js`** via esbuild shim, CRA-era `process.env.REACT_APP_*` via `define`                                                           | **No TypeScript.** Biggest single lever.                                                                                                                    |
+| Frontend architecture  | **C**  | Context + manual axios interceptor                                                                                                                           | **No server-state lib** (no TanStack Query); monster components (`ProfilePage.js` 1365, `LandingPage.js` 979, `ApiDocsPage.js` 817); auth logic hand-rolled |
+| Frontend auth security | **C-** | Refresh rotation, 30s skew buffer                                                                                                                            | **Both access + refresh JWT in `localStorage`** → XSS-exfiltratable on a PII product                                                                        |
+| Frontend tests         | **C-** | Vitest/Testing Library coverage now includes auth refresh and truthful system-log states                                                                     | No broad integration, E2E, or coverage gate                                                                                                                 |
+| Dev experience         | **B**  | Ruff, seed-strict mypy, pre-commit, gitleaks, ESLint, Prettier, EditorConfig, and Taskfile are configured                                                    | No devcontainer; type coverage and frontend warning cleanup remain incremental                                                                              |
+| CI/CD                  | **B+** | Backend/frontend/CLI tests, schema drift, Ruff/mypy, gitleaks, npm audits, and production image builds                                                       | No CodeQL/semgrep/trivy, coverage gate, preview environments, or E2E                                                                                        |
+| Observability          | **B-** | Prometheus middleware, Sentry, Grafana Cloud, Better Stack                                                                                                   | Text logs (not structured JSON), no distributed tracing (OpenTelemetry)                                                                                     |
+| Docs                   | **B**  | Root and Node CLI READMEs describe Node 24, Vite 8, current CLI contracts, and both Compose topologies                                                       | Keep secondary/historical documents synchronized as behavior changes                                                                                        |
+| Repo hygiene           | **A-** | Generated databases/logs are untracked; EditorConfig, touched-file line-ending checks, a full whitespace gate, ignore policy, and secret scanning are active | Keep generated-artifact checks current as new toolchains are added                                                                                          |
+| Code sharing (engine)  | **C**  | Same PII engine in 3 places                                                                                                                                  | Triplicated by hand: `frontend/src/lib/piiEngine.js`, `cli-node/.../pii.js`, `cli-python/.../pii.py`                                                        |
 
 **Verdict:** a B-grade codebase with A-grade security ambition. The upgrade turns
 every C/D into an A by adding the modern OSS layer the project skipped.
@@ -108,8 +112,9 @@ These are non-negotiable safety rails. A change that violates one must be revert
 1. **PII stays encrypted at rest.** `generator.fields.EncryptedJSONField` (Fernet via
    `FIELD_ENCRYPTION_KEY`) must keep wrapping `pii_data`. Never log or Sentry-ship raw PII
    (`send_default_pii=False` stays False).
-2. **Byte-for-byte engine parity** across `piiEngine.js`, `cli-node/src/engine/pii.js`,
-   `cli-python/src/piicasso/engine/pii.py`. Any engine change ships with the parity suite (§11) green.
+2. **Contract-tested engine behavior.** The browser, Node, and Python engines are
+   independent ports; do not claim byte-identical output without shared golden fixtures.
+   Any behavior intended to match across surfaces must ship with the parity suite (§13) green.
 3. **Auth contract stability.** JWT access/refresh endpoints and Google OAuth flow keep
    working through the cookie migration (dual-read during transition).
 4. **Security headers stay on** — CSP/HSTS/XFO/referrer-policy middleware in `wordgen/middleware.py`.
@@ -128,6 +133,7 @@ These are non-negotiable safety rails. A change that violates one must be revert
 faster. Nothing here changes runtime behavior.
 
 ### 4.1 Repo hygiene `[S]`
+
 - Remove tracked artifacts and stop tracking them:
   `git rm --cached Piicasso/backend/db.sqlite3 Piicasso/backend/*.log Piicasso/backend/server*.log Piicasso/backend/error.log`
 - Extend `.gitignore`: `*.sqlite3`, `*.log`, `.venv/`, `staticfiles/`, `media/`, `.ruff_cache/`, `.mypy_cache/`, `htmlcov/`, `coverage.xml`, `dist/`, `.turbo/`.
@@ -137,6 +143,7 @@ faster. Nothing here changes runtime behavior.
 - **DoD:** `git status` clean; `git ls-files | grep -E 'sqlite3|\.log$'` empty.
 
 ### 4.2 Backend tooling — replace flake8 with the modern stack `[M]`
+
 - Add `Piicasso/backend/pyproject.toml` as the single source for tool config.
 - **[Ruff](https://github.com/astral-sh/ruff)** — replaces flake8 + isort + (mostly) black.
   Enable `E,F,I,UP,B,S,DJ,C4,SIM,PTH,RUF` rule sets (`S`=bandit-style security, `DJ`=Django).
@@ -149,6 +156,7 @@ faster. Nothing here changes runtime behavior.
 - **DoD:** `ruff check .` and `ruff format --check .` pass; `mypy wordgen/utils.py wordgen/throttles.py` clean (seed modules); CI runs Ruff instead of the narrow flake8 select.
 
 ### 4.3 Frontend tooling `[M]`
+
 - **[ESLint 9 flat config](https://eslint.org/)** + `typescript-eslint`,
   `eslint-plugin-react`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y`,
   `eslint-plugin-import`.
@@ -157,13 +165,14 @@ faster. Nothing here changes runtime behavior.
 - **DoD:** `npm run lint` and `npm run format:check` pass on the (formatted) tree.
 
 ### 4.4 Cross-cutting DX `[M]`
+
 - **[pre-commit](https://pre-commit.com/)** at repo root: ruff, ruff-format, mypy (fast
   files), prettier, eslint, end-of-file-fixer, trailing-whitespace,
   **[gitleaks](https://github.com/gitleaks/gitleaks)** (secret scan),
   `check-added-large-files`.
 - **[Taskfile](https://taskfile.dev/)** (or `Makefile`) at root: `task setup`, `task dev`,
   `task test`, `task lint`, `task typecheck`, `task up` (compose).
-- **`.editorconfig`** + a **`.devcontainer/`** (Python 3.12 + Node 20 + Postgres + Redis)
+- **`.editorconfig`** + a **`.devcontainer/`** (Python 3.12 + Node 24 + Postgres + Redis)
   so the environment is one-command reproducible.
 - **[Renovate](https://github.com/renovatebot/renovate)** to augment/replace Dependabot
   (grouped PRs, automerge for patch/dev-deps, lockfile maintenance).
@@ -177,14 +186,21 @@ faster. Nothing here changes runtime behavior.
 mechanically, and tame the monolithic views.
 
 ### 5.1 Harden the OpenAPI contract `[M]`
-- `drf-spectacular` is already wired. Add **schema drift CI gate**:
-  `python manage.py spectacular --file schema.yml --validate --fail-on-warn` and diff
-  against a committed `schema.yml`.
+
+- **Landed foundation:** `schema.yml` is committed, warning-free, and checked for
+  drift in CI. The submit schema documents recognized profile fields,
+  `pattern_mode`, and the typed `201` response envelope.
+- PII submission now rejects undeclared JSON keys and profile values longer than
+  256 characters; OpenAPI marks the request object as closed.
+- Maintain the existing schema drift gate: regenerate with
+  `python manage.py spectacular --file schema.yml --validate` and diff against the
+  committed `schema.yml` in CI.
 - Annotate views with `@extend_schema` (request/response serializers, error shapes) so the
   generated client is precise. Priority: `wordgen/views/generation.py`, `operations/views.py`, `password_security/views.py`.
 - **DoD:** `spectacular --validate` clean, zero warnings; committed `schema.yml` matches.
 
 ### 5.2 Service-layer refactor of the 957-LOC view `[L]`
+
 - Extract business logic from `wordgen/views/generation.py` into `wordgen/services/`
   (there's already a `services/` package with `metrics_service.py`):
   - `services/generation_service.py` — orchestration (build prompt → call LLM → score → persist).
@@ -196,9 +212,10 @@ mechanically, and tame the monolithic views.
 - **DoD:** `generation.py` < ~300 LOC; services fully typed + unit-tested; behavior identical.
 
 ### 5.3 Pydantic at the boundaries `[M]`
+
 - Use **[Pydantic v2](https://docs.pydantic.dev/)** models for LLM request/response and for
   the PII profile schema (validation + coercion + JSON schema for the LLM structured-output call in Phase 3).
-- Optionally introduce **[django-ninja](https://django-ninja.dev/)** for *new* endpoints
+- Optionally introduce **[django-ninja](https://django-ninja.dev/)** for _new_ endpoints
   (async-native, Pydantic-native) — mount alongside DRF, do not rip out DRF. Good target:
   a new `/api/v2/generate/` async endpoint in Phase 2.
 - **DoD:** PII profile has a single Pydantic schema reused by API validation, the LLM prompt builder, and tests.
@@ -211,6 +228,7 @@ mechanically, and tame the monolithic views.
 Celery + Channels stack that is **already installed but idle**.
 
 ### 6.1 Move generation to Celery `[L]`
+
 - Turn `PiiSubmitView` into: create a `GenerationHistory` row in `PENDING`, dispatch a
   Celery task, return `202 Accepted` + a `task_id`/`job_id`.
 - Implement `wordgen/tasks.py::generate_wordlist_task` (file exists) to run build→LLM→score→persist
@@ -220,6 +238,7 @@ Celery + Channels stack that is **already installed but idle**.
 - **DoD:** a submitted generation runs off-request; status transitions observable; the existing sync test path still passes (eager mode already configured for tests).
 
 ### 6.2 Live progress over WebSockets `[M]`
+
 - Use the existing `wordgen/consumers.py` + `channels_redis` (already configured for prod)
   to push `queued → generating → scoring → done` events keyed by `job_id`.
 - Auth the socket with the existing `wordgen/ws_auth.py` JWT check.
@@ -227,11 +246,13 @@ Celery + Channels stack that is **already installed but idle**.
 - **DoD:** submitting a job streams progress to the browser; falls back to polling if WS unavailable.
 
 ### 6.3 Scheduled jobs via Celery Beat `[S]`
+
 - Move `management/commands/purge_expired_data.py` to a **Celery Beat** periodic task
   (respect `DATA_RETENTION_DAYS`). Keep the management command as a manual escape hatch.
 - **DoD:** retention purge runs on schedule in a worker; documented in `start-celery.sh`.
 
 ### 6.4 Operational visibility `[S]`
+
 - Add **[Flower](https://github.com/mher/flower)** (Celery monitoring) as a compose service,
   auth-gated. Add a `celery-worker` + `celery-beat` + `flower` service to `docker-compose.yml`.
 - **DoD:** Flower shows task throughput/failures locally.
@@ -240,22 +261,22 @@ Celery + Channels stack that is **already installed but idle**.
 
 ## 7. Phase 3 — AI/LLM modernization (AI-native) `[L]`
 
-**Goal:** replace the deprecated SDK + brittle text parsing with a modern, provider-agnostic,
-structured, evaluated, and privacy-preserving LLM layer.
+**Goal:** evolve the now-structured Gemini integration into a provider-agnostic,
+evaluated, and privacy-preserving LLM layer.
 
 ### 7.1 Provider abstraction + structured output `[M]`
-- Replace the raw REST call in `llm_handler.py` (`gemini-1.5-flash` via `v1beta`) and the
-  deprecated `google-generativeai==0.8.3`. Two options — **recommend LiteLLM**:
-  - **[LiteLLM](https://github.com/BerriAI/litellm)** — one interface over Gemini, OpenAI,
-    Anthropic, Ollama, etc. Model selection via env; retries/fallbacks/timeouts built in.
-  - (Or the new unified **[google-genai](https://github.com/googleapis/python-genai)** SDK
-    if staying single-provider.)
-- Request **structured JSON output** (a `wordlist: string[]` schema) instead of "parse lines
-  of text" — kills the fragile `parts[0].text` splitting.
-- Keep `generate_fallback_wordlist` as the deterministic offline path.
-- **DoD:** provider is swappable by env var; malformed model output can no longer corrupt the wordlist; the 30s-timeout + fallback behavior is preserved and unit-tested with a mocked client.
+
+- **Landed foundation:** `llm_handler.py` uses the supported `google-genai` SDK,
+  selects the model with `GEMINI_MODEL`, requests a validated structured response,
+  and preserves a tested deterministic fallback.
+- Add a provider boundary, for example **[LiteLLM](https://github.com/BerriAI/litellm)**,
+  if multi-provider routing is required. Do not add abstraction solely for a marketing claim.
+- Preserve the structured response validation and fallback tests through any provider change.
+- **DoD:** provider selection is explicit and tested; malformed output cannot corrupt the
+  wordlist; timeout and fallback behavior remain deterministic.
 
 ### 7.2 Privacy-preserving local model path `[M]`
+
 - Add an **[Ollama](https://github.com/ollama/ollama)** provider option (via LiteLLM) so a
   self-hosted deployment can keep **PII fully on-box** — a natural fit for a PII product and a
   strong differentiator. Gate by `LLM_PROVIDER=ollama`.
@@ -263,6 +284,7 @@ structured, evaluated, and privacy-preserving LLM layer.
   (verify via egress logging/CSP).
 
 ### 7.3 Prompt management + evals `[M]`
+
 - Externalize prompts from `build_prompt` string-concatenation into versioned templates.
 - Add **[promptfoo](https://github.com/promptfoo/promptfoo)** (or
   **[DeepEval](https://github.com/confident-ai/deepeval)**) eval suite: golden PII profiles →
@@ -270,6 +292,7 @@ structured, evaluated, and privacy-preserving LLM layer.
 - **DoD:** `promptfoo eval` runs against fixtures; a prompt regression fails the nightly job.
 
 ### 7.4 (Optional, stretch) Semantic features `[L]`
+
 - With **pgvector** (Phase 4), embed generated candidates to **de-duplicate near-identical
   passwords** and to power "similar past operations" — real intelligence, not just concatenation.
 - **DoD:** dedup measurably shrinks near-duplicate output; opt-in flag.
@@ -304,6 +327,7 @@ structured, evaluated, and privacy-preserving LLM layer.
 user-visible "200X" lands.
 
 ### 9.1 TypeScript migration (incremental strangler-fig) `[XL]`
+
 - Add `tsconfig.json` (`strict: true`, `allowJs: true`, `checkJs: false`), `vite-tsconfig-paths`.
 - Rename **JSX-in-`.js`** files to `.tsx`/`.ts` incrementally; remove the esbuild `.js`-as-JSX
   shim from `vite.config.js` as files migrate. Start with leaf utilities and the API layer, end with pages.
@@ -313,6 +337,7 @@ user-visible "200X" lands.
 - **DoD:** `npm run typecheck` (`tsc --noEmit`) passes; no remaining `.js` files containing JSX.
 
 ### 9.2 Server state → TanStack Query `[L]`
+
 - Add **[TanStack Query](https://github.com/TanStack/query)**. Replace hand-rolled
   `useEffect`+axios data fetching with typed `useQuery`/`useMutation` hooks (caching,
   dedup, retries, background refetch, optimistic updates for free).
@@ -321,6 +346,7 @@ user-visible "200X" lands.
 - **DoD:** no page fetches server data via bare `useEffect`+`setState`; polling (notifications, beacon) uses Query's `refetchInterval`.
 
 ### 9.3 Typed API client from OpenAPI `[M]`
+
 - Generate a fully typed client from the Phase-1 `schema.yml` with
   **[openapi-typescript](https://github.com/openapi-ts/openapi-typescript)** +
   **[openapi-fetch](https://github.com/openapi-ts/openapi-typescript)** (or
@@ -329,12 +355,14 @@ user-visible "200X" lands.
 - **DoD:** endpoints are called through generated, typed functions; a backend field rename breaks the frontend build (good).
 
 ### 9.4 Client state → Zustand `[M]`
+
 - Replace sprawling Context (`AuthContext`, `ModeContext`) responsibilities that are pure
   client state (mode/theme, UI flags) with **[Zustand](https://github.com/pmndrs/zustand)**
   stores. Keep Context only for true DI (the auth session object).
 - **DoD:** mode/theme and transient UI state live in Zustand; fewer re-renders (verify with React DevTools Profiler).
 
 ### 9.5 Break up the monster components `[L]`
+
 - Decompose by feature into `features/<domain>/` (components + hooks + api + types co-located):
   - `ProfilePage.js` **1365 LOC** → `features/profile/*` (account, security, sessions, preferences).
   - `LandingPage.js` **979** → section components under `features/marketing/`.
@@ -342,6 +370,7 @@ user-visible "200X" lands.
 - **DoD:** no component file > ~300 LOC; shared UI in a `components/ui/` primitives layer.
 
 ### 9.6 Forms, design system, a11y `[M]`
+
 - **[react-hook-form](https://github.com/react-hook-form/react-hook-form)** +
   **[Zod](https://github.com/colinhacks/zod)** for all forms (login, register, operation,
   profile) — replaces manual validation in `utils/validation.js`; share Zod schemas with the API types.
@@ -353,6 +382,7 @@ user-visible "200X" lands.
 - **DoD:** forms are RHF+Zod; `eslint-plugin-jsx-a11y` clean; Storybook builds with the core components.
 
 ### 9.7 Auth security fix — get JWTs out of `localStorage` `[L]` **(security-critical)**
+
 - Move refresh tokens to **httpOnly, Secure, SameSite cookies** set by the backend; keep the
   short-lived access token **in memory only** (React state), refreshed silently via the cookie.
 - This closes the XSS-token-exfiltration hole (`AuthContext.js` currently stores both tokens in
@@ -368,6 +398,7 @@ user-visible "200X" lands.
 **Goal:** a real test pyramid with enforced coverage, so future changes are safe.
 
 ### Backend
+
 - Migrate to **[pytest](https://docs.pytest.org/)** + **[pytest-django](https://github.com/pytest-dev/pytest-django)**;
   add **[factory_boy](https://github.com/FactoryBoy/factory_boy)** + **[Faker](https://github.com/joke2k/faker)**.
 - **[coverage.py](https://github.com/nedbat/coveragepy)** gate (start at current %, ratchet +2%/PR to 85%).
@@ -377,15 +408,18 @@ user-visible "200X" lands.
 - (Stretch) **[mutmut](https://github.com/boxed/mutmut)** mutation testing on the engine/scoring core.
 
 ### Frontend
+
 - **Vitest** coverage gate; component tests with **React Testing Library**.
 - **[MSW](https://github.com/mswjs/msw)** to mock the API in component/integration tests
   (reuse the OpenAPI types).
 
 ### End-to-end
+
 - **[Playwright](https://github.com/microsoft/playwright)** across the three surfaces: web app
   critical flows (register → login → operation → result), the in-browser `/terminal`, and mobile viewport.
 
 ### Load & security
+
 - **[k6](https://github.com/grafana/k6)** (or **[Locust](https://github.com/locustio/locust)**)
   load test for `/api/submit/` and history endpoints.
 - Add to CI: **[bandit](https://github.com/PyCQA/bandit)** (or Ruff `S`),
@@ -444,7 +478,7 @@ user-visible "200X" lands.
 (`frontend/src/lib/piiEngine.js`, `cli-node/src/engine/pii.js`, `cli-python/.../pii.py`).
 
 - **Monorepo tooling:** the repo already has `pnpm-workspace.yaml`. Adopt **pnpm workspaces**
-  + **[Turborepo](https://github.com/vercel/turborepo)** (or **[Nx](https://github.com/nrwl/nx)**).
+  - **[Turborepo](https://github.com/vercel/turborepo)** (or **[Nx](https://github.com/nrwl/nx)**).
 - **Single TS engine package** `packages/pii-engine` consumed by both the frontend and
   `cli-node` (delete their local copies).
 - **Python parity by contract:** keep the Python port, but drive both from **shared JSON golden
@@ -477,28 +511,27 @@ Phases 6 and 8 are partly continuous (gates added as capabilities land).
 
 Ship these as the first small PRs to build momentum and safety before the big refactors:
 
-1. **Repo hygiene** (§4.1) — untrack `db.sqlite3`/logs, fix `.gitignore`. `[S]`
-2. **Ruff + pre-commit + gitleaks** (§4.2/4.4) — instant lint/format/secret safety net. `[S–M]`
-3. **Fix stale docs** — `piicasso.md`/`README.md` say Django 4.x/React 18; make them say Django 5.2 / React 19. `[S]`
+1. **Landed:** repo hygiene (§4.1) — runtime databases/logs are untracked and ignored, with cross-platform line-ending policy enforced on touched files. `[S]`
+2. **Landed:** Ruff + pre-commit + gitleaks (§4.2/4.4) provide lint, format, and secret-scan gates. `[S–M]`
+3. **Keep docs current** — the root and Node CLI READMEs are updated; audit secondary documents such as `piicasso.md`. `[S]`
 4. **Delete the dead `intelligence/` app** (or wire it in). `[S]`
-5. **OpenAPI drift gate** (§5.1) — commit `schema.yml`, fail CI on drift. `[S]`
+5. **Landed:** OpenAPI contract follow-through (§5.1) — warning-free drift checks and explicit unknown-key rejection are tested. `[S]`
 6. **Add coverage reporting** (not yet a hard gate) to see the baseline. `[S]`
-7. **LLM structured-output fix** (§7.1, minimal slice) — make the model return JSON so a bad
-   response can't corrupt a wordlist, even before the full LiteLLM swap. `[M]`
+7. **Landed:** LLM structured-output fix (§7.1, minimal slice) — the Gemini adapter validates a typed JSON response and falls back deterministically. `[M]`
 
 ---
 
 ## 16. Risk register
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| TS migration stalls mid-way (mixed `.js`/`.tsx`) | Med | Med | Strangler-fig with `allowJs`; migrate leaf→page; each PR fully green |
-| Cookie-auth migration locks users out | Low | High | Dual-read (cookie *or* bearer) during rollout; feature-flag; staged deploy |
-| Celery/async introduces race in status transitions | Med | Med | Idempotent tasks; DB row is source of truth; eager mode in tests |
-| LLM provider swap changes wordlist output | Med | Low | Golden-fixture tests; keep deterministic fallback; promptfoo evals |
-| Engine unification breaks byte-parity | Med | High | Shared JSON fixtures + parity CI (invariant §3.2) before deleting copies |
-| Secret already in git history | High | High | Rotate keys (runbook exists in `SECURITY_REMEDIATION.md`); `git filter-repo` + gitleaks |
-| Scope creep ("200X" = infinite) | High | Med | Phase DoDs + quick-wins first; each phase independently shippable/valuable |
+| Risk                                                      | Likelihood | Impact | Mitigation                                                                              |
+| --------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------- |
+| TS migration stalls mid-way (mixed `.js`/`.tsx`)          | Med        | Med    | Strangler-fig with `allowJs`; migrate leaf→page; each PR fully green                    |
+| Cookie-auth migration locks users out                     | Low        | High   | Dual-read (cookie _or_ bearer) during rollout; feature-flag; staged deploy              |
+| Celery/async introduces race in status transitions        | Med        | Med    | Idempotent tasks; DB row is source of truth; eager mode in tests                        |
+| LLM provider swap changes wordlist output                 | Med        | Low    | Golden-fixture tests; keep deterministic fallback; promptfoo evals                      |
+| Engine unification breaks intended cross-surface behavior | Med        | High   | Shared JSON fixtures + parity CI (invariant §3.2) before deleting copies                |
+| Secret already in git history                             | High       | High   | Rotate keys (runbook exists in `SECURITY_REMEDIATION.md`); `git filter-repo` + gitleaks |
+| Scope creep ("200X" = infinite)                           | High       | Med    | Phase DoDs + quick-wins first; each phase independently shippable/valuable              |
 
 ---
 
@@ -519,22 +552,22 @@ Ship these as the first small PRs to build momentum and safety before the big re
 
 ## 18. Appendix — open-source tool inventory (by layer)
 
-| Layer | Tools |
-|---|---|
-| **Python quality** | Ruff, mypy, django-stubs, drf-stubs, uv, pre-commit, bandit, semgrep |
-| **Python test** | pytest, pytest-django, factory_boy, Faker, coverage.py, Hypothesis, Schemathesis, mutmut, k6/Locust |
-| **Backend runtime (new)** | LiteLLM, google-genai, Pydantic v2, django-ninja, Ollama, pgvector, django-storages+MinIO, Flower, django-health-check, structlog, OpenTelemetry |
-| **JS/TS quality** | TypeScript, ESLint 9 (typescript-eslint, react, react-hooks, jsx-a11y, import), Prettier(+tailwind), Husky/lint-staged |
-| **Frontend runtime (new)** | TanStack Query, Zustand, react-hook-form, Zod, shadcn/ui, openapi-typescript/openapi-fetch (or Orval) |
-| **Frontend test** | Vitest, React Testing Library, MSW, Playwright, Storybook(+a11y/interactions) |
-| **Monorepo/engine** | pnpm workspaces, Turborepo (or Nx) |
-| **Observability** | OpenTelemetry, Grafana Tempo/Loki/Mimir, Prometheus, structlog, Sentry |
-| **CI/CD & supply chain** | GitHub Actions, CodeQL, Trivy, Syft, cosign, gitleaks, dependency-review, Renovate, release-please/semantic-release |
-| **Secrets/infra** | Infisical (OSS) or Doppler; devcontainers; docker compose (Postgres/Redis/MinIO/Flower) |
-| **AI evals** | promptfoo, DeepEval |
+| Layer                      | Tools                                                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Python quality**         | Ruff, mypy, django-stubs, drf-stubs, uv, pre-commit, bandit, semgrep                                                                             |
+| **Python test**            | pytest, pytest-django, factory_boy, Faker, coverage.py, Hypothesis, Schemathesis, mutmut, k6/Locust                                              |
+| **Backend runtime (new)**  | LiteLLM, google-genai, Pydantic v2, django-ninja, Ollama, pgvector, django-storages+MinIO, Flower, django-health-check, structlog, OpenTelemetry |
+| **JS/TS quality**          | TypeScript, ESLint 9 (typescript-eslint, react, react-hooks, jsx-a11y, import), Prettier(+tailwind), Husky/lint-staged                           |
+| **Frontend runtime (new)** | TanStack Query, Zustand, react-hook-form, Zod, shadcn/ui, openapi-typescript/openapi-fetch (or Orval)                                            |
+| **Frontend test**          | Vitest, React Testing Library, MSW, Playwright, Storybook(+a11y/interactions)                                                                    |
+| **Monorepo/engine**        | pnpm workspaces, Turborepo (or Nx)                                                                                                               |
+| **Observability**          | OpenTelemetry, Grafana Tempo/Loki/Mimir, Prometheus, structlog, Sentry                                                                           |
+| **CI/CD & supply chain**   | GitHub Actions, CodeQL, Trivy, Syft, cosign, gitleaks, dependency-review, Renovate, release-please/semantic-release                              |
+| **Secrets/infra**          | Infisical (OSS) or Doppler; devcontainers; docker compose (Postgres/Redis/MinIO/Flower)                                                          |
+| **AI evals**               | promptfoo, DeepEval                                                                                                                              |
 
 ---
 
-*This plan is intentionally phased and reversible. Each phase delivers standalone value; you can
+_This plan is intentionally phased and reversible. Each phase delivers standalone value; you can
 stop after any phase and still have shipped a real upgrade. Start with §15 (Quick wins), then
-execute §14's recommended order.*
+execute §14's recommended order._

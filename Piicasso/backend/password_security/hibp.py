@@ -61,7 +61,7 @@ def k_anonymity_breach_count(password: str) -> int:
         return count
 
     except Exception as e:
-        logger.warning(f"HIBP k-anonymity lookup failed: {e}")
+        logger.warning("HIBP k-anonymity lookup failed (%s)", type(e).__name__)
         return -1
 
 
@@ -88,4 +88,4 @@ def _set_cached(password: str, count: int) -> None:
 
         cache.set(_cache_key(password), count, _CACHE_TTL)
     except Exception as e:
-        logger.debug(f"HIBP cache write failed: {e}")
+        logger.debug("HIBP cache write failed (%s)", type(e).__name__)

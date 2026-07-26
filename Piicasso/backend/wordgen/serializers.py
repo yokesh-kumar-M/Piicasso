@@ -109,6 +109,15 @@ class Piiserializer(serializers.Serializer):
     device_type = serializers.CharField(required=False, allow_blank=True, default="")
     subscription = serializers.CharField(required=False, allow_blank=True, default="")
 
+    MAX_FIELD_LENGTH = 256
+
+    def to_internal_value(self, data):
+        if hasattr(data, "keys"):
+            unknown_fields = sorted(set(data.keys()) - set(self.fields))
+            if unknown_fields:
+                raise serializers.ValidationError({field: ["Unknown profile field."] for field in unknown_fields})
+        return super().to_internal_value(data)
+
     def validate(self, data):
         """
         Fold legacy field names into their canonical equivalents so downstream
@@ -118,6 +127,14 @@ class Piiserializer(serializers.Serializer):
         accept both old and new names from API consumers.  This method is the
         single place where the renaming lives.
         """
+        oversized_fields = {
+            field: [f"Ensure this field has no more than {self.MAX_FIELD_LENGTH} characters."]
+            for field, value in data.items()
+            if isinstance(value, str) and len(value) > self.MAX_FIELD_LENGTH
+        }
+        if oversized_fields:
+            raise serializers.ValidationError(oversized_fields)
+
         _LEGACY_TO_CANONICAL = {
             "dob": "birth_year",
             "phone_digits": "phone_suffix",

@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import check_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.mail import send_mail
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
@@ -20,6 +21,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from analytics.models import UserActivity
+from backend.schema_serializers import (
+    GoogleLoginRequestSerializer,
+    MessageResponseSerializer,
+    PasswordLoginRequestSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetVerifyRequestSerializer,
+    TokenPairResponseSerializer,
+)
 
 from .backends import _DUMMY_HASH
 from .utils import safe_float
@@ -109,6 +118,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
+@extend_schema_view(
+    post=extend_schema(
+        summary="Authenticate with a username or email",
+        request=PasswordLoginRequestSerializer,
+        responses={200: TokenPairResponseSerializer},
+        tags=["Auth"],
+    )
+)
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -130,6 +147,12 @@ class GoogleLoginView(APIView):
 
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="Authenticate with a Google ID token",
+        request=GoogleLoginRequestSerializer,
+        responses={200: TokenPairResponseSerializer},
+        tags=["Auth"],
+    )
     def post(self, request):
         token = request.data.get("token")
         lat = request.data.get("lat")
@@ -236,7 +259,7 @@ class GoogleLoginView(APIView):
 
         except ValueError as e:
             # google.oauth2.id_token raises ValueError for invalid tokens
-            logger.warning(f"Google OAuth token verification failed: {e}")
+            logger.warning("Google OAuth token verification failed (%s)", type(e).__name__)
             return Response(
                 {"error": "Invalid Google token. Please try again."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -245,14 +268,14 @@ class GoogleLoginView(APIView):
             from google.auth.exceptions import GoogleAuthError
 
             if isinstance(e, GoogleAuthError):
-                logger.error(f"GoogleAuthError in Google login: {e}")
+                logger.error("Google login authentication failed (%s)", type(e).__name__)
                 return Response(
                     {"error": "Google authentication service unavailable. Please try again later."},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
             # Generic error message; full details logged server-side
-            logger.error(f"Google login error: {type(e).__name__} - {e}", exc_info=True)
+            logger.error("Google login failed (%s)", type(e).__name__)
             return Response(
                 {"error": "Authentication failed. Please try again."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -267,6 +290,12 @@ class RequestPasswordResetView(APIView):
 
         return [PasswordResetRateThrottle()]
 
+    @extend_schema(
+        summary="Request a password recovery code",
+        request=PasswordResetRequestSerializer,
+        responses={200: MessageResponseSerializer},
+        tags=["Auth"],
+    )
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
         if not email:
@@ -302,7 +331,7 @@ class RequestPasswordResetView(APIView):
                         fail_silently=False,
                     )
                 except Exception as e:
-                    logger.error(f"SMTP send failure for password reset: {e}")
+                    logger.error("SMTP send failure for password reset (%s)", type(e).__name__)
                     # Still return success to avoid leaking email existence.
 
             return Response(
@@ -318,7 +347,7 @@ class RequestPasswordResetView(APIView):
             )
         except Exception as e:
             # 1.5 fix: generic error; log details server-side
-            logger.error(f"Password reset error: {e}", exc_info=True)
+            logger.error("Password reset failed (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to process request. Please try again later."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -333,6 +362,12 @@ class VerifyResetOTPView(APIView):
 
         return [OTPVerifyRateThrottle()]
 
+    @extend_schema(
+        summary="Reset a password with a recovery code",
+        request=PasswordResetVerifyRequestSerializer,
+        responses={200: MessageResponseSerializer},
+        tags=["Auth"],
+    )
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
         otp = request.data.get("otp", "").strip()

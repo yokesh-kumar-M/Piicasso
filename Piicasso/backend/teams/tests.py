@@ -49,7 +49,8 @@ class TeamJoinTest(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.joiner)
         response = client.post("/api/teams/join/", {"invite_code": "INVALID"}, format="json")
-        self.assertIn(response.status_code, [400, 404, 500])
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(TeamMembership.objects.filter(user=self.joiner).exists())
 
 
 class TeamLeaveTest(TestCase):

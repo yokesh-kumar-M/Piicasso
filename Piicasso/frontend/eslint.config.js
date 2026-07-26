@@ -97,6 +97,7 @@ export default tseslint.config(
   {
     files: [
       '*.config.{js,cjs,mjs,ts}',
+      'scripts/**/*.{js,cjs,mjs}',
       'vite.config.js',
       'postcss.config.cjs',
       'tailwind.config.cjs',

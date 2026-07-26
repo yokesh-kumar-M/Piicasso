@@ -7,6 +7,8 @@ Enterprise middleware stack for PIIcasso:
 - SecurityLoggingMiddleware: Audit logging with PII sanitization.
 """
 
+import hashlib
+import hmac
 import json
 import logging
 import time
@@ -32,6 +34,13 @@ LOGIN_ENDPOINTS = frozenset(
         "/api/user/token/",
     }
 )
+
+
+def _account_fingerprint(identifier):
+    """Return a stable, non-reversible identifier for lockout keys and logs."""
+    normalized = str(identifier).strip().casefold().encode("utf-8")
+    signing_key = str(settings.SECRET_KEY).encode("utf-8")
+    return hmac.new(signing_key, normalized, hashlib.sha256).hexdigest()[:16]
 
 
 class RequestIDMiddleware(MiddlewareMixin):
@@ -164,11 +173,12 @@ class AccountLockoutMiddleware(MiddlewareMixin):
         if not username:
             return None
 
-        cache_key = f"login_lockout_{username.lower()}"
+        fingerprint = _account_fingerprint(username)
+        cache_key = f"login_lockout_{fingerprint}"
         attempts = cache.get(cache_key, 0)
 
         if attempts >= self.MAX_ATTEMPTS:
-            logger.warning(f"[LOCKOUT] Account locked: {username} (too many failed attempts)")
+            logger.warning("[LOCKOUT] account_fingerprint=%s reason=too_many_attempts", fingerprint)
             return JsonResponse(
                 {
                     "error": True,
@@ -194,7 +204,8 @@ class AccountLockoutMiddleware(MiddlewareMixin):
         if not username:
             return response
 
-        cache_key = f"login_lockout_{username.lower()}"
+        fingerprint = _account_fingerprint(username)
+        cache_key = f"login_lockout_{fingerprint}"
 
         if response.status_code == 401 or response.status_code == 400:
             # Failed login — increment counter
@@ -202,7 +213,11 @@ class AccountLockoutMiddleware(MiddlewareMixin):
             cache.set(cache_key, attempts + 1, self.LOCKOUT_SECONDS)
             remaining = self.MAX_ATTEMPTS - (attempts + 1)
             if remaining > 0:
-                logger.warning(f"[AUTH] Failed login for {username}, {remaining} attempts remaining")
+                logger.warning(
+                    "[AUTH] Failed login account_fingerprint=%s remaining_attempts=%d",
+                    fingerprint,
+                    remaining,
+                )
         elif response.status_code == 200:
             # Successful login — clear counter
             cache.delete(cache_key)
@@ -262,10 +277,16 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
         user_agent = request.META.get("HTTP_USER_AGENT", "Unknown")
 
         if self._is_scanner(user_agent):
-            logger.warning(f"[SCANNER] tool={user_agent!r} ip={ip_address} path={request.path}")
+            logger.warning(
+                "SCANNER: %s",
+                json.dumps({"tool": user_agent[:256], "ip": ip_address, "path": request.path}),
+            )
 
         if self._has_path_traversal(request):
-            logger.warning(f"[SUSPICIOUS] path_traversal ip={ip_address} path={request.path}")
+            logger.warning(
+                "SUSPICIOUS: %s",
+                json.dumps({"kind": "path_traversal", "ip": ip_address, "path": request.path}),
+            )
 
         request.security_context = {
             "ip_address": ip_address,
@@ -341,18 +362,18 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
         logger.info(f"PII_SUBMIT: {json.dumps(log_data)}")
 
     def _log_auth_attempt(self, request, response, duration, request_id):
-        username = "Unknown"
+        identifier = "Unknown"
         if getattr(request, "_cached_body", None):
             try:
                 body = json.loads(request._cached_body.decode("utf-8"))
-                username = body.get("username", "Unknown")
+                identifier = body.get("username", "Unknown")
             except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
                 pass
 
         log_data = {
             "event": "auth_attempt",
             "request_id": request_id,
-            "username": username,
+            "account_fingerprint": _account_fingerprint(identifier),
             "ip": request.security_context.get("ip_address", "Unknown"),
             "status": response.status_code,
             "success": response.status_code == 200,

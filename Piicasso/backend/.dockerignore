@@ -1,0 +1,61 @@
+# Git and editor metadata
+.git/
+.gitignore
+.dockerignore
+.idea/
+.vscode/
+
+# Secrets and local configuration. Keep the documented template available.
+.env
+.env.*
+!.env.example
+.npmrc
+.pypirc
+*.pem
+*.key
+*.crt
+*.p12
+rockyou.txt
+
+# Python environments and caches
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+
+# Test, coverage, and package artifacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+build/
+dist/
+*.egg-info/
+*.whl
+
+# Django runtime data
+*.log
+logs/
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-journal
+staticfiles/
+media/
+
+# OS and temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

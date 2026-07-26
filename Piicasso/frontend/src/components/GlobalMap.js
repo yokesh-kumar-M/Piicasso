@@ -3,6 +3,7 @@ import Globe from 'react-globe.gl';
 import axiosInstance from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import useResponsive from '../hooks/useResponsive';
+import { coarseLocation } from '../lib/locationPrivacy';
 
 const GlobalMap = () => {
   const globeEl = useRef();
@@ -12,6 +13,7 @@ const GlobalMap = () => {
   const [countries, setCountries] = useState({ features: [] });
   const [dimensions, setDimensions] = useState({ width: 300, height: 300 });
   const [isLive, setIsLive] = useState(false);
+  const [locationPermission, setLocationPermission] = useState('idle');
   const { isAuthenticated } = useContext(AuthContext);
   const { isMobile } = useResponsive();
 
@@ -23,34 +25,19 @@ const GlobalMap = () => {
   // One beacon per active user — keyed by user_id, replaced on every poll
   const beaconMapRef = useRef(new Map()); // key: user_id → value: point object
 
-  // Get user's geolocation on mount
-  useEffect(() => {
+  const enableCoarseLocation = useCallback(() => {
     if (!navigator.geolocation) {
+      setLocationPermission('unavailable');
       return;
     }
+
+    setLocationPermission('requesting');
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        // Reverse-geocode via a lightweight lookup (city/country from coords)
-        fetch(
-          `https://secure.geonames.org/countrySubdivisionJSON?lat=${latitude}&lng=${longitude}&username=demo&radius=10`,
-        )
-          .then((r) => r.json())
-          .then((data) => {
-            setUserLocation({
-              latitude,
-              longitude,
-              city: data.geonames?.[0]?.name || 'Unknown',
-              country_code: data.geonames?.[0]?.countryCode || 'UNK',
-            });
-          })
-          .catch(() => {
-            setUserLocation({ latitude, longitude, city: 'Unknown', country_code: 'UNK' });
-          });
+      ({ coords }) => {
+        setUserLocation(coarseLocation(coords));
+        setLocationPermission('enabled');
       },
-      (err) => {
-        console.warn('Geolocation denied or unavailable:', err.message);
-      },
+      () => setLocationPermission('denied'),
       { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 },
     );
   }, []);
@@ -202,7 +189,7 @@ const GlobalMap = () => {
       style={isMobile ? { height: 'min(50vw, 280px)' } : { height: '100%' }}
     >
       {/* Overlay stats */}
-      <div className="pointer-events-none absolute right-4 top-4 z-10 flex flex-col items-end">
+      <div className="absolute right-4 top-4 z-10 flex flex-col items-end">
         <div className="rounded border border-zinc-800 bg-zinc-950/80 p-3 shadow-2xl backdrop-blur-sm">
           <div className="flex flex-col gap-1 text-right font-mono">
             <span className="text-[9px] uppercase tracking-[0.2em] text-zinc-600">
@@ -216,6 +203,29 @@ const GlobalMap = () => {
             >
               {isLive ? '● LIVE' : 'CONNECTING...'}
             </span>
+            {locationPermission !== 'enabled' && (
+              <button
+                type="button"
+                onClick={enableCoarseLocation}
+                disabled={
+                  locationPermission === 'requesting' || locationPermission === 'unavailable'
+                }
+                className="mt-2 min-h-9 rounded border border-zinc-700 px-2 text-[9px] uppercase tracking-wider text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {locationPermission === 'requesting'
+                  ? 'Requesting location'
+                  : locationPermission === 'denied'
+                    ? 'Location denied - retry'
+                    : locationPermission === 'unavailable'
+                      ? 'Location unavailable'
+                      : 'Share coarse location'}
+              </button>
+            )}
+            {locationPermission === 'enabled' && (
+              <span className="mt-2 text-[8px] uppercase tracking-wider text-emerald-500">
+                Coarse location shared
+              </span>
+            )}
           </div>
         </div>
       </div>

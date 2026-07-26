@@ -9,8 +9,8 @@ Required Production Environment Variables:
 - DJANGO_SECRET_KEY=<strong, unique key>
 - FIELD_ENCRYPTION_KEY=<Fernet key from cryptography>
 - GOOGLE_CLIENT_ID=<from Google OAuth>
-- GEMINI_API_KEY=<from Google AI Studio>
-- DATABASE_URL=<PostgreSQL connection string>
+- GEMINI_API_KEY=<optional; deterministic fallback is used when absent>
+- DATABASE_URL=<PostgreSQL connection string, or POSTGRES_* variables>
 - REDIS_URL=<optional, for caching>
 - SENTRY_DSN=<from Sentry project>
 """
@@ -49,7 +49,8 @@ if not invalid_sentry_dsn and os.getenv("ENV", "development") != "test":
 
 # ─── BASE ────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
-os.makedirs(BASE_DIR / "logs", exist_ok=True)
+LOG_DIR = BASE_DIR / "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 ENV = os.getenv("ENV", "development")
@@ -200,9 +201,12 @@ else:
         "NAME": os.getenv("DATABASE_NAME", os.getenv("POSTGRES_DB", str(BASE_DIR / "db.sqlite3"))),
         "USER": os.getenv("DATABASE_USER", os.getenv("POSTGRES_USER", "")),
         "PASSWORD": os.getenv("DATABASE_PASSWORD", os.getenv("POSTGRES_PASSWORD", "")),
-        "HOST": os.getenv("DATABASE_HOST", "db"),
-        "PORT": os.getenv("DATABASE_PORT", "5432"),
-        **({"OPTIONS": {"MAX_CONNS": 20}} if ENV == "production" else {}),
+        "HOST": os.getenv("DATABASE_HOST", os.getenv("POSTGRES_HOST", "db")),
+        "PORT": os.getenv("DATABASE_PORT", os.getenv("POSTGRES_PORT", "5432")),
+        # Persistent connections are supported by both psycopg2 and Django.
+        # `OPTIONS.MAX_CONNS` is not a libpq option and made production
+        # connections fail before reaching PostgreSQL.
+        **({"CONN_MAX_AGE": 600, "CONN_HEALTH_CHECKS": True} if ENV == "production" else {}),
     }
 
 # ─── CACHING ─────────────────────────────────────────────────────────────────
@@ -227,7 +231,7 @@ if ENV == "production":
         SESSION_CACHE_ALIAS = "default"
     else:
         # No Redis in production: fall back to the DATABASE cache backend, not
-        # LocMemCache. LocMemCache is per-process, so with multiple Gunicorn
+        # LocMemCache. LocMemCache is per-process, so with multiple application
         # workers the DRF throttle counters, login-lockout state and OTP
         # attempt caps would be split per-worker and reset on every restart,
         # making brute-force protection unreliable. DatabaseCache is shared
@@ -406,6 +410,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
     "SECURITY": [{"Bearer": []}],
     "COMPONENT_SPLIT_REQUEST": True,
+    "POSTPROCESSING_HOOKS": ["backend.schema_hooks.close_strict_request_objects"],
     "TAGS": [
         {"name": "Auth", "description": "Authentication & registration"},
         {"name": "Intelligence", "description": "Wordlist generation & history"},
@@ -450,7 +455,7 @@ LOGGING = {
         "file_app": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "piicasso.log"),
+            "filename": str(LOG_DIR / "piicasso.log"),
             "maxBytes": 10 * 1024 * 1024,  # 10 MB
             "backupCount": 5,
             "formatter": "verbose",
@@ -458,7 +463,7 @@ LOGGING = {
         "file_security": {
             "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "security.log"),
+            "filename": str(LOG_DIR / "security.log"),
             "maxBytes": 10 * 1024 * 1024,
             "backupCount": 10,
             "formatter": "verbose",

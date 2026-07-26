@@ -15,19 +15,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import click
 
-# Coerce stdout/stderr to UTF-8 on Windows consoles so the box-drawing
-# characters in our table dividers and REPL banner don't blow up under cp1252.
-# `reconfigure` is a no-op if the stream is already UTF-8 or doesn't support it.
-for _stream in (sys.stdout, sys.stderr):
-    _reconfigure = getattr(_stream, "reconfigure", None)
-    if _reconfigure is not None:
-        try:
-            _reconfigure(encoding="utf-8")
-        except (OSError, ValueError):  # pragma: no cover — platform-dependent
-            pass
-
-from . import __version__, config  # noqa: E402  — must come after reconfigure
-from .api.client import APIClient, APIError, SessionExpired
+from . import __version__, config
 from .engine.pii import (
     detect_entities,
     generate_wordlist,
@@ -36,19 +24,98 @@ from .engine.pii import (
 )
 from .ui import theme
 
-
 SENSITIVE_CONFIG_KEYS = {"access", "refresh"}
+
+# Canonical keys accepted by the backend's PII submission serializer. Keeping
+# this explicit prevents a misspelled key from being silently discarded by DRF.
+SUPPORTED_SUBMIT_FIELDS = frozenset(
+    {
+        "full_name",
+        "birth_year",
+        "phone_suffix",
+        "gov_id",
+        "passport_id",
+        "mother_maiden",
+        "blood_type",
+        "height",
+        "username",
+        "email",
+        "pet_names",
+        "spouse_name",
+        "childhood_nickname",
+        "social_handles",
+        "relationship_status",
+        "close_contacts",
+        "group_affiliations",
+        "child_names",
+        "father_name",
+        "sibling_names",
+        "best_friend",
+        "hometown",
+        "school_name",
+        "last_location",
+        "travel_history",
+        "live_coordinates",
+        "frequent_places",
+        "current_city",
+        "street_name",
+        "zip_code",
+        "state",
+        "country",
+        "vacation_spot",
+        "favourite_movies",
+        "sports_team",
+        "first_car_model",
+        "shopping_sites",
+        "habit_patterns",
+        "search_keywords",
+        "content_timing",
+        "favourite_food",
+        "musician",
+        "hobbies",
+        "books",
+        "games",
+        "employer_name",
+        "social_media_handle",
+        "job_title",
+        "department",
+        "employee_id",
+        "boss_name",
+        "past_company",
+        "university",
+        "degree",
+        "bank_suffix",
+        "crypto_wallet",
+        "vehicle_reg",
+        "property_id",
+        "plate_number_partial",
+        "bank_name",
+        "brand_affinity",
+        "device_type",
+        "subscription",
+    }
+)
 
 
 # ─── helpers ────────────────────────────────────────────────────────────────
+
 
 def _print_error_and_exit(message: str, code: int = 1) -> None:
     theme.print_err(f"error: {message}")
     sys.exit(code)
 
 
+def _api_client(**kwargs: Any) -> Any:
+    """Construct the HTTP client lazily for API-backed commands only."""
+    from .api.client import APIClient
+
+    return APIClient(**kwargs)
+
+
 def _run_api(callable_) -> Any:
-    """Invoke an API call and translate :class:`APIError` into a clean exit."""
+    """Invoke an API call and translate client errors into a clean exit."""
+    from .api.client import APIError, SessionExpired
+
     try:
         return callable_()
     except SessionExpired as exc:
@@ -70,6 +137,31 @@ def _parse_profile(pairs: Iterable[str]) -> Dict[str, str]:
     return out
 
 
+def _parse_submit_profile(pairs: Iterable[str]) -> Dict[str, str]:
+    """Parse and validate structured ``key=value`` PII submission fields."""
+    raw_pairs = tuple(pairs)
+    malformed = [raw for raw in raw_pairs if "=" not in raw or not raw.partition("=")[0].strip()]
+    if malformed:
+        raise click.BadParameter(
+            f"expected key=value, got {malformed[0]!r}",
+            param_hint="--profile",
+        )
+
+    profile = _parse_profile(raw_pairs)
+    unknown = sorted(set(profile) - SUPPORTED_SUBMIT_FIELDS)
+    if unknown:
+        raise click.BadParameter(
+            f"unsupported PII field: {unknown[0]}",
+            param_hint="--profile",
+        )
+    if not any(value for value in profile.values()):
+        raise click.BadParameter(
+            "at least one non-empty key=value pair is required",
+            param_hint="--profile",
+        )
+    return profile
+
+
 def _maybe_read(text: Optional[str], file: Optional[Path]) -> str:
     if file is not None:
         try:
@@ -89,6 +181,7 @@ def _mask(value: Any) -> str:
 
 # ─── root group ─────────────────────────────────────────────────────────────
 
+
 @click.group(
     invoke_without_command=True,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -100,10 +193,12 @@ def main(ctx: click.Context) -> None:
     if ctx.invoked_subcommand is None:
         # Default behaviour: enter the REPL. Lazy import so the CLI starts fast.
         from . import repl
+
         repl.run()
 
 
 # ─── auth ───────────────────────────────────────────────────────────────────
+
 
 @main.command()
 def login() -> None:
@@ -123,11 +218,8 @@ def login() -> None:
     if not password:
         _print_error_and_exit("password is required")
 
-    client = APIClient(base=api_base)
-    try:
-        client.login(identifier, password)
-    except APIError as exc:
-        _print_error_and_exit(str(exc))
+    client = _api_client(base=api_base)
+    _run_api(lambda: client.login(identifier, password))
 
     theme.print_ok("signed in.")
     theme.print_dim(f"tokens saved to {config.CONFIG_FILE}")
@@ -147,9 +239,14 @@ def whoami() -> None:
     if not cfg.get("access"):
         theme.print_dim("guest (not authenticated)")
         return
-    client = APIClient()
+    client = _api_client()
     data = _run_api(lambda: client.get("profile/"))
-    identifier = (data or {}).get("email") or (data or {}).get("username") or cfg.get("email") or "authenticated"
+    identifier = (
+        (data or {}).get("email")
+        or (data or {}).get("username")
+        or cfg.get("email")
+        or "authenticated"
+    )
     role = "superuser" if (data or {}).get("is_superuser") else "standard"
     theme.console.print(theme.out_text(f"user: {identifier}"))
     theme.console.print(theme.out_text(f"role: {role}"))
@@ -158,10 +255,16 @@ def whoami() -> None:
 
 # ─── local engine ───────────────────────────────────────────────────────────
 
+
 @main.command()
 @click.argument("text", required=False)
-@click.option("-f", "--file", "file_", type=click.Path(exists=True, dir_okay=False, path_type=Path),
-              help="Read input from a file instead of an argument.")
+@click.option(
+    "-f",
+    "--file",
+    "file_",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Read input from a file instead of an argument.",
+)
 @click.option("--json", "as_json", is_flag=True, help="Emit raw JSON instead of a table.")
 def analyze(text: Optional[str], file_: Optional[Path], as_json: bool) -> None:
     """Detect PII entities in text (local, no network)."""
@@ -191,8 +294,13 @@ def analyze(text: Optional[str], file_: Optional[Path], as_json: bool) -> None:
 
 @main.command()
 @click.argument("text", required=False)
-@click.option("-f", "--file", "file_", type=click.Path(exists=True, dir_okay=False, path_type=Path),
-              help="Read input from a file instead of an argument.")
+@click.option(
+    "-f",
+    "--file",
+    "file_",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Read input from a file instead of an argument.",
+)
 @click.option("--json", "as_json", is_flag=True, help="Emit raw JSON instead of redacted text.")
 def redact(text: Optional[str], file_: Optional[Path], as_json: bool) -> None:
     """Print text with PII replaced by [TYPE] placeholders (local)."""
@@ -227,20 +335,41 @@ def score(password: str, profile: Tuple[str, ...], as_json: bool) -> None:
         click.echo(json.dumps(result, indent=2, default=str))
         return
     rating = result["rating"]
-    rating_style = "green" if rating in ("Strong", "Excellent") else ("yellow" if rating == "Moderate" else "red")
-    theme.console.print(f"[yellow]score  [/yellow] : [{rating_style}]{result['score']}[/{rating_style}] / 100", markup=True)
-    theme.console.print(f"[yellow]rating [/yellow] : [{rating_style}]{rating}[/{rating_style}]", markup=True)
+    rating_style = (
+        "green"
+        if rating in ("Strong", "Excellent")
+        else ("yellow" if rating == "Moderate" else "red")
+    )
+    theme.console.print(
+        f"[yellow]score  [/yellow] : [{rating_style}]{result['score']}[/{rating_style}] / 100",
+        markup=True,
+    )
+    theme.console.print(
+        f"[yellow]rating [/yellow] : [{rating_style}]{rating}[/{rating_style}]",
+        markup=True,
+    )
     theme.console.print(f"[yellow]entropy[/yellow] : {result['entropy']} bits", markup=True)
-    theme.console.print(f"[yellow]crack  [/yellow] : {result['time']} @ 10B guesses/sec", markup=True)
+    theme.console.print(
+        f"[yellow]crack  [/yellow] : {result['time']} @ 10B guesses/sec", markup=True
+    )
     if result["reasons"]:
         theme.print_dim("reasons:")
         for r in result["reasons"]:
-            theme.console.print(f"  [dim]-[/dim] {r['label']} [dim]({r['kind']})[/dim]", markup=True)
+            theme.console.print(
+                f"  [dim]-[/dim] {r['label']} [dim]({r['kind']})[/dim]", markup=True
+            )
 
 
 @main.command()
 @click.option("-p", "--profile", multiple=True, help="Profile pairs (key=value); pass multiple.")
-@click.option("-l", "--limit", type=int, default=40, show_default=True, help="Cap the candidate count.")
+@click.option(
+    "-l",
+    "--limit",
+    type=int,
+    default=40,
+    show_default=True,
+    help="Cap the candidate count.",
+)
 @click.option("--json", "as_json", is_flag=True, help="Emit raw JSON instead of one-per-line.")
 def wordgen(profile: Tuple[str, ...], limit: int, as_json: bool) -> None:
     """Generate an adversarial wordlist from a profile (local)."""
@@ -260,16 +389,29 @@ def wordgen(profile: Tuple[str, ...], limit: int, as_json: bool) -> None:
 
 # ─── API-backed ─────────────────────────────────────────────────────────────
 
+
 @main.command()
-@click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option(
+    "-p",
+    "--profile",
+    multiple=True,
+    help=(
+        "Structured PII field (key=value); pass multiple, e.g. -p full_name=Ada -p birth_year=1815."
+    ),
+)
+@click.option(
+    "--pattern-mode",
+    type=click.Choice(["standard", "corporate", "leetspeak", "deep"], case_sensitive=False),
+    default="standard",
+    show_default=True,
+)
 @click.option("--json", "as_json", is_flag=True, help="Emit raw JSON.")
-def submit(file: Path, as_json: bool) -> None:
-    """Upload a file to the backend for AI-backed PII analysis."""
-    text = file.read_text(encoding="utf-8")
-    if not text.strip():
-        _print_error_and_exit("file is empty")
-    client = APIClient()
-    data = _run_api(lambda: client.post("submit/", json_body={"text": text}))
+def submit(profile: Tuple[str, ...], pattern_mode: str, as_json: bool) -> None:
+    """Submit a structured PII profile for AI-backed wordlist generation."""
+    payload = _parse_submit_profile(profile)
+    payload["pattern_mode"] = pattern_mode.lower()
+    client = _api_client()
+    data = _run_api(lambda: client.post("submit/", json_body=payload))
     if as_json:
         click.echo(json.dumps(data, indent=2, default=str))
         return
@@ -279,9 +421,12 @@ def submit(file: Path, as_json: bool) -> None:
             theme.console.print(theme.label_text(f"id     : {data['id']}"))
         if "status" in data:
             theme.console.print(theme.label_text(f"status : {data['status']}"))
-        if "summary" in data:
-            theme.print_dim("summary:")
-            theme.console.print(theme.out_text(str(data["summary"])))
+        wordlist = data.get("wordlist")
+        if isinstance(wordlist, list):
+            theme.console.print(theme.label_text(f"words  : {len(wordlist)}"))
+        metrics = data.get("metrics")
+        if isinstance(metrics, dict) and metrics.get("threat_level"):
+            theme.console.print(theme.label_text(f"threat : {metrics['threat_level']}"))
 
 
 @main.command()
@@ -289,7 +434,7 @@ def submit(file: Path, as_json: bool) -> None:
 @click.option("--json", "as_json", is_flag=True)
 def history(limit: int, as_json: bool) -> None:
     """List recent analyses (API)."""
-    client = APIClient()
+    client = _api_client()
     data = _run_api(lambda: client.get("history/"))
     rows: List[Dict[str, Any]] = []
     if isinstance(data, list):
@@ -311,7 +456,9 @@ def history(limit: int, as_json: bool) -> None:
         rid = r.get("id", "—")
         created = r.get("created_at") or r.get("timestamp") or r.get("created") or ""
         status = r.get("status") or r.get("state") or ""
-        preview = (r.get("text") or r.get("input") or r.get("summary") or "").replace("\n", " ")[:40]
+        preview = (r.get("text") or r.get("input") or r.get("summary") or "").replace("\n", " ")[
+            :40
+        ]
         theme.console.print(
             f"[green]{str(rid):<6}[/green] {str(created):<22} {str(status):<12} {preview}",
             markup=True,
@@ -323,7 +470,7 @@ def history(limit: int, as_json: bool) -> None:
 @click.option("--json", "as_json", is_flag=True)
 def darkweb(query: str, as_json: bool) -> None:
     """Breach-search the configured dark-web sources (API)."""
-    client = APIClient()
+    client = _api_client()
     data = _run_api(lambda: client.post("operations/breach-search/", json_body={"query": query}))
     if as_json:
         click.echo(json.dumps(data, indent=2, default=str))
@@ -344,37 +491,41 @@ def darkweb(query: str, as_json: bool) -> None:
 
 
 @main.command()
-@click.argument("target")
 @click.option("--json", "as_json", is_flag=True)
-def risk(target: str, as_json: bool) -> None:
-    """Compute a financial-risk score for the named target (API)."""
-    client = APIClient()
-    data = _run_api(lambda: client.post("operations/financial-risk/", json_body={"target": target}))
+def risk(as_json: bool) -> None:
+    """Show the authenticated user's financial-risk snapshot (API)."""
+    client = _api_client()
+    data = _run_api(lambda: client.get("operations/financial-risk/"))
     if as_json:
         click.echo(json.dumps(data, indent=2, default=str))
         return
-    theme.console.print(theme.label_text(f'financial-risk for "{target}"'))
+    theme.console.print(theme.label_text("financial-risk snapshot"))
     if not data:
         theme.print_dim("no data.")
         return
     if isinstance(data, dict):
-        score_val = data.get("score") if "score" in data else data.get("risk_score")
-        if isinstance(score_val, (int, float)):
-            theme.print_ok(f"score: {score_val}")
-        if data.get("summary"):
-            theme.console.print(theme.out_text(str(data["summary"])))
-        signals = data.get("signals")
-        if isinstance(signals, list):
-            theme.print_dim(f"signals ({len(signals)}):")
-            for s in signals:
-                theme.console.print(theme.out_text(f"  - {s if isinstance(s, str) else json.dumps(s)}"))
+        if data.get("severity"):
+            theme.print_ok(f"severity: {data['severity']}")
+        exposure = data.get("total_exposure")
+        if isinstance(exposure, (int, float)):
+            theme.console.print(theme.out_text(f"total exposure: ${exposure:,.0f}"))
+        probability = data.get("breach_probability")
+        if isinstance(probability, (int, float)):
+            theme.console.print(theme.out_text(f"breach probability: {probability}%"))
+        recommendations = data.get("recommendations")
+        if isinstance(recommendations, list):
+            theme.print_dim(f"recommendations ({len(recommendations)}):")
+            for recommendation in recommendations:
+                if isinstance(recommendation, dict):
+                    recommendation = recommendation.get("title") or recommendation.get("detail")
+                theme.console.print(theme.out_text(f"  - {recommendation}"))
 
 
 @main.command()
 @click.option("--json", "as_json", is_flag=True)
 def inbox(as_json: bool) -> None:
     """List messages from the operations inbox (API)."""
-    client = APIClient()
+    client = _api_client()
     data = _run_api(lambda: client.get("operations/messages/"))
     rows: List[Dict[str, Any]] = []
     if isinstance(data, list):
@@ -403,6 +554,7 @@ def inbox(as_json: bool) -> None:
 
 
 # ─── mode + config ──────────────────────────────────────────────────────────
+
 
 @main.command("mode")
 @click.argument("value", required=False)
@@ -434,7 +586,11 @@ def config_cmd(action: Optional[str], key: Optional[str], value: Optional[str]) 
             return
         theme.console.print(theme.label_text("config:"))
         for k, v in cfg.items():
-            shown = _mask(v) if k in SENSITIVE_CONFIG_KEYS else (json.dumps(v) if isinstance(v, (dict, list)) else v)
+            shown = (
+                _mask(v)
+                if k in SENSITIVE_CONFIG_KEYS
+                else (json.dumps(v) if isinstance(v, (dict, list)) else v)
+            )
             theme.console.print(f"  {k} = {shown}")
         theme.print_dim(f"path: {config.CONFIG_FILE}")
         theme.print_dim(f"api : {config.get_api_base()}")
@@ -473,6 +629,7 @@ def config_cmd(action: Optional[str], key: Optional[str], value: Optional[str]) 
 def repl() -> None:
     """Start the interactive REPL (default when invoked with no args)."""
     from . import repl as repl_mod
+
     repl_mod.run()
 
 

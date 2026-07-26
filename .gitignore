@@ -57,6 +57,8 @@ refer/
 
 # ─── Local Development Docker ──────────────────────────────────────────────────
 *Dockerfile.dev
+!Piicasso/backend/Dockerfile.dev
+!Piicasso/frontend/Dockerfile.dev
 
 _worktrees/
 

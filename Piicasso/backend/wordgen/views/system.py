@@ -6,6 +6,7 @@ import logging
 
 from django.db import connection
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -16,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from backend.schema_serializers import HealthResponseSerializer, TerminalRequestSerializer, TerminalResponseSerializer
 from backend.throttles import TerminalRateThrottle
 from operations.models import SystemLog
 
@@ -27,6 +29,11 @@ logger = logging.getLogger("wordgen")
 # ─── HEALTH CHECK ────────────────────────────────────────────────────────────
 
 
+@extend_schema(
+    summary="Check application and database health",
+    responses={200: HealthResponseSerializer, 503: HealthResponseSerializer},
+    tags=["Health"],
+)
 @api_view(["GET"])
 @authentication_classes([])
 @permission_classes([AllowAny])
@@ -47,7 +54,7 @@ def health_check(request):
     except Exception as e:
         health["status"] = "degraded"
         health["database"] = "error"
-        logger.error(f"Health check DB failure: {e}")
+        logger.error("Health check database failure (%s)", type(e).__name__)
         return Response(health, status=503)
 
     return Response(health, status=200)
@@ -65,6 +72,11 @@ class SystemLogView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List recent system logs",
+        responses={200: SystemLogSerializer(many=True)},
+        tags=["Operations"],
+    )
     def get(self, request):
         if not request.user.is_superuser:
             return Response({"error": "Admin access required."}, status=403)
@@ -99,6 +111,12 @@ class SimulatedTerminalView(APIView):
     # Whitelist of allowed simulated commands
     ALLOWED_COMMANDS = frozenset(["hydra", "nmap", "help", "clear", "whoami", "status"])
 
+    @extend_schema(
+        summary="Run a whitelisted simulated terminal command",
+        request=TerminalRequestSerializer,
+        responses={200: TerminalResponseSerializer},
+        tags=["Operations"],
+    )
     def post(self, request):
         command = request.data.get("command", "").strip()
         if not command:

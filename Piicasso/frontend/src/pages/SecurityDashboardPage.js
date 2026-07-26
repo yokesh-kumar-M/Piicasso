@@ -1,4 +1,12 @@
-import React, { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  lazy,
+  Suspense,
+  useCallback,
+  useContext,
+  useMemo,
+} from 'react';
 import {
   Activity,
   Wifi,
@@ -12,9 +20,41 @@ import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
 import TargetForm from '../components/TargetForm';
 import RiskRadar from '../components/RiskRadar';
 import SystemLogs from '../components/SystemLogs';
+import { AuthContext } from '../context/AuthContext';
 const GlobalMap = lazy(() => import('../components/GlobalMap'));
 
+const observabilityPresentation = {
+  loading: {
+    label: 'Checking',
+    badge: 'border-zinc-500/20 bg-zinc-500/10 text-zinc-400',
+    indicator: 'animate-pulse bg-zinc-400',
+  },
+  success: {
+    label: 'Logs available',
+    badge: 'border-blue-500/20 bg-blue-500/10 text-blue-400',
+    indicator: 'bg-blue-400',
+  },
+  empty: {
+    label: 'No log data',
+    badge: 'border-zinc-500/20 bg-zinc-500/10 text-zinc-400',
+    indicator: 'bg-zinc-500',
+  },
+  permission: {
+    label: 'Restricted',
+    badge: 'border-amber-500/20 bg-amber-500/10 text-amber-400',
+    indicator: 'bg-amber-400',
+  },
+  error: {
+    label: 'Unavailable',
+    badge: 'border-red-500/20 bg-red-500/10 text-red-400',
+    indicator: 'bg-red-400',
+  },
+};
+
 const SecurityDashboardPage = () => {
+  const { user } = useContext(AuthContext);
+  const canViewSystemLogs = Boolean(user?.is_superuser);
+  const [logFeedStatus, setLogFeedStatus] = useState('loading');
   const [metrics, setMetrics] = useState({
     identity: 0,
     family: 0,
@@ -105,6 +145,8 @@ const SecurityDashboardPage = () => {
     () => Math.round((Object.values(metrics).reduce((a, b) => a + b, 0) / 60) * 100) || 0,
     [metrics],
   );
+  const effectiveLogFeedStatus = canViewSystemLogs ? logFeedStatus : 'permission';
+  const logFeedPresentation = observabilityPresentation[effectiveLogFeedStatus];
 
   return (
     <DesignAppShell activeKey="mission">
@@ -129,16 +171,12 @@ const SecurityDashboardPage = () => {
           {/* Quick Metrics */}
           <div className="flex items-center gap-6 font-mono text-[10px] font-bold uppercase tracking-widest">
             <div className="flex items-center gap-3">
-              <span className="text-gray-500">System State</span>
-              <span className="flex items-center gap-2 rounded border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-500">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_5px_currentColor]" />{' '}
-                SECURE
-              </span>
-            </div>
-            <div className="hidden items-center gap-3 sm:flex">
-              <span className="text-gray-500">Active Node</span>
-              <span className="rounded border border-security-red/20 bg-security-red/10 px-3 py-1 text-security-red">
-                ALPHA-09
+              <span className="text-gray-500">Audit Feed</span>
+              <span
+                className={`flex items-center gap-2 rounded border px-3 py-1 ${logFeedPresentation.badge}`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${logFeedPresentation.indicator}`} />
+                {logFeedPresentation.label}
               </span>
             </div>
           </div>
@@ -176,15 +214,13 @@ const SecurityDashboardPage = () => {
                     System Logs
                   </span>
                 </div>
-                <div className="flex gap-1.5">
-                  <div className="h-2 w-2 rounded-full bg-zinc-600"></div>
-                  <div className="h-2 w-2 rounded-full bg-zinc-600"></div>
-                  <div className="h-2 w-2 rounded-full bg-security-red shadow-[0_0_5px_currentColor]"></div>
-                </div>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-zinc-600">
+                  Server-sourced only
+                </span>
               </div>
               <div className="relative flex-1 overflow-hidden bg-black/80 p-3">
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_4px]"></div>
-                <SystemLogs />
+                <SystemLogs enabled={canViewSystemLogs} onStatusChange={setLogFeedStatus} />
               </div>
             </div>
           </div>

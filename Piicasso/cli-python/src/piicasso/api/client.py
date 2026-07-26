@@ -43,6 +43,17 @@ def _format_http_error(resp: requests.Response) -> str:
     return f"HTTP {resp.status_code}{suffix}"
 
 
+def _response_json(resp: requests.Response, context: str) -> Dict[str, Any]:
+    """Return a JSON object or raise a stable, user-facing protocol error."""
+    try:
+        data = resp.json()
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise APIError(f"{context} returned invalid JSON") from exc
+    if not isinstance(data, dict):
+        raise APIError(f"{context} returned an invalid response")
+    return data
+
+
 class APIClient:
     """Thin wrapper around :mod:`requests` with PIIcasso auth semantics."""
 
@@ -58,21 +69,25 @@ class APIClient:
 
     def login(self, identifier: str, password: str) -> Dict[str, Any]:
         """POST credentials to /user/token/ and persist the JWT pair."""
-        payload: Dict[str, Any]
-        if "@" in identifier:
-            payload = {"email": identifier, "password": password}
-        else:
-            payload = {"username": identifier, "password": password}
+        # The backend accepts either a username or email through ``username``.
+        payload: Dict[str, Any] = {"username": identifier, "password": password}
         url = self.base + "user/token/"
-        resp = requests.post(url, json=payload, timeout=self.timeout)
+        try:
+            resp = requests.post(url, json=payload, timeout=self.timeout)
+        except requests.RequestException as exc:
+            raise APIError(f"no response from {self.base} ({exc.__class__.__name__})") from exc
         if not resp.ok:
             raise APIError(_format_http_error(resp))
-        data = resp.json()
+        data = _response_json(resp, "login endpoint")
         access = data.get("access")
         refresh = data.get("refresh")
         if not access:
             raise APIError("login response missing access token")
-        config.set_tokens(access=access, refresh=refresh or "", email=identifier if "@" in identifier else None)
+        config.set_tokens(
+            access=str(access),
+            refresh=str(refresh or ""),
+            email=identifier if "@" in identifier else "",
+        )
         return data
 
     def _try_refresh(self) -> bool:
@@ -90,11 +105,22 @@ class APIClient:
             return False
         if not resp.ok:
             return False
-        data = resp.json()
+        try:
+            data = _response_json(resp, "token refresh endpoint")
+        except APIError:
+            return False
         new_access = data.get("access")
         if not new_access:
             return False
-        config.set_tokens(access=new_access, refresh=refresh, email=cfg.get("email"))
+        # SimpleJWT rotates and blacklists refresh tokens. Persist the token
+        # pair in one config write, retaining the old refresh only when the
+        # server has rotation disabled.
+        new_refresh = data.get("refresh") or refresh
+        config.set_tokens(
+            access=str(new_access),
+            refresh=str(new_refresh),
+            email=cfg.get("email"),
+        )
         return True
 
     # ─── generic request ───────────────────────────────────────────────
@@ -125,14 +151,19 @@ class APIClient:
             if self._try_refresh():
                 # Refresh succeeded — replay the original request once.
                 headers = {"Accept": "application/json", **self._auth_header()}
-                resp = requests.request(
-                    method.upper(),
-                    url,
-                    params=params,
-                    json=json_body,
-                    headers=headers,
-                    timeout=self.timeout,
-                )
+                try:
+                    resp = requests.request(
+                        method.upper(),
+                        url,
+                        params=params,
+                        json=json_body,
+                        headers=headers,
+                        timeout=self.timeout,
+                    )
+                except requests.RequestException as exc:
+                    raise APIError(
+                        f"no response from {self.base} ({exc.__class__.__name__})"
+                    ) from exc
                 if resp.status_code == 401:
                     raise SessionExpired()
             else:

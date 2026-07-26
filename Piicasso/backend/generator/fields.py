@@ -1,6 +1,6 @@
 import json
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
 from django.db import models
 
@@ -27,8 +27,16 @@ class EncryptedJSONField(models.TextField):
         if value is None:
             return None
         if isinstance(value, str):
-            # Already encrypted string — pass through without double-encoding
-            return value
+            # Django may prepare an already-encrypted value more than once
+            # during migrations or bulk operations. Only bypass encryption when
+            # the value is verifiably a Fernet token; arbitrary strings must
+            # never be written to this PII column as plaintext.
+            try:
+                _get_fernet().decrypt(value.encode())
+            except (InvalidToken, TypeError, ValueError):
+                pass
+            else:
+                return value
         return _get_fernet().encrypt(json.dumps(value, ensure_ascii=False).encode()).decode()
 
     def to_python(self, value):

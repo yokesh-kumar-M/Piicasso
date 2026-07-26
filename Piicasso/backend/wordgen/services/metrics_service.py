@@ -194,7 +194,7 @@ def compute_metrics(wordlist: list, pii_data: dict) -> dict:
             "matched_words": matched,
         }
     except Exception as exc:
-        logger.warning(f"Metrics computation failed: {exc}")
+        logger.warning("Metrics computation failed (%s)", type(exc).__name__)
         return {
             "effectiveness_score": 0.0,
             "risk_density": 0.0,
