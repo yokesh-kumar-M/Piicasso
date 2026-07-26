@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('password_security', '0001_initial'),
+        ('password_security', '0001_initial'),  # ggignore: Django app label, not a credential
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
