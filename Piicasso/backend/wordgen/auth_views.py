@@ -1,26 +1,37 @@
-import logging
 import hmac
-import requests as _requests
-
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.exceptions import AuthenticationFailed
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.mail import send_mail
-from django.conf import settings
-from django.core.cache import cache
+import logging
 import secrets
 import string
+
+import requests as _requests
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.mail import send_mail
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 from analytics.models import UserActivity
+from backend.schema_serializers import (
+    GoogleLoginRequestSerializer,
+    MessageResponseSerializer,
+    PasswordLoginRequestSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetVerifyRequestSerializer,
+    TokenPairResponseSerializer,
+)
+
 from .backends import _DUMMY_HASH
 from .utils import safe_float
-from django.contrib.auth.hashers import check_password
 
 User = get_user_model()
 logger = logging.getLogger("wordgen")
@@ -32,6 +43,7 @@ GOOGLE_CLIENT_ID = getattr(settings, "GOOGLE_CLIENT_ID", "")
 # via HTTP cache-control headers, saving 300–800ms per OAuth login.
 try:
     from google.auth.transport import requests as _google_requests
+
     _google_session = _google_requests.Request(session=_requests.Session())
 except Exception:
     _google_session = None
@@ -89,35 +101,31 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         lat = self.initial_data.get("lat") if hasattr(self, "initial_data") else None
         lng = self.initial_data.get("lng") if hasattr(self, "initial_data") else None
-        city = (
-            self.initial_data.get("city", "Unknown")
-            if hasattr(self, "initial_data")
-            else "Unknown"
-        )
-        country_code = (
-            self.initial_data.get("country_code", "UNK")
-            if hasattr(self, "initial_data")
-            else "UNK"
-        )
+        city = self.initial_data.get("city", "Unknown") if hasattr(self, "initial_data") else "Unknown"
+        country_code = self.initial_data.get("country_code", "UNK") if hasattr(self, "initial_data") else "UNK"
 
         # Log real login activity (anonymized for globe data)
         UserActivity.objects.create(
             user=self.user,
             activity_type="LOGIN",
-            description=f"Operator authenticated.",
+            description="Operator authenticated.",
             city=city or "Unknown",
             country_code=(country_code or "UNK")[:3],
-            latitude=max(-90.0, min(90.0, safe_float(lat)))
-            if safe_float(lat) != 999.0
-            else 999.0,
-            longitude=max(-180.0, min(180.0, safe_float(lng)))
-            if safe_float(lng) != 999.0
-            else 999.0,
+            latitude=max(-90.0, min(90.0, safe_float(lat))) if safe_float(lat) != 999.0 else 999.0,
+            longitude=max(-180.0, min(180.0, safe_float(lng))) if safe_float(lng) != 999.0 else 999.0,
         )
 
         return data
 
 
+@extend_schema_view(
+    post=extend_schema(
+        summary="Authenticate with a username or email",
+        request=PasswordLoginRequestSerializer,
+        responses={200: TokenPairResponseSerializer},
+        tags=["Auth"],
+    )
+)
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -139,6 +147,12 @@ class GoogleLoginView(APIView):
 
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="Authenticate with a Google ID token",
+        request=GoogleLoginRequestSerializer,
+        responses={200: TokenPairResponseSerializer},
+        tags=["Auth"],
+    )
     def post(self, request):
         token = request.data.get("token")
         lat = request.data.get("lat")
@@ -147,13 +161,11 @@ class GoogleLoginView(APIView):
         country_code = request.data.get("country_code", "UNK")
 
         if not token:
-            return Response(
-                {"error": "No token provided"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "No token provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            from google.oauth2 import id_token
             from google.auth.transport import requests as google_requests
+            from google.oauth2 import id_token
 
             # Use module-level cached session; fall back to new Request() if unavailable
             _session = _google_session if _google_session is not None else google_requests.Request()
@@ -229,15 +241,11 @@ class GoogleLoginView(APIView):
             UserActivity.objects.create(
                 user=user,
                 activity_type="LOGIN",
-                description=f"Operator authenticated via Google.",
+                description="Operator authenticated via Google.",
                 city=city or "Unknown",
                 country_code=(country_code or "UNK")[:3],
-                latitude=max(-90.0, min(90.0, safe_float(lat)))
-                if safe_float(lat) != 999.0
-                else 999.0,
-                longitude=max(-180.0, min(180.0, safe_float(lng)))
-                if safe_float(lng) != 999.0
-                else 999.0,
+                latitude=max(-90.0, min(90.0, safe_float(lat))) if safe_float(lat) != 999.0 else 999.0,
+                longitude=max(-180.0, min(180.0, safe_float(lng))) if safe_float(lng) != 999.0 else 999.0,
             )
 
             return Response(
@@ -251,7 +259,7 @@ class GoogleLoginView(APIView):
 
         except ValueError as e:
             # google.oauth2.id_token raises ValueError for invalid tokens
-            logger.warning(f"Google OAuth token verification failed: {e}")
+            logger.warning("Google OAuth token verification failed (%s)", type(e).__name__)
             return Response(
                 {"error": "Invalid Google token. Please try again."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -260,16 +268,14 @@ class GoogleLoginView(APIView):
             from google.auth.exceptions import GoogleAuthError
 
             if isinstance(e, GoogleAuthError):
-                logger.error(f"GoogleAuthError in Google login: {e}")
+                logger.error("Google login authentication failed (%s)", type(e).__name__)
                 return Response(
-                    {
-                        "error": "Google authentication service unavailable. Please try again later."
-                    },
+                    {"error": "Google authentication service unavailable. Please try again later."},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
             # Generic error message; full details logged server-side
-            logger.error(f"Google login error: {type(e).__name__} - {e}", exc_info=True)
+            logger.error("Google login failed (%s)", type(e).__name__)
             return Response(
                 {"error": "Authentication failed. Please try again."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -284,12 +290,16 @@ class RequestPasswordResetView(APIView):
 
         return [PasswordResetRateThrottle()]
 
+    @extend_schema(
+        summary="Request a password recovery code",
+        request=PasswordResetRequestSerializer,
+        responses={200: MessageResponseSerializer},
+        tags=["Auth"],
+    )
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
         if not email:
-            return Response(
-                {"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(email=email)
@@ -309,13 +319,19 @@ class RequestPasswordResetView(APIView):
                 try:
                     send_mail(
                         subject="PIIcasso - System Recovery Authorization",
-                        message=f"Operator {user.username},\n\nA password reset was requested for your account.\n\nYour Authorization Code: {otp}\n\nThis code will self-destruct in 10 minutes.\nIf you did not request this, ignore this transmission.",
+                        message=(
+                            f"Operator {user.username},\n\n"
+                            "A password reset was requested for your account.\n\n"
+                            f"Your Authorization Code: {otp}\n\n"
+                            "This code will self-destruct in 10 minutes.\n"
+                            "If you did not request this, ignore this transmission."
+                        ),
                         from_email=settings.DEFAULT_FROM_EMAIL or "noreply@piicasso.com",
                         recipient_list=[email],
                         fail_silently=False,
                     )
                 except Exception as e:
-                    logger.error(f"SMTP send failure for password reset: {e}")
+                    logger.error("SMTP send failure for password reset (%s)", type(e).__name__)
                     # Still return success to avoid leaking email existence.
 
             return Response(
@@ -331,7 +347,7 @@ class RequestPasswordResetView(APIView):
             )
         except Exception as e:
             # 1.5 fix: generic error; log details server-side
-            logger.error(f"Password reset error: {e}", exc_info=True)
+            logger.error("Password reset failed (%s)", type(e).__name__)
             return Response(
                 {"error": "Failed to process request. Please try again later."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -346,6 +362,12 @@ class VerifyResetOTPView(APIView):
 
         return [OTPVerifyRateThrottle()]
 
+    @extend_schema(
+        summary="Reset a password with a recovery code",
+        request=PasswordResetVerifyRequestSerializer,
+        responses={200: MessageResponseSerializer},
+        tags=["Auth"],
+    )
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
         otp = request.data.get("otp", "").strip()
@@ -413,11 +435,7 @@ class VerifyResetOTPView(APIView):
                 longitude=999.0,
             )
 
-            return Response(
-                {"message": "Password successfully reset."}, status=status.HTTP_200_OK
-            )
+            return Response({"message": "Password successfully reset."}, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
-            return Response(
-                {"error": "User no longer exists."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "User no longer exists."}, status=status.HTTP_404_NOT_FOUND)

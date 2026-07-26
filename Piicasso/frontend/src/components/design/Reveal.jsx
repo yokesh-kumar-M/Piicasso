@@ -26,7 +26,7 @@ export default function Reveal({
     }
     const io = new IntersectionObserver(
       (entries) => {
-        entries.forEach(e => {
+        entries.forEach((e) => {
           if (e.isIntersecting) {
             const t = setTimeout(() => setShown(true), delay);
             io.unobserve(el);
@@ -34,17 +34,20 @@ export default function Reveal({
           }
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' }
+      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' },
     );
     io.observe(el);
     return () => io.disconnect();
   }, [delay]);
 
   const variantClass =
-    variant === 'left' ? 'reveal-left'
-    : variant === 'right' ? 'reveal-right'
-    : variant === 'scale' ? 'reveal-scale'
-    : '';
+    variant === 'left'
+      ? 'reveal-left'
+      : variant === 'right'
+        ? 'reveal-right'
+        : variant === 'scale'
+          ? 'reveal-scale'
+          : '';
 
   return (
     <Tag

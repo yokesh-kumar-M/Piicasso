@@ -12,6 +12,7 @@ is safe to call unconditionally from a deploy script):
 Usage:
     python manage.py ensure_admin
 """
+
 import os
 
 from django.contrib.auth import get_user_model
@@ -38,10 +39,7 @@ class Command(BaseCommand):
             return
 
         # Match on email first (the stable identity), then fall back to username.
-        user = (
-            User.objects.filter(email__iexact=email).first()
-            or User.objects.filter(username=username).first()
-        )
+        user = User.objects.filter(email__iexact=email).first() or User.objects.filter(username=username).first()
         created = user is None
         if created:
             user = User(username=username, email=email)
@@ -55,6 +53,4 @@ class Command(BaseCommand):
         user.save()
 
         verb = "Created" if created else "Updated"
-        self.stdout.write(
-            self.style.SUCCESS(f"{verb} admin account: {user.username} <{user.email}>")
-        )
+        self.stdout.write(self.style.SUCCESS(f"{verb} admin account: {user.username} <{user.email}>"))

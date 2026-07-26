@@ -1,45 +1,52 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
 
 class UserActivity(models.Model):
     ACTIVITY_TYPES = [
-        ('LOGIN', 'User Login'),
-        ('GENERATE', 'Wordlist Generated'),
-        ('SCAN', 'Network Scan'),
-        ('BREACH', 'Data Breach Detected'),
-        ('SQUAD_JOIN', 'Squadron Joined'),
-        ('TEAM_JOIN', 'Team Joined'),
-        ('CONFIG', 'Configuration Change'),
+        ("LOGIN", "User Login"),
+        ("GENERATE", "Wordlist Generated"),
+        ("SCAN", "Network Scan"),
+        ("BREACH", "Data Breach Detected"),
+        ("SQUAD_JOIN", "Squadron Joined"),
+        ("TEAM_JOIN", "Team Joined"),
+        ("CONFIG", "Configuration Change"),
     ]
 
     user = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL,
-        related_name="activities", db_index=True,
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="activities",
+        db_index=True,
     )
     activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
     description = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
-    
+
     # Geo Data for the Globe
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
-    country_code = models.CharField(max_length=3, default='UNK')
-    city = models.CharField(max_length=100, default='Unknown')
-    
+    country_code = models.CharField(max_length=3, default="UNK")
+    city = models.CharField(max_length=100, default="Unknown")
+
     # Visual cues for the globe
-    color = models.CharField(max_length=20, default='green') # hex or color name
-    intensity = models.FloatField(default=0.5) # 0.0 to 1.0 (size on globe)
+    color = models.CharField(max_length=20, default="green")  # hex or color name
+    intensity = models.FloatField(default=0.5)  # 0.0 to 1.0 (size on globe)
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=['timestamp']),
-            models.Index(fields=['user', 'timestamp']),
-            models.Index(fields=['activity_type', 'timestamp']),
+            models.Index(fields=["timestamp"]),
+            models.Index(fields=["user", "timestamp"]),
+            models.Index(fields=["activity_type", "timestamp"]),
         ]
+
+    def __str__(self):
+        return f"{self.activity_type} at {self.city} ({self.latitude}, {self.longitude})"
 
     def save(self, *args, **kwargs):
         # Fall back to invalid sentinel if coords missing
@@ -48,26 +55,23 @@ class UserActivity(models.Model):
             self.longitude = None
 
         # Always set color/intensity based on activity type
-        if self.activity_type == 'BREACH':
-            self.color = '#ef4444'  # red-500
+        if self.activity_type == "BREACH":
+            self.color = "#ef4444"  # red-500
             self.intensity = 1.0
-        elif self.activity_type == 'GENERATE':
-            self.color = '#eab308'  # yellow-500
+        elif self.activity_type == "GENERATE":
+            self.color = "#eab308"  # yellow-500
             self.intensity = 0.7
-        elif self.activity_type == 'LOGIN':
-            self.color = '#22c55e'  # green-500
+        elif self.activity_type == "LOGIN":
+            self.color = "#22c55e"  # green-500
             self.intensity = 0.4
-        elif self.activity_type == 'SCAN':
-            self.color = '#3b82f6'  # blue-500
+        elif self.activity_type == "SCAN":
+            self.color = "#3b82f6"  # blue-500
             self.intensity = 0.6
-        elif self.activity_type in ('TEAM_JOIN', 'SQUAD_JOIN'):
-            self.color = '#a855f7'  # purple-500
+        elif self.activity_type in ("TEAM_JOIN", "SQUAD_JOIN"):
+            self.color = "#a855f7"  # purple-500
             self.intensity = 0.5
-        elif self.activity_type == 'CONFIG':
-            self.color = '#f97316'  # orange-500
+        elif self.activity_type == "CONFIG":
+            self.color = "#f97316"  # orange-500
             self.intensity = 0.3
 
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.activity_type} at {self.city} ({self.latitude}, {self.longitude})"

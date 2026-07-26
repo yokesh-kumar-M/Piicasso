@@ -1,12 +1,20 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
-import axiosInstance from '../api/axios';
+import { createContext, useEffect, useState } from 'react';
+import axiosInstance, {
+  clearSession,
+  persistSession,
+  readSession,
+  refreshSession,
+  subscribeToSession,
+} from '../api/axios';
 
 export const AuthContext = createContext();
 
 const parseJwt = (token) => {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload.padEnd(Math.ceil(payload.length / 4) * 4, '=');
+    return JSON.parse(atob(padded));
+  } catch {
     return null;
   }
 };
@@ -19,95 +27,89 @@ const isTokenValid = (token) => {
   if (!token) return false;
   const decoded = parseJwt(token);
   if (!decoded || !decoded.exp) return false;
-  // Add 30-second buffer to account for clock skew
-  return decoded.exp > (Date.now() / 1000) + 30;
+  return decoded.exp > Date.now() / 1000 + 30;
 };
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => {
-    // 3.2 fix: On initial load, check if stored token is still valid
-    const stored = localStorage.getItem('access_token');
-    if (stored && isTokenValid(stored)) {
-      return stored;
-    }
-    // Token is expired — don't treat user as authenticated
-    // We'll attempt refresh below if refresh token exists
-    return null;
+    const stored = readSession().access;
+    return stored && isTokenValid(stored) ? stored : null;
   });
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Attempt to refresh an expired access token using the refresh token
-  const attemptTokenRefresh = useCallback(async () => {
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) {
-      // No refresh token, clear everything
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      setToken(null);
-      setUser(null);
-      setLoading(false);
-      return;
-    }
+  // Interceptor and login refreshes flow through this subscription so React
+  // never keeps an expired access token after storage has already rotated.
+  useEffect(
+    () =>
+      subscribeToSession(({ access }) => {
+        setToken(access && isTokenValid(access) ? access : null);
+        if (!access) setUser(null);
+      }),
+    [],
+  );
 
-    try {
-      const refreshUrl = `${process.env.REACT_APP_API_URL || '/api/'}user/token/refresh/`;
+  // A refresh token alone is enough to restore a session. refreshSession is
+  // shared with the Axios interceptor and single-flight under StrictMode or
+  // concurrent 401 responses.
+  useEffect(() => {
+    let cancelled = false;
 
-      const res = await fetch(refreshUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh: refreshToken }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem('access_token', data.access);
-        if (data.refresh) {
-          localStorage.setItem('refresh_token', data.refresh);
+    const bootstrapSession = async () => {
+      const session = readSession();
+      if (session.access && isTokenValid(session.access)) {
+        persistSession(session);
+      } else if (session.refresh) {
+        try {
+          await refreshSession();
+        } catch {
+          // refreshSession clears credentials and notifies this provider.
         }
-        setToken(data.access);
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
       } else {
-        // Refresh failed — full logout
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        setToken(null);
-        setUser(null);
+        clearSession();
       }
-    } catch (e) {
-      console.error('Token refresh failed:', e);
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      setToken(null);
-      setUser(null);
-    }
-    setLoading(false);
+
+      if (!cancelled) setLoading(false);
+    };
+
+    bootstrapSession();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-      useEffect(() => {
-    if (token) {
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      const decoded = parseJwt(token);
-      if (decoded) {
-        setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
-        // Fetch profile to get email
-        axiosInstance.get('profile/').then(res => {
-          setUser(prev => ({ ...prev, email: res.data.email }));
-        }).catch(() => {});
-      }
-      setLoading(false);
-    } else {
-      // No valid token — try refreshing
-      const stored = localStorage.getItem('access_token');
-      if (stored && !isTokenValid(stored)) {
-        // Token exists but is expired — try refresh
-        attemptTokenRefresh();
-      } else {
-        setUser(null);
-        setLoading(false);
-      }
+  // Claims provide an immediate identity; the canonical profile response then
+  // enriches it. Stale responses after logout/rotation are ignored.
+  useEffect(() => {
+    if (!token || !isTokenValid(token)) {
+      setUser(null);
+      return undefined;
     }
-  }, [token, attemptTokenRefresh]);
+
+    let cancelled = false;
+    const decoded = parseJwt(token);
+    if (decoded) {
+      setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
+    }
+
+    axiosInstance
+      .get('profile/')
+      .then((res) => {
+        if (!cancelled) {
+          setUser((current) => ({
+            ...current,
+            ...res.data,
+            username: res.data.username || current?.username,
+            is_superuser: res.data.is_superuser ?? current?.is_superuser,
+          }));
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const getLocationData = async () => {
     try {
@@ -127,20 +129,31 @@ export const AuthProvider = ({ children }) => {
           };
         }
       }
-    } catch (e) {
-      console.log('IP Location fallback, trying browser geolocation');
+    } catch (error) {
+      console.warn('IP Location fallback, trying browser geolocation', error);
     }
 
     try {
       const pos = await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('Location prompt timeout')), 3000);
         navigator.geolocation.getCurrentPosition(
-          (pos) => { clearTimeout(timer); resolve(pos); },
-          (err) => { clearTimeout(timer); reject(err); },
-          { timeout: 3000, maximumAge: 10000 }
+          (position) => {
+            clearTimeout(timer);
+            resolve(position);
+          },
+          (error) => {
+            clearTimeout(timer);
+            reject(error);
+          },
+          { timeout: 3000, maximumAge: 10000 },
         );
       });
-      return { lat: pos.coords.latitude, lng: pos.coords.longitude, city: 'Unknown', country_code: 'UNK' };
+      return {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        city: 'Unknown',
+        country_code: 'UNK',
+      };
     } catch {
       return { lat: null, lng: null, city: 'Unknown', country_code: 'UNK' };
     }
@@ -149,69 +162,83 @@ export const AuthProvider = ({ children }) => {
   const googleLogin = async (googleToken) => {
     try {
       const { lat, lng, city, country_code } = await getLocationData();
-      const res = await axiosInstance.post('user/auth/google/', { token: googleToken, lat, lng, city, country_code });
-      const access = res.data.access;
-      const refresh = res.data.refresh;
+      const res = await axiosInstance.post(
+        'user/auth/google/',
+        {
+          token: googleToken,
+          lat,
+          lng,
+          city,
+          country_code,
+        },
+        { skipAuthRefresh: true },
+      );
+      const session = persistSession({
+        access: res.data.access,
+        refresh: res.data.refresh,
+      });
 
-      localStorage.setItem('access_token', access);
-      localStorage.setItem('refresh_token', refresh);
-      setToken(access);
-
-      const decoded = parseJwt(access);
+      const decoded = parseJwt(session.access);
       if (decoded) {
         setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
       }
-
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
       return { success: true };
-    } catch (e) {
-      console.error('Google Login error:', e);
-      return { success: false, error: e.response?.data?.error || e.message };
+    } catch (error) {
+      console.error('Google Login error:', error);
+      return { success: false, error: error.response?.data?.error || error.message };
     }
   };
 
   const login = async (username, password) => {
     try {
       const { lat, lng, city, country_code } = await getLocationData();
-      const res = await axiosInstance.post('user/token/', { username, password, lat, lng, city, country_code });
-      const access = res.data.access;
-      const refresh = res.data.refresh;
+      const res = await axiosInstance.post(
+        'user/token/',
+        {
+          username,
+          password,
+          lat,
+          lng,
+          city,
+          country_code,
+        },
+        { skipAuthRefresh: true },
+      );
+      const session = persistSession({
+        access: res.data.access,
+        refresh: res.data.refresh,
+      });
 
-      localStorage.setItem('access_token', access);
-      localStorage.setItem('refresh_token', refresh);
-      setToken(access);
-
-      const decoded = parseJwt(access);
+      const decoded = parseJwt(session.access);
       if (decoded) {
         setUser({ username: decoded.username, is_superuser: decoded.is_superuser });
       }
-
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
       return { success: true };
-    } catch (e) {
-      console.error('Login error:', e);
-      return { success: false, error: e.response?.data?.detail || e.response?.data?.error || e.message };
+    } catch (error) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.detail || error.response?.data?.error || error.message,
+      };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    delete axiosInstance.defaults.headers.common['Authorization'];
-    setToken(null);
-    setUser(null);
+    clearSession();
   };
 
   return (
-    <AuthContext.Provider value={{
-      token,
-      user,
-      loading,
-      isAuthenticated: !!token && isTokenValid(token),
-      login,
-      googleLogin,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        loading,
+        isAuthenticated: !!token && isTokenValid(token),
+        login,
+        googleLogin,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

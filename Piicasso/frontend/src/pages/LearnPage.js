@@ -1,14 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { ShieldCheck, KeyRound, Eye, Lock, Globe2, BookOpen, ChevronRight } from 'lucide-react';
 import DesignAppShell from '../components/design/dashboard/DesignAppShell.jsx';
-import {
-  ShieldCheck,
-  KeyRound,
-  Eye,
-  Lock,
-  Globe2,
-  BookOpen,
-  ChevronRight,
-} from 'lucide-react';
 
 const TOPICS = [
   {
@@ -16,7 +8,8 @@ const TOPICS = [
     icon: Eye,
     eyebrow: 'PII 101',
     title: 'What counts as personal data?',
-    summary: 'Names, birthdays, pet names, location — even your favourite team is PII when paired with a password.',
+    summary:
+      'Names, birthdays, pet names, location — even your favourite team is PII when paired with a password.',
     body: [
       {
         h: 'Direct vs derivable identifiers',
@@ -37,7 +30,8 @@ const TOPICS = [
     icon: KeyRound,
     eyebrow: 'Password Resilience',
     title: 'How crack-time is actually estimated',
-    summary: 'Length and entropy matter more than special characters. A 16-char passphrase beats P@ssw0rd! every day of the week.',
+    summary:
+      'Length and entropy matter more than special characters. A 16-char passphrase beats P@ssw0rd! every day of the week.',
     body: [
       {
         h: 'Entropy in plain English',
@@ -45,7 +39,7 @@ const TOPICS = [
       },
       {
         h: 'Why dictionary attacks dominate',
-        p: 'Modern GPUs try billions of guesses per second, but they don\'t guess at random — they replay the most common patterns first. Anything in a leak corpus is tested before brute force even starts.',
+        p: "Modern GPUs try billions of guesses per second, but they don't guess at random — they replay the most common patterns first. Anything in a leak corpus is tested before brute force even starts.",
       },
       {
         h: 'The 16/4 rule of thumb',
@@ -58,7 +52,8 @@ const TOPICS = [
     icon: Globe2,
     eyebrow: 'Leak Monitoring',
     title: 'Reading a Have I Been Pwned hit',
-    summary: 'A breach hit means the credential pair exists in a public dump — not that someone is mid-attack on you.',
+    summary:
+      'A breach hit means the credential pair exists in a public dump — not that someone is mid-attack on you.',
     body: [
       {
         h: 'How k-anonymity works',
@@ -79,7 +74,8 @@ const TOPICS = [
     icon: ShieldCheck,
     eyebrow: 'PIIcasso Workflow',
     title: 'How the engine thinks about cracking',
-    summary: 'Seed → permute → score → rank. Each stage filters down a target-specific wordlist before any heavy compute runs.',
+    summary:
+      'Seed → permute → score → rank. Each stage filters down a target-specific wordlist before any heavy compute runs.',
     body: [
       {
         h: '1. Seed extraction',
@@ -100,7 +96,8 @@ const TOPICS = [
     icon: Lock,
     eyebrow: 'Data Handling',
     title: 'Where your PII actually lives',
-    summary: 'Submitted PII is encrypted at rest with Fernet keys. Wordlists are stored separately and aged out per retention policy.',
+    summary:
+      'Submitted PII is encrypted at rest with Fernet keys. Wordlists are stored separately and aged out per retention policy.',
     body: [
       {
         h: 'Encryption at rest',
@@ -108,7 +105,7 @@ const TOPICS = [
       },
       {
         h: 'Retention windows',
-        p: 'Generated wordlists expire on a configurable retention window (default 30 days). Old payloads are purged on schedule so you don\'t accumulate dormant target data.',
+        p: "Generated wordlists expire on a configurable retention window (default 30 days). Old payloads are purged on schedule so you don't accumulate dormant target data.",
       },
       {
         h: 'Operator visibility',
@@ -120,22 +117,22 @@ const TOPICS = [
 
 const LearnPage = () => {
   const [activeId, setActiveId] = useState(TOPICS[0].id);
-  const active = useMemo(
-    () => TOPICS.find((t) => t.id === activeId) || TOPICS[0],
-    [activeId],
-  );
+  const active = useMemo(() => TOPICS.find((t) => t.id === activeId) || TOPICS[0], [activeId]);
   const Icon = active.icon;
 
   return (
     <DesignAppShell activeKey="learn">
       <div style={{ paddingTop: 12, paddingBottom: 80, maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ marginBottom: 28 }}>
-          <div className="eyebrow" style={{ color: 'var(--accent-500)' }}>● LEARNING HUB</div>
+          <div className="eyebrow" style={{ color: 'var(--accent-500)' }}>
+            ● LEARNING HUB
+          </div>
           <h1 className="h-display" style={{ fontSize: 38, marginTop: 4, color: 'var(--fg-0)' }}>
             Sharpen your defence.
           </h1>
           <p style={{ color: 'var(--fg-2)', fontSize: 14, marginTop: 6, maxWidth: 640 }}>
-            Short, opinionated reads on the same problems PIIcasso solves under the hood. Pick a topic to dive in.
+            Short, opinionated reads on the same problems PIIcasso solves under the hood. Pick a
+            topic to dive in.
           </p>
         </div>
 
@@ -186,14 +183,9 @@ const LearnPage = () => {
                     transition: 'background 0.15s',
                   }}
                 >
-                  <Active
-                    size={16}
-                    color={isActive ? 'var(--accent-500)' : 'var(--fg-3)'}
-                  />
+                  <Active size={16} color={isActive ? 'var(--accent-500)' : 'var(--fg-3)'} />
                   <span style={{ flex: 1, lineHeight: 1.2 }}>{topic.title}</span>
-                  {isActive && (
-                    <ChevronRight size={14} color="var(--accent-500)" />
-                  )}
+                  {isActive && <ChevronRight size={14} color="var(--accent-500)" />}
                 </button>
               );
             })}

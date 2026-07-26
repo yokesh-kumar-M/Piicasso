@@ -1,1 +1,14 @@
+# Shell launchers must stay Unix-compatible. Other text files are normalized
+# incrementally by the pre-commit mixed-line-ending hook; avoiding a global
+# attribute keeps this modernization review free of unrelated whole-file churn.
 *.sh text eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

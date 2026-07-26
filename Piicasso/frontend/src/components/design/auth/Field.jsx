@@ -1,10 +1,26 @@
 import React from 'react';
 
 /** Field — labeled input for auth forms. */
-export default function Field({ label, type = 'text', value, onChange, placeholder, rightLink, autoComplete, name }) {
+export default function Field({
+  label,
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  rightLink,
+  autoComplete,
+  name,
+}) {
   return (
     <label style={{ display: 'block' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 6,
+        }}
+      >
         <span
           style={{
             fontFamily: 'var(--font-mono-v3)',

@@ -1,9 +1,25 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { 
-  Shield, Lock, Eye, EyeOff, AlertTriangle, CheckCircle, 
-  XCircle, Info, RefreshCw, ChevronDown, ChevronUp,
-  Fingerprint, Clock, Database, AlertCircle, Lightbulb,
-  Copy, Check, Settings, Sparkles
+import {
+  Shield,
+  Lock,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Info,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Fingerprint,
+  Clock,
+  Database,
+  AlertCircle,
+  Lightbulb,
+  Copy,
+  Check,
+  Settings,
+  Sparkles,
 } from 'lucide-react';
 
 const PasswordGenerator = ({ onUsePassword }) => {
@@ -16,7 +32,7 @@ const PasswordGenerator = ({ onUsePassword }) => {
     lowercase: true,
     numbers: true,
     symbols: true,
-    excludeAmbiguous: false
+    excludeAmbiguous: false,
   });
 
   const ambiguousChars = 'lI1O0';
@@ -24,27 +40,30 @@ const PasswordGenerator = ({ onUsePassword }) => {
   const generatePassword = useCallback(() => {
     let charset = '';
     let result = '';
-    
+
     if (options.lowercase) charset += 'abcdefghijklmnopqrstuvwxyz';
     if (options.uppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     if (options.numbers) charset += '0123456789';
     if (options.symbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
+
     if (options.excludeAmbiguous) {
-      charset = charset.split('').filter(c => !ambiguousChars.includes(c)).join('');
+      charset = charset
+        .split('')
+        .filter((c) => !ambiguousChars.includes(c))
+        .join('');
     }
-    
+
     if (!charset) {
       charset = 'abcdefghijklmnopqrstuvwxyz';
     }
-    
+
     const array = new Uint32Array(length);
     crypto.getRandomValues(array);
-    
+
     for (let i = 0; i < length; i++) {
       result += charset[array[i] % charset.length];
     }
-    
+
     setPassword(result);
   }, [length, options]);
 
@@ -64,14 +83,16 @@ const PasswordGenerator = ({ onUsePassword }) => {
 
   const handleOptionChange = (key) => {
     const newOptions = { ...options, [key]: !options[key] };
-    const activeCount = Object.values(newOptions).filter(v => v !== false && key !== 'excludeAmbiguous').length;
+    const activeCount = Object.values(newOptions).filter(
+      (v) => v !== false && key !== 'excludeAmbiguous',
+    ).length;
     if (activeCount === 0 && key !== 'excludeAmbiguous') return;
     setOptions(newOptions);
   };
 
   const toggleOption = (key) => {
     if (key === 'excludeAmbiguous') {
-      setOptions(prev => ({ ...prev, excludeAmbiguous: !prev.excludeAmbiguous }));
+      setOptions((prev) => ({ ...prev, excludeAmbiguous: !prev.excludeAmbiguous }));
     } else {
       handleOptionChange(key);
     }
@@ -82,22 +103,27 @@ const PasswordGenerator = ({ onUsePassword }) => {
     if (length >= 16) score += 25;
     else if (length >= 12) score += 20;
     else if (length >= 8) score += 10;
-    
-    const activeTypes = [options.uppercase, options.lowercase, options.numbers, options.symbols].filter(Boolean).length;
+
+    const activeTypes = [
+      options.uppercase,
+      options.lowercase,
+      options.numbers,
+      options.symbols,
+    ].filter(Boolean).length;
     score += activeTypes * 15;
     if (options.excludeAmbiguous) score += 10;
-    
+
     return Math.min(score, 100);
   };
 
   const strength = getStrengthIndicator();
 
   return (
-    <div className="bg-dark-bg border border-zinc-800 rounded-lg p-6 space-y-6">
+    <div className="bg-dark-bg space-y-6 rounded-lg border border-zinc-800 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-green-500" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
+            <Sparkles className="h-5 w-5 text-green-500" />
           </div>
           <div>
             <h3 className="font-bold text-white">Password Generator</h3>
@@ -106,50 +132,50 @@ const PasswordGenerator = ({ onUsePassword }) => {
         </div>
         <button
           onClick={generatePassword}
-          className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors"
+          className="rounded-lg bg-zinc-800 p-2 transition-colors hover:bg-zinc-700"
           title="Generate new"
         >
-          <RefreshCw className="w-4 h-4 text-zinc-400" />
+          <RefreshCw className="h-4 w-4 text-zinc-400" />
         </button>
       </div>
 
       <div className="relative">
         <input
-          type={showPassword ? "text" : "password"}
+          type={showPassword ? 'text' : 'password'}
           value={password}
           readOnly
-          className="w-full bg-dark-surface border border-zinc-700 rounded-lg py-4 px-4 pr-24 text-white font-mono text-lg focus:border-green-500 outline-none"
+          className="bg-dark-surface w-full rounded-lg border border-zinc-700 px-4 py-4 pr-24 font-mono text-lg text-white outline-none focus:border-green-500"
         />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+        <div className="absolute right-2 top-1/2 flex -translate-y-1/2 gap-1">
           <button
             onClick={() => setShowPassword(!showPassword)}
-            className="p-2 text-zinc-500 hover:text-white transition-colors"
+            className="p-2 text-zinc-500 transition-colors hover:text-white"
           >
-            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
           <button
             onClick={handleCopy}
-            className="p-2 text-zinc-500 hover:text-white transition-colors"
+            className="p-2 text-zinc-500 transition-colors hover:text-white"
           >
-            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <span className="text-xs text-zinc-500 shrink-0">Length: {length}</span>
+        <span className="shrink-0 text-xs text-zinc-500">Length: {length}</span>
         <input
           type="range"
           min="8"
           max="64"
           value={length}
           onChange={(e) => setLength(parseInt(e.target.value))}
-          className="flex-1 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-green-500"
+          className="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-zinc-800 accent-green-500"
         />
-        <span className="text-xs text-zinc-400 w-8 text-right">{length}</span>
+        <span className="w-8 text-right text-xs text-zinc-400">{length}</span>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {[
           { key: 'uppercase', label: 'ABC' },
           { key: 'lowercase', label: 'abc' },
@@ -160,10 +186,10 @@ const PasswordGenerator = ({ onUsePassword }) => {
           <button
             key={opt.key}
             onClick={() => toggleOption(opt.key)}
-            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            className={`rounded-lg px-3 py-2 text-xs font-medium transition-all ${
               options[opt.key]
-                ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                : 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                ? 'border border-green-500/50 bg-green-500/20 text-green-400'
+                : 'border border-zinc-700 bg-zinc-800 text-zinc-500'
             }`}
           >
             {opt.label}
@@ -171,14 +197,12 @@ const PasswordGenerator = ({ onUsePassword }) => {
         ))}
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+      <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
         <div className="flex items-center gap-2">
-          <div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
-            <div 
+          <div className="h-2 w-24 overflow-hidden rounded-full bg-zinc-800">
+            <div
               className={`h-full transition-all ${
-                strength >= 75 ? 'bg-green-500' :
-                strength >= 50 ? 'bg-yellow-500' :
-                'bg-red-500'
+                strength >= 75 ? 'bg-green-500' : strength >= 50 ? 'bg-yellow-500' : 'bg-red-500'
               }`}
               style={{ width: `${strength}%` }}
             />
@@ -187,9 +211,9 @@ const PasswordGenerator = ({ onUsePassword }) => {
         </div>
         <button
           onClick={() => onUsePassword(password)}
-          className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+          className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-500"
         >
-          <Check className="w-4 h-4" />
+          <Check className="h-4 w-4" />
           Use This Password
         </button>
       </div>

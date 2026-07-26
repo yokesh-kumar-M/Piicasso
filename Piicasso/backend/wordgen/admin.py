@@ -1,33 +1,38 @@
 # ===== Fixed backend/wordgen/admin.py =====
-from django.contrib import admin
-from generator.models import GenerationHistory
-from django.http import HttpResponse
 import json
+
+from django.contrib import admin
+from django.http import HttpResponse
 from django.utils.html import format_html
+
+from generator.models import GenerationHistory
+
 
 def export_wordlist(modeladmin, request, queryset):
     """Export selected wordlists"""
     if queryset.count() == 1:
         obj = queryset.first()
-        response = HttpResponse("\n".join(obj.wordlist), content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename=wordlist_{obj.id}.txt'
+        response = HttpResponse("\n".join(obj.wordlist), content_type="text/plain")
+        response["Content-Disposition"] = f"attachment; filename=wordlist_{obj.id}.txt"
         return response
     else:
         # Handle multiple selections
-        import zipfile
         import io
-        
+        import zipfile
+
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for obj in queryset:
-                zip_file.writestr(f'wordlist_{obj.id}.txt', '\n'.join(obj.wordlist))
-        
+                zip_file.writestr(f"wordlist_{obj.id}.txt", "\n".join(obj.wordlist))
+
         zip_buffer.seek(0)
-        response = HttpResponse(zip_buffer.read(), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=wordlists.zip'
+        response = HttpResponse(zip_buffer.read(), content_type="application/zip")
+        response["Content-Disposition"] = "attachment; filename=wordlists.zip"
         return response
 
+
 export_wordlist.short_description = "Download Selected Wordlists"
+
 
 @admin.register(GenerationHistory)
 class GenerationHistoryAdmin(admin.ModelAdmin):
@@ -41,11 +46,13 @@ class GenerationHistoryAdmin(admin.ModelAdmin):
         """Show shortened PII data"""
         pii_str = json.dumps(obj.pii_data, indent=2)
         return (pii_str[:100] + "...") if len(pii_str) > 100 else pii_str
+
     short_pii.short_description = "PII Data"
 
     def wordlist_count(self, obj):
         """Show count of generated passwords"""
         return len(obj.wordlist) if obj.wordlist else 0
+
     wordlist_count.short_description = "Password Count"
 
     def wordlist_preview(self, obj):
@@ -56,4 +63,5 @@ class GenerationHistoryAdmin(admin.ModelAdmin):
         if len(obj.wordlist) > 5:
             preview += f"\n... and {len(obj.wordlist) - 5} more"
         return format_html(f"<pre style='max-width:300px; overflow-x:auto; font-size:12px;'>{preview}</pre>")
+
     wordlist_preview.short_description = "Password Preview"

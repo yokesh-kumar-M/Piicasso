@@ -1,0 +1,40 @@
+# Git and editor metadata
+.git/
+.gitignore
+.dockerignore
+.idea/
+.vscode/
+
+# Secrets and local configuration. Keep the documented template available.
+.env
+.env.*
+!.env.example
+.npmrc
+.yarnrc*
+*.pem
+*.key
+*.crt
+*.p12
+
+# Dependencies and build/test output
+node_modules/
+build/
+dist/
+coverage/
+.vite/
+.turbo/
+.cache/
+
+# Package-manager and runtime logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

@@ -1,9 +1,9 @@
 # Security Remediation — June 2026
 
-This branch (`fix/security-hardening-2026-06`) removes a privilege-escalation
-backdoor and applies a batch of security hardening. Some items require **manual
-action by the repository owner** that code alone cannot perform. Work through
-the checklist below.
+The June 2026 remediation removed a privilege-escalation backdoor and applied a
+batch of security hardening. Some items still require **manual action by the
+repository owner** that code alone cannot perform. Work through the checklist
+below.
 
 ---
 
@@ -15,6 +15,7 @@ The previous `ensure_admin` management command hardcoded an admin password
 even though this branch removes it from the current tree.
 
 **Action:**
+
 1. Log in to the production Django admin (`/admin/`) and change the password of
    the admin account, **or** run the new env-driven bootstrap (see §2) with a
    fresh password.
@@ -52,29 +53,28 @@ idempotent and safe to re-run.
 
 ## 3. Other recommended environment variables
 
-| Variable | Why | Default if unset |
-|---|---|---|
-| `JWT_SIGNING_KEY` | Lets the JWT key rotate independently of `DJANGO_SECRET_KEY`. | Falls back to `DJANGO_SECRET_KEY` (unchanged behaviour). |
-| `REDIS_URL` | Shared cache for throttling/lockout/OTP across workers. | Falls back to the **database** cache (now shared, correct, but slower). |
-| `TRUSTED_PROXY_COUNT` | Number of trusted proxies in front of the app for safe client-IP parsing. | `1` (correct for Render). |
+| Variable              | Why                                                                       | Default if unset                                                        |
+| --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `JWT_SIGNING_KEY`     | Lets the JWT key rotate independently of `DJANGO_SECRET_KEY`.             | Falls back to `DJANGO_SECRET_KEY` (unchanged behaviour).                |
+| `REDIS_URL`           | Shared cache for throttling/lockout/OTP across workers.                   | Falls back to the **database** cache (now shared, correct, but slower). |
+| `TRUSTED_PROXY_COUNT` | Number of trusted proxies in front of the app for safe client-IP parsing. | `1` (correct for Render).                                               |
 
 ---
 
-## 4. Frontend follow-up (required for the profile page)
+## 4. Frontend profile follow-up (completed)
 
-Changing a profile email now requires re-authentication: the `PUT/PATCH
-/api/profile/` request must include `current_password` when `email` changes, and
-email changes are rejected for OAuth accounts. **Update the profile form** to
-prompt for the current password before submitting an email change, or that
-field will return `400 "Current password is required to change email."`
+Changing a profile email requires re-authentication: the `PUT/PATCH
+/api/profile/` request includes `current_password` when `email` changes, and
+email changes are rejected for OAuth-only accounts. The current profile form
+detects an email change, prompts password users for their current password, and
+blocks the unsupported OAuth-only flow before submission.
 
 ---
 
 ## 5. Deferred hardening (tracked for a follow-up PR)
 
-- **Refresh tokens in `localStorage` (L7).** Tokens are exfiltratable by any XSS
-  (mitigated today by the strict `script-src 'self'` CSP). Moving the refresh
-  token to an `httpOnly`, `Secure`, `SameSite` cookie needs a coordinated
+- **Refresh tokens in `localStorage` (L7).** Tokens are exfiltratable by any XSS.
+  Moving the refresh token to an `httpOnly`, `Secure`, `SameSite` cookie needs a coordinated
   backend (set-cookie + refresh endpoint) and frontend (`AuthContext`) change;
   it was kept out of this PR to avoid rushing an auth refactor onto a
   prod-auto-deploy branch.
@@ -128,6 +128,7 @@ git push --force --all && git push --force --tags
 ```
 
 ### After the rewrite
+
 1. Tell every collaborator to delete their local clone and re-clone.
 2. Re-trigger Dependabot (close/reopen its PRs or bump the config) since its
    branches will be orphaned.

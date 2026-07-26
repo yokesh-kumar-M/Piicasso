@@ -9,8 +9,7 @@ command tree so REPL output matches one-shot ``piicasso <cmd> ...``.
 from __future__ import annotations
 
 import shlex
-import sys
-from typing import List, Optional
+from typing import List
 
 import click
 from prompt_toolkit import PromptSession
@@ -21,40 +20,58 @@ from prompt_toolkit.history import InMemoryHistory
 from . import config
 from .ui import theme
 
-
 _REPL_BUILTINS = [
-    "help", "clear", "mode", "switch", "whoami", "routes", "echo", "about", "exit", "quit",
+    "help",
+    "clear",
+    "mode",
+    "switch",
+    "whoami",
+    "routes",
+    "echo",
+    "about",
+    "exit",
+    "quit",
 ]
 
 _SUBCOMMANDS = [
-    "analyze", "redact", "score", "wordgen", "submit", "history",
-    "darkweb", "risk", "inbox", "login", "logout", "config",
+    "analyze",
+    "redact",
+    "score",
+    "wordgen",
+    "submit",
+    "history",
+    "darkweb",
+    "risk",
+    "inbox",
+    "login",
+    "logout",
+    "config",
 ]
 
 ALL_COMMANDS = _REPL_BUILTINS + _SUBCOMMANDS
 
 
 _HELP_LINES = [
-    ("help",                    "show this help text"),
-    ("clear",                   "wipe the terminal"),
-    ("mode",                    "print the current mode"),
-    ("switch <user|security>",  "change the active mode"),
-    ("whoami",                  "show the authenticated user"),
-    ("routes",                  "list known CLI commands"),
-    ("analyze <text>",          "detect PII in text (local)"),
-    ("redact <text>",           "print text with PII masked (local)"),
-    ("score <pw>",              "score a password (local)"),
-    ("wordgen -p k=v",          "generate a wordlist (local)"),
-    ("submit <file>",           "upload for AI analysis (API)"),
-    ("history",                 "list recent analyses (API)"),
-    ("darkweb <q>",             "breach-search (API)"),
-    ("risk <target>",           "financial-risk score (API)"),
-    ("inbox",                   "list messages (API)"),
-    ("login / logout",          "manage credentials"),
-    ("config get|set <k>",      "inspect / mutate config"),
-    ("echo <text>",             "echo back text"),
-    ("about",                   "short blurb about PIIcasso"),
-    ("exit / quit",             "leave the terminal"),
+    ("help", "show this help text"),
+    ("clear", "wipe the terminal"),
+    ("mode", "print the current mode"),
+    ("switch <user|security>", "change the active mode"),
+    ("whoami", "show the authenticated user"),
+    ("routes", "list known CLI commands"),
+    ("analyze <text>", "detect PII in text (local)"),
+    ("redact <text>", "print text with PII masked (local)"),
+    ("score <pw>", "score a password (local)"),
+    ("wordgen -p k=v", "generate a wordlist (local)"),
+    ("submit -p key=value", "submit a PII profile (API)"),
+    ("history", "list recent analyses (API)"),
+    ("darkweb <q>", "breach-search (API)"),
+    ("risk", "financial-risk snapshot (API)"),
+    ("inbox", "list messages (API)"),
+    ("login / logout", "manage credentials"),
+    ("config get|set <k>", "inspect / mutate config"),
+    ("echo <text>", "echo back text"),
+    ("about", "short blurb about PIIcasso"),
+    ("exit / quit", "leave the terminal"),
 ]
 
 _ABOUT = [
@@ -178,8 +195,8 @@ def run() -> None:
             continue
 
         if cmd == "about":
-            for l in _ABOUT:
-                theme.console.print(theme.out_text(l))
+            for line in _ABOUT:
+                theme.console.print(theme.out_text(line))
             continue
 
         if cmd in _SUBCOMMANDS:

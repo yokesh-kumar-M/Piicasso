@@ -2,11 +2,61 @@ name: CI Pipeline
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  quality-and-secrets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Determine the commit range to inspect
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+        run: |
+          base="$PR_BASE_SHA"
+          if [ -z "$base" ]; then
+            base="$PUSH_BASE_SHA"
+          fi
+
+          if [ -z "$base" ] || [[ "$base" =~ ^0+$ ]] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base="$(git merge-base "origin/$DEFAULT_BRANCH" HEAD 2>/dev/null || git rev-list --max-parents=0 HEAD)"
+          fi
+
+          echo "SCAN_RANGE=$base..HEAD" >> "$GITHUB_ENV"
+
+      - name: Check the repository for whitespace errors
+        run: git diff --check "$SCAN_RANGE"
+
+      - name: Install pinned Gitleaks
+        env:
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          archive="$RUNNER_TEMP/gitleaks.tar.gz"
+          install_dir="$RUNNER_TEMP/gitleaks-bin"
+          curl --fail --silent --show-error --location \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            --output "$archive"
+          echo "$GITLEAKS_SHA256  $archive" | sha256sum --check --status
+          mkdir -p "$install_dir"
+          tar -xzf "$archive" -C "$install_dir" gitleaks
+          echo "$install_dir" >> "$GITHUB_PATH"
+
+      - name: Scan changed commits for secrets (redacted)
+        run: gitleaks git . --redact --no-banner --log-opts="$SCAN_RANGE"
+
   backend-tests:
     runs-on: ubuntu-latest
 
@@ -17,7 +67,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:15.18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -31,19 +81,20 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: 'pip'
-          cache-dependency-path: Piicasso/backend/requirements.txt
+          cache-dependency-path: Piicasso/backend/requirements-dev.txt
 
       - name: Install dependencies
         run: |
           cd Piicasso/backend
-          pip install -r requirements.txt
-          pip install flake8
+          pip install -r requirements-dev.txt
 
       - name: Wait for Postgres
         run: |
@@ -69,7 +120,7 @@ jobs:
           DJANGO_SECRET_KEY: test-secret-key-not-for-production
           ENV: test
           GOOGLE_CLIENT_ID: test-google-client-id
-          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo=
+          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo= # gitleaks:allow (CI-only test fixture, not a real key)
         run: |
           cd Piicasso/backend
           python manage.py makemigrations --check --dry-run
@@ -80,21 +131,46 @@ jobs:
           DJANGO_SECRET_KEY: test-secret-key-not-for-production
           ENV: test
           GOOGLE_CLIENT_ID: test-google-client-id
-          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo=
+          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo= # gitleaks:allow (CI-only test fixture, not a real key)
         run: |
           cd Piicasso/backend
           python manage.py test --verbosity=2
 
-      - name: Lint with flake8 (hard fail on syntax / undefined names)
+      - name: Lint with Ruff
         run: |
           cd Piicasso/backend
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          ruff check .
+          ruff format --check .
 
-      - name: pip-audit (advisory)
+      - name: Type-check with mypy (seed-strict modules)
+        env:
+          DJANGO_SECRET_KEY: test-secret-key-not-for-production
+          ENV: test
+          GOOGLE_CLIENT_ID: test-google-client-id
+          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo= # gitleaks:allow (CI-only test fixture, not a real key)
         run: |
           cd Piicasso/backend
-          pip install pip-audit
-          pip-audit --strict --requirement requirements.txt || true
+          mypy wordgen/utils.py wordgen/throttles.py wordgen/llm_handler.py generator/fields.py backend/settings.py
+
+      - name: OpenAPI schema drift check
+        env:
+          DJANGO_SECRET_KEY: test-secret-key-not-for-production
+          ENV: test
+          GOOGLE_CLIENT_ID: test-google-client-id
+          FIELD_ENCRYPTION_KEY: fOvza1qJxOBvbKrJnLZtdXfXq7-MWMspVH1-qf5lZRo= # gitleaks:allow (CI-only test fixture, not a real key)
+        run: |
+          cd Piicasso/backend
+          python manage.py spectacular --file schema.generated.yml --validate --fail-on-warn
+          diff -u schema.yml schema.generated.yml || {
+            echo "::error::schema.yml is out of date. Run 'python manage.py spectacular --file Piicasso/backend/schema.yml --validate' and commit the result.";
+            exit 1;
+          }
+          rm schema.generated.yml
+
+      - name: Gate on known vulnerable Python dependencies
+        run: |
+          cd Piicasso/backend
+          pip-audit --strict --requirement requirements.txt
 
       - name: Snyk test (gate on high/critical Python deps)
         if: ${{ env.SNYK_TOKEN != '' }}
@@ -115,18 +191,30 @@ jobs:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
         with:
-          node-version: '20'
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: Piicasso/frontend/package-lock.json
 
       - name: Install dependencies
         run: |
           cd Piicasso/frontend
-          npm ci || npm install
+          npm ci
+
+      - name: Lint with ESLint
+        run: |
+          cd Piicasso/frontend
+          npm run lint
+
+      - name: Prettier format check
+        run: |
+          cd Piicasso/frontend
+          npm run format:check
 
       - name: Run frontend tests
         run: |
@@ -146,10 +234,10 @@ jobs:
           echo "Total JS size:"
           du -sh *.js
 
-      - name: npm audit (advisory)
+      - name: Gate production dependency audit
         run: |
           cd Piicasso/frontend
-          npm audit --audit-level=high || true
+          npm run audit:production
 
       - name: Snyk test (gate on high/critical npm deps)
         if: ${{ env.SNYK_TOKEN != '' }}
@@ -158,13 +246,51 @@ jobs:
           npm install -g snyk
           snyk test --severity-threshold=high
 
+  cli-smoke-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: Piicasso/cli-node/package-lock.json
+
+      - name: Install and smoke-test the Node CLI
+        run: |
+          npm ci --prefix Piicasso/cli-node
+          npm test --prefix Piicasso/cli-node
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: Piicasso/cli-python/pyproject.toml
+
+      - name: Test, lint, and package the Python CLI
+        run: |
+          python -m pip install './Piicasso/cli-python[dev]'
+          piicasso --version
+          python -m pytest Piicasso/cli-python
+          ruff check --config Piicasso/cli-python/pyproject.toml Piicasso/cli-python
+          ruff format --check --config Piicasso/cli-python/pyproject.toml Piicasso/cli-python
+          python -m pip wheel --no-deps --wheel-dir "$RUNNER_TEMP/piicasso-wheel" ./Piicasso/cli-python
+
   backend-docker-build:
-    # Builds the production backend image so a broken Dockerfile (e.g. a bad
-    # base image or missing build dep) fails CI instead of breaking the Render
-    # deploy, which builds from this same Dockerfile on push to main.
+    # Build both production images so dependency, static-asset, and runtime
+    # stage regressions fail CI before reaching a deployment platform.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Build backend Docker image
         run: docker build -t piicasso-backend:ci Piicasso/backend
+
+      - name: Build frontend Docker image
+        run: docker build -t piicasso-frontend:ci Piicasso/frontend

@@ -23,43 +23,45 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-dark-bg text-white flex items-center justify-center p-8">
-          <div className="max-w-lg w-full text-center">
-            <div className="w-20 h-20 bg-red-900/20 border border-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertTriangle className="w-10 h-10 text-neon-green" />
+        <div className="bg-dark-bg flex min-h-screen items-center justify-center p-8 text-white">
+          <div className="w-full max-w-lg text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-red-600 bg-red-900/20">
+              <AlertTriangle className="text-neon-green h-10 w-10" />
             </div>
-            
-            <h1 className="text-2xl font-bold mb-2 tracking-wide">Something went wrong</h1>
-            <p className="text-zinc-500 text-sm mb-8">
+
+            <h1 className="mb-2 text-2xl font-bold tracking-wide">Something went wrong</h1>
+            <p className="mb-8 text-sm text-zinc-500">
               An unexpected error occurred. This has been logged for investigation.
             </p>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <div className="bg-black border border-zinc-800 rounded p-4 mb-8 text-left overflow-auto max-h-48">
-                <p className="text-red-400 text-xs font-mono break-all">
+              <div className="mb-8 max-h-48 overflow-auto rounded border border-zinc-800 bg-black p-4 text-left">
+                <p className="break-all font-mono text-xs text-red-400">
                   {this.state.error.toString()}
                 </p>
               </div>
             )}
 
-            <div className="flex gap-4 justify-center flex-wrap">
+            <div className="flex flex-wrap justify-center gap-4">
               <button
                 onClick={this.handleReset}
-                className="bg-neon-green hover:bg-[#00cc00] px-6 py-3 rounded font-bold text-sm flex items-center gap-2 transition-colors"
+                className="bg-neon-green flex items-center gap-2 rounded px-6 py-3 text-sm font-bold transition-colors hover:bg-[#00cc00]"
               >
-                <RefreshCw className="w-4 h-4" /> Try Again
+                <RefreshCw className="h-4 w-4" /> Try Again
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded font-bold text-sm flex items-center gap-2 transition-colors border border-zinc-700"
+                className="flex items-center gap-2 rounded border border-zinc-700 bg-zinc-800 px-6 py-3 text-sm font-bold transition-colors hover:bg-zinc-700"
               >
-                <RefreshCw className="w-4 h-4" /> Reload Page
+                <RefreshCw className="h-4 w-4" /> Reload Page
               </button>
               <button
-                onClick={() => { window.location.href = '/'; }}
-                className="bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded font-bold text-sm flex items-center gap-2 transition-colors border border-zinc-700"
+                onClick={() => {
+                  window.location.href = '/';
+                }}
+                className="flex items-center gap-2 rounded border border-zinc-700 bg-zinc-800 px-6 py-3 text-sm font-bold transition-colors hover:bg-zinc-700"
               >
-                <Home className="w-4 h-4" /> Go Home
+                <Home className="h-4 w-4" /> Go Home
               </button>
             </div>
           </div>

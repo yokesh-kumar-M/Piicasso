@@ -1,6 +1,7 @@
-from rest_framework import serializers
-from .models import Message, Notification, SystemSetting
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
+from .models import Message, Notification, SystemSetting
 
 User = get_user_model()
 
@@ -8,9 +9,7 @@ User = get_user_model()
 class MessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.CharField(source="sender.username", read_only=True)
     recipient_name = serializers.CharField(source="recipient.username", read_only=True)
-    recipient = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), required=False, allow_null=True
-    )
+    recipient = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Message
@@ -50,9 +49,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class SystemSettingSerializer(serializers.ModelSerializer):
-    updated_by_name = serializers.CharField(
-        source="updated_by.username", read_only=True, default="System"
-    )
+    updated_by_name = serializers.CharField(source="updated_by.username", read_only=True, default="System")
 
     class Meta:
         model = SystemSetting

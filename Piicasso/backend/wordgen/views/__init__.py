@@ -1,26 +1,51 @@
-from .generation import (
-    RegisterView,
-    PiiSubmitView,
-    HistoryView,
-    delete_history_entry,
-    download_wordlist,
-    export_history_csv,
-    download_report_pdf,
-    user_stats,
-    user_profile,
-    generate_download_token,
-    download_file_with_token,
-    get_cached_wordlist,
-)
+# Re-exported so tests / monkey-patches can target wordgen.views.<name> even
+# though the actual implementations live in the submodules below.
+from ..llm_handler import build_prompt, call_gemini_api, score_wordlist
 from .admin import (
     SuperAdminView,
-    super_admin_view,
     admin_message_view,
-    admin_users_list,
     admin_purge_all,
+    admin_users_list,
+    super_admin_view,
 )
-from .system import SystemLogView, SimulatedTerminalView, health_check
+from .generation import (
+    HistoryView,
+    PiiSubmitView,
+    RegisterView,
+    delete_history_entry,
+    download_file_with_token,
+    download_report_pdf,
+    download_wordlist,
+    export_history_csv,
+    generate_download_token,
+    get_cached_wordlist,
+    user_profile,
+    user_stats,
+)
+from .system import SimulatedTerminalView, SystemLogView, health_check
 
-# Re-exported so tests / monkey-patches can target wordgen.views.<name> even
-# though the actual implementations live in wordgen.llm_handler.
-from ..llm_handler import build_prompt, call_gemini_api, score_wordlist  # noqa: F401
+__all__ = [
+    "HistoryView",
+    "PiiSubmitView",
+    "RegisterView",
+    "SimulatedTerminalView",
+    "SuperAdminView",
+    "SystemLogView",
+    "admin_message_view",
+    "admin_purge_all",
+    "admin_users_list",
+    "build_prompt",
+    "call_gemini_api",
+    "delete_history_entry",
+    "download_file_with_token",
+    "download_report_pdf",
+    "download_wordlist",
+    "export_history_csv",
+    "generate_download_token",
+    "get_cached_wordlist",
+    "health_check",
+    "score_wordlist",
+    "super_admin_view",
+    "user_profile",
+    "user_stats",
+]

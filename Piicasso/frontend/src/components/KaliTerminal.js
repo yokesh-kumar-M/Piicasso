@@ -4,192 +4,202 @@ import { AuthContext } from '../context/AuthContext';
 import axiosInstance from '../api/axios';
 
 const KaliTerminal = () => {
-    const { user } = useContext(AuthContext);
-    const isGod = user?.is_superuser;
+  const { user } = useContext(AuthContext);
+  const isGod = user?.is_superuser;
 
-    const [history, setHistory] = useState([
-        "Kali GNU/Linux Rolling [Version 2024.1]",
-        isGod ? "SUPERUSER DETECTED. GOD MODE ENGAGED." : "Restricted Shell: Only 'hydra' tool is authorized.",
-        "" // Spacer
-    ]);
-    const [commandHistory, setCommandHistory] = useState([]);
-    const [historyIndex, setHistoryIndex] = useState(-1);
-    const [input, setInput] = useState('');
-    const [isRunning, setIsRunning] = useState(false);
+  const [history, setHistory] = useState([
+    'Kali GNU/Linux Rolling [Version 2024.1]',
+    isGod
+      ? 'SUPERUSER DETECTED. GOD MODE ENGAGED.'
+      : "Restricted Shell: Only 'hydra' tool is authorized.",
+    '', // Spacer
+  ]);
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [input, setInput] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
 
-    // Refs
-    const bottomRef = useRef(null);
-    const inputRef = useRef(null);
+  // Refs
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
 
-    // Check for injected wordlist
-    useEffect(() => {
-        const injectedFile = sessionStorage.getItem('terminal_inject_filename');
-        const counts = sessionStorage.getItem('terminal_inject_count');
+  // Check for injected wordlist
+  useEffect(() => {
+    const injectedFile = sessionStorage.getItem('terminal_inject_filename');
+    const counts = sessionStorage.getItem('terminal_inject_count');
 
-        if (injectedFile) {
-            // clear immediately to prevent re-runs
-            sessionStorage.removeItem('terminal_inject_filename');
-            sessionStorage.removeItem('terminal_inject_count');
+    if (injectedFile) {
+      // clear immediately to prevent re-runs
+      sessionStorage.removeItem('terminal_inject_filename');
+      sessionStorage.removeItem('terminal_inject_count');
 
-            setTimeout(() => {
-                addToHistory(`[SYSTEM] DATA INJECTION RECEIVED`, 'warning');
-                addToHistory(`[+] Wordlist imported: ${injectedFile}`, 'success');
-                addToHistory(`[+] Size: ${counts || '???'} lines`, 'dim');
-                addToHistory(`[HINT] Execute attack: hydra -l admin -P ${injectedFile} target-ip ssh`, 'info');
-                setInput(`hydra -l admin -P ${injectedFile} 10.10.1.5 ssh`);
-            }, 800);
-        }
-    }, []);
+      setTimeout(() => {
+        addToHistory(`[SYSTEM] DATA INJECTION RECEIVED`, 'warning');
+        addToHistory(`[+] Wordlist imported: ${injectedFile}`, 'success');
+        addToHistory(`[+] Size: ${counts || '???'} lines`, 'dim');
+        addToHistory(
+          `[HINT] Execute attack: hydra -l admin -P ${injectedFile} target-ip ssh`,
+          'info',
+        );
+        setInput(`hydra -l admin -P ${injectedFile} 10.10.1.5 ssh`);
+      }, 800);
+    }
+  }, []);
 
-    useEffect(() => {
-        if (bottomRef.current && bottomRef.current.parentNode) {
-            bottomRef.current.parentNode.scrollTop = bottomRef.current.parentNode.scrollHeight;
-        }
-    }, [history]);
+  useEffect(() => {
+    if (bottomRef.current && bottomRef.current.parentNode) {
+      bottomRef.current.parentNode.scrollTop = bottomRef.current.parentNode.scrollHeight;
+    }
+  }, [history]);
 
-    // Focus input on click
-    const handleFocus = () => {
-        inputRef.current?.focus();
-    };
+  // Focus input on click
+  const handleFocus = () => {
+    inputRef.current?.focus();
+  };
 
-    const addToHistory = (line, type = 'standard') => {
-        setHistory(prev => [...prev, { text: line, type }]);
-    };
+  const addToHistory = (line, type = 'standard') => {
+    setHistory((prev) => [...prev, { text: line, type }]);
+  };
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            if (input.trim()) {
-                setCommandHistory(prev => [...prev, input.trim()]);
-                setHistoryIndex(-1);
-            }
-            processCommand(input);
-            setInput('');
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (commandHistory.length > 0) {
-                const newIndex = historyIndex < commandHistory.length - 1 ? historyIndex + 1 : historyIndex;
-                setHistoryIndex(newIndex);
-                setInput(commandHistory[commandHistory.length - 1 - newIndex]);
-            }
-        } else if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (historyIndex > 0) {
-                const newIndex = historyIndex - 1;
-                setHistoryIndex(newIndex);
-                setInput(commandHistory[commandHistory.length - 1 - newIndex]);
-            } else if (historyIndex === 0) {
-                setHistoryIndex(-1);
-                setInput('');
-            }
-        }
-    };
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      if (input.trim()) {
+        setCommandHistory((prev) => [...prev, input.trim()]);
+        setHistoryIndex(-1);
+      }
+      processCommand(input);
+      setInput('');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex = historyIndex < commandHistory.length - 1 ? historyIndex + 1 : historyIndex;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[commandHistory.length - 1 - newIndex]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[commandHistory.length - 1 - newIndex]);
+      } else if (historyIndex === 0) {
+        setHistoryIndex(-1);
+        setInput('');
+      }
+    }
+  };
 
-    const processCommand = async (cmd) => {
-        if (!cmd.trim()) return;
+  const processCommand = async (cmd) => {
+    if (!cmd.trim()) return;
 
-        const prompt = isGod ? 'GOD@KALI:~#' : 'root@kali:~/piicasso#';
+    const prompt = isGod ? 'GOD@KALI:~#' : 'root@kali:~/piicasso#';
 
-        // Add command to history
-        setHistory(prev => [...prev, { text: `${prompt} ${cmd}`, type: 'prompt' }]);
+    // Add command to history
+    setHistory((prev) => [...prev, { text: `${prompt} ${cmd}`, type: 'prompt' }]);
 
-        // Client-side clear for immediate response
-        if (cmd.trim().toLowerCase() === 'clear') {
-            setHistory([]);
-            return;
-        }
+    // Client-side clear for immediate response
+    if (cmd.trim().toLowerCase() === 'clear') {
+      setHistory([]);
+      return;
+    }
 
-        setIsRunning(true);
+    setIsRunning(true);
 
-        try {
-            const res = await axiosInstance.post('terminal/', { command: cmd });
-            const lines = res.data.output || [];
+    try {
+      const res = await axiosInstance.post('terminal/', { command: cmd });
+      const lines = res.data.output || [];
 
-            lines.forEach(line => {
-                let type = 'info';
-                if (line.includes('[SUCCESS]') || line.includes('open')) type = 'success';
-                else if (line.includes('[STATUS]')) type = 'warning';
-                else if (line.includes('bash:') || line.includes('error')) type = 'error';
-                else if (line.includes('Hydra') || line.includes('Nmap')) type = 'dim';
+      lines.forEach((line) => {
+        let type = 'info';
+        if (line.includes('[SUCCESS]') || line.includes('open')) type = 'success';
+        else if (line.includes('[STATUS]')) type = 'warning';
+        else if (line.includes('bash:') || line.includes('error')) type = 'error';
+        else if (line.includes('Hydra') || line.includes('Nmap')) type = 'dim';
 
-                addToHistory(line, type);
-            });
+        addToHistory(line, type);
+      });
+    } catch (err) {
+      console.error(err);
+      addToHistory(`Connection lost: ${err.message}`, 'error');
+    } finally {
+      setIsRunning(false);
+    }
+  };
 
-        } catch (err) {
-            console.error(err);
-            addToHistory(`Connection lost: ${err.message}`, 'error');
-        } finally {
-            setIsRunning(false);
-        }
-    };
-
-    return (
-        <div
-            className={`responsive-terminal-height bg-black font-terminal text-sm p-3 md:p-4 overflow-hidden flex flex-col border rounded shadow-[0_0_20px_rgba(0,0,0,0.8)] ${isGod ? 'border-red-600 shadow-red-900/40' : 'border-zinc-800'}`}
-            onClick={handleFocus}
-        >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b pb-2 mb-2 select-none border-zinc-900">
-                <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-neon-green animate-pulse"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-600"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-600"></div>
-                </div>
-                <div className={`flex items-center gap-2 font-bold ${isGod ? 'text-neon-green' : 'text-gray-400'}`}>
-                    {isGod ? <Skull className="w-4 h-4" /> : <Terminal className="w-4 h-4" />}
-                    <span>{isGod ? 'GOD_MODE :: UNRESTRICTED' : 'root@kali: ~/piicasso'}</span>
-                </div>
-                <div className="text-[10px] text-gray-600">v2024.1</div>
-            </div>
-
-            {/* Output */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 font-mono whitespace-pre-wrap">
-                {history.map((item, i) => {
-                    // Handle legacy string format or new object format
-                    const text = typeof item === 'string' ? item : item.text;
-                    const type = typeof item === 'string' ? 'info' : item.type;
-
-                    let colorClass = 'text-green-500';
-                    if (type === 'prompt') colorClass = isGod ? 'text-neon-green font-bold' : 'text-blue-500 font-bold';
-                    if (type === 'error') colorClass = 'text-neon-green';
-                    if (type === 'warning') colorClass = 'text-yellow-500';
-                    if (type === 'dim') colorClass = 'text-gray-600';
-                    if (type === 'info') colorClass = 'text-gray-300';
-                    if (type === 'success') colorClass = 'text-green-400';
-
-                    return (
-                        <div key={i} className={colorClass}>
-                            {text}
-                        </div>
-                    );
-                })}
-
-                {/* Input Line */}
-                {isRunning ? (
-                    <div className="flex items-center text-yellow-500 font-mono text-sm mt-2">
-                        <span>Executing...</span>
-                        <div className="ml-2 w-2 h-4 bg-yellow-500 animate-pulse"></div>
-                    </div>
-                ) : (
-                    <div className="flex items-center">
-                        <span className={`mr-2 font-bold ${isGod ? 'text-red-600' : 'text-blue-500'}`}>
-                            {isGod ? 'GOD@KALI:~#' : 'root@kali:~/piicasso#'}
-                        </span>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            className={`bg-transparent border-none outline-none flex-1 caret-white text-base md:text-sm ${isGod ? 'text-red-100' : 'text-white'}`}
-                            autoComplete="off"
-                            spellCheck="false"
-                        />
-                    </div>
-                )}
-                <div ref={bottomRef} />
-            </div>
+  return (
+    // Click-anywhere-in-panel focuses the real (keyboard-operable) input
+    // below, so this isn't itself a discrete interactive control.
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+    <div
+      className={`responsive-terminal-height font-terminal flex flex-col overflow-hidden rounded border bg-black p-3 text-sm shadow-[0_0_20px_rgba(0,0,0,0.8)] md:p-4 ${isGod ? 'border-red-600 shadow-red-900/40' : 'border-zinc-800'}`}
+      onClick={handleFocus}
+    >
+      {/* Header */}
+      <div className="mb-2 flex select-none items-center justify-between border-b border-zinc-900 pb-2">
+        <div className="flex gap-2">
+          <div className="bg-neon-green h-3 w-3 animate-pulse rounded-full"></div>
+          <div className="h-3 w-3 rounded-full bg-yellow-600"></div>
+          <div className="h-3 w-3 rounded-full bg-green-600"></div>
         </div>
-    );
+        <div
+          className={`flex items-center gap-2 font-bold ${isGod ? 'text-neon-green' : 'text-gray-400'}`}
+        >
+          {isGod ? <Skull className="h-4 w-4" /> : <Terminal className="h-4 w-4" />}
+          <span>{isGod ? 'GOD_MODE :: UNRESTRICTED' : 'root@kali: ~/piicasso'}</span>
+        </div>
+        <div className="text-[10px] text-gray-600">v2024.1</div>
+      </div>
+
+      {/* Output */}
+      <div className="custom-scrollbar flex-1 space-y-1 overflow-y-auto whitespace-pre-wrap font-mono">
+        {history.map((item, i) => {
+          // Handle legacy string format or new object format
+          const text = typeof item === 'string' ? item : item.text;
+          const type = typeof item === 'string' ? 'info' : item.type;
+
+          let colorClass = 'text-green-500';
+          if (type === 'prompt')
+            colorClass = isGod ? 'text-neon-green font-bold' : 'text-blue-500 font-bold';
+          if (type === 'error') colorClass = 'text-neon-green';
+          if (type === 'warning') colorClass = 'text-yellow-500';
+          if (type === 'dim') colorClass = 'text-gray-600';
+          if (type === 'info') colorClass = 'text-gray-300';
+          if (type === 'success') colorClass = 'text-green-400';
+
+          return (
+            <div key={i} className={colorClass}>
+              {text}
+            </div>
+          );
+        })}
+
+        {/* Input Line */}
+        {isRunning ? (
+          <div className="mt-2 flex items-center font-mono text-sm text-yellow-500">
+            <span>Executing...</span>
+            <div className="ml-2 h-4 w-2 animate-pulse bg-yellow-500"></div>
+          </div>
+        ) : (
+          <div className="flex items-center">
+            <span className={`mr-2 font-bold ${isGod ? 'text-red-600' : 'text-blue-500'}`}>
+              {isGod ? 'GOD@KALI:~#' : 'root@kali:~/piicasso#'}
+            </span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className={`flex-1 border-none bg-transparent text-base caret-white outline-none md:text-sm ${isGod ? 'text-red-100' : 'text-white'}`}
+              autoComplete="off"
+              spellCheck="false"
+            />
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+    </div>
+  );
 };
 
 export default KaliTerminal;

@@ -34,7 +34,10 @@ const ForgotPasswordPage = () => {
   const handleSendCode = async (e) => {
     e.preventDefault();
     setErr('');
-    if (!email) { setErr('Please enter your email address.'); return; }
+    if (!email) {
+      setErr('Please enter your email address.');
+      return;
+    }
     setLoading(true);
     try {
       await axiosInstance.post('auth/password/reset/', { email });
@@ -50,9 +53,18 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
     setErr('');
     const otp = code.join('');
-    if (otp.length < 6) { setErr('Enter all 6 digits.'); return; }
-    if (!newPassword) { setErr('New password is required.'); return; }
-    if (newPassword.length < 6) { setErr('New password must be at least 6 characters.'); return; }
+    if (otp.length < 6) {
+      setErr('Enter all 6 digits.');
+      return;
+    }
+    if (!newPassword) {
+      setErr('New password is required.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setErr('New password must be at least 6 characters.');
+      return;
+    }
     setLoading(true);
     try {
       await axiosInstance.post('auth/password/reset/verify/', {
@@ -60,7 +72,9 @@ const ForgotPasswordPage = () => {
         otp,
         new_password: newPassword,
       });
-      navigate('/login', { state: { message: 'Password reset successful. Sign in with your new password.' } });
+      navigate('/login', {
+        state: { message: 'Password reset successful. Sign in with your new password.' },
+      });
     } catch (ex) {
       setErr(ex.response?.data?.error || 'Verification failed. Check the code and try again.');
     } finally {
@@ -77,7 +91,7 @@ const ForgotPasswordPage = () => {
             Reset password
           </h1>
           <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
-            We'll send a 6-digit code to your email.
+            We&apos;ll send a 6-digit code to your email.
           </p>
 
           <form onSubmit={handleSendCode} style={{ display: 'grid', gap: 14 }}>
@@ -138,9 +152,7 @@ const ForgotPasswordPage = () => {
           </h1>
           <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
             Code sent to{' '}
-            <span style={{ color: 'var(--fg-0)', fontFamily: 'var(--font-mono-v3)' }}>
-              {email}
-            </span>
+            <span style={{ color: 'var(--fg-0)', fontFamily: 'var(--font-mono-v3)' }}>{email}</span>
             . Expires in 10:00.
           </p>
 
@@ -163,12 +175,12 @@ const ForgotPasswordPage = () => {
                 {code.map((d, i) => (
                   <input
                     key={i}
-                    ref={el => (refs.current[i] = el)}
+                    ref={(el) => (refs.current[i] = el)}
                     value={d}
                     maxLength={1}
                     inputMode="numeric"
-                    onChange={e => setDigit(i, e.target.value)}
-                    onKeyDown={e => handleKeyDown(i, e)}
+                    onChange={(e) => setDigit(i, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(i, e)}
                     style={{
                       flex: 1,
                       height: 64,
@@ -182,11 +194,11 @@ const ForgotPasswordPage = () => {
                       outline: 'none',
                       transition: 'border-color 0.15s, box-shadow 0.15s',
                     }}
-                    onFocus={e => {
+                    onFocus={(e) => {
                       e.target.style.borderColor = 'var(--accent-500)';
                       e.target.style.boxShadow = '0 0 0 3px var(--accent-glow)';
                     }}
-                    onBlur={e => {
+                    onBlur={(e) => {
                       e.target.style.borderColor = d ? 'var(--accent-500)' : 'var(--ink-5)';
                       e.target.style.boxShadow = 'none';
                     }}
@@ -247,8 +259,18 @@ const ForgotPasswordPage = () => {
           >
             <button
               type="button"
-              style={{ color: 'var(--fg-2)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12 }}
-              onClick={() => { setStage('email'); setErr(''); setCode(['','','','','','']); }}
+              style={{
+                color: 'var(--fg-2)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 12,
+              }}
+              onClick={() => {
+                setStage('email');
+                setErr('');
+                setCode(['', '', '', '', '', '']);
+              }}
             >
               Use a different email
             </button>

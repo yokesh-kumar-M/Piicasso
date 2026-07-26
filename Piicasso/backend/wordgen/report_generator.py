@@ -1,9 +1,10 @@
+import json
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-import json
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
 def generate_report_pdf(history_entry, file_buffer):
@@ -34,9 +35,7 @@ def generate_report_pdf(history_entry, file_buffer):
             fontName="Courier-Bold",
         )
     )
-    styles.add(
-        ParagraphStyle(name="DataText", fontSize=10, leading=12, fontName="Courier")
-    )
+    styles.add(ParagraphStyle(name="DataText", fontSize=10, leading=12, fontName="Courier"))
     styles.add(
         ParagraphStyle(
             name="WarningText",
@@ -51,12 +50,8 @@ def generate_report_pdf(history_entry, file_buffer):
     elements = []
 
     # --- Header ---
-    elements.append(
-        Paragraph("PIIcasso Intelligence Report", styles["ClassifiedTitle"])
-    )
-    elements.append(
-        Paragraph("Intelligence Generation Summary", styles["SectionHeader"])
-    )
+    elements.append(Paragraph("PIIcasso Intelligence Report", styles["ClassifiedTitle"]))
+    elements.append(Paragraph("Intelligence Generation Summary", styles["SectionHeader"]))
     elements.append(Spacer(1, 0.2 * inch))
 
     # --- Metadata Table ---
@@ -90,7 +85,7 @@ def generate_report_pdf(history_entry, file_buffer):
     if isinstance(data, str):
         try:
             data = json.loads(data)
-        except:
+        except (ValueError, TypeError):
             data = {}
 
     # Flatten dict for display
@@ -171,10 +166,6 @@ def generate_report_pdf(history_entry, file_buffer):
         )
 
     elements.append(Spacer(1, 0.5 * inch))
-    elements.append(
-        Paragraph(
-            "** CONFIDENTIAL REPORT - AUTHORIZED USE ONLY **", styles["WarningText"]
-        )
-    )
+    elements.append(Paragraph("** CONFIDENTIAL REPORT - AUTHORIZED USE ONLY **", styles["WarningText"]))
 
     doc.build(elements)

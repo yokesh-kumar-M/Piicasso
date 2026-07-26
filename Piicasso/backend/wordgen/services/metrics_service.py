@@ -11,8 +11,8 @@ Formulas:
 Both metrics are used to classify overall threat level (LOW/MEDIUM/HIGH/CRITICAL).
 """
 
-import re
 import logging
+import re
 
 logger = logging.getLogger("wordgen")
 
@@ -21,6 +21,7 @@ logger = logging.getLogger("wordgen")
 # Token extraction
 # ---------------------------------------------------------------------------
 
+
 def extract_profile_tokens(pii_data: dict) -> list[str]:
     """
     Extracts meaningful string tokens from a flat PII dict.
@@ -28,7 +29,7 @@ def extract_profile_tokens(pii_data: dict) -> list[str]:
     """
     tokens: set[str] = set()
 
-    for key, val in pii_data.items():
+    for _key, val in pii_data.items():
         if not val:
             continue
 
@@ -51,6 +52,7 @@ def extract_profile_tokens(pii_data: dict) -> list[str]:
 # ---------------------------------------------------------------------------
 # Effectiveness Score  E = (Wp / Wt) × 100
 # ---------------------------------------------------------------------------
+
 
 def calculate_effectiveness_score(wordlist: list, pii_data: dict) -> float:
     """
@@ -87,6 +89,7 @@ def calculate_effectiveness_score(wordlist: list, pii_data: dict) -> float:
 # ---------------------------------------------------------------------------
 # Risk Density  Rd = ΣMarkers / L
 # ---------------------------------------------------------------------------
+
 
 def calculate_risk_density(credential: str, pii_tokens: list[str]) -> float:
     """
@@ -130,6 +133,7 @@ def calculate_overall_risk_density(wordlist: list, pii_data: dict) -> float:
 # Threat Level
 # ---------------------------------------------------------------------------
 
+
 def determine_threat_level(effectiveness_score: float, risk_density: float) -> str:
     """
     Maps (E, Rd) to a qualitative threat level.
@@ -156,6 +160,7 @@ def determine_threat_level(effectiveness_score: float, risk_density: float) -> s
 # All-in-one helper
 # ---------------------------------------------------------------------------
 
+
 def compute_metrics(wordlist: list, pii_data: dict) -> dict:
     """
     Computes E, Rd, threat_level and wordlist size in one call.
@@ -178,10 +183,7 @@ def compute_metrics(wordlist: list, pii_data: dict) -> dict:
         matched = sum(
             1
             for entry in wordlist
-            if any(
-                t in (entry["password"] if isinstance(entry, dict) else str(entry)).lower()
-                for t in pii_tokens
-            )
+            if any(t in (entry["password"] if isinstance(entry, dict) else str(entry)).lower() for t in pii_tokens)
         )
 
         return {
@@ -192,7 +194,7 @@ def compute_metrics(wordlist: list, pii_data: dict) -> dict:
             "matched_words": matched,
         }
     except Exception as exc:
-        logger.warning(f"Metrics computation failed: {exc}")
+        logger.warning("Metrics computation failed (%s)", type(exc).__name__)
         return {
             "effectiveness_score": 0.0,
             "risk_density": 0.0,

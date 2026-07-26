@@ -1,7 +1,10 @@
 import html as html_module
 import logging
 
+from django.http import Http404
 from django.shortcuts import get_object_or_404
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -12,6 +15,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from backend.schema_serializers import (
+    CreateTeamRequestSerializer,
+    CreateTeamResponseSerializer,
+    JoinTeamRequestSerializer,
+    MessageResponseSerializer,
+    TeamChatMessageSerializer,
+    TeamChatRequestSerializer,
+    TeamInfoResponseSerializer,
+)
+
 from .models import Team, TeamMembership, TeamMessage
 
 # from generator.models import GenerationHistory
@@ -19,6 +32,12 @@ from .models import Team, TeamMembership, TeamMessage
 logger = logging.getLogger("wordgen")
 
 
+@extend_schema(
+    summary="Create a team",
+    request=CreateTeamRequestSerializer,
+    responses={201: CreateTeamResponseSerializer},
+    tags=["Teams"],
+)
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -44,9 +63,7 @@ def create_team(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        team = Team.objects.create(
-            name=html_module.escape(name, quote=True), owner=user
-        )
+        team = Team.objects.create(name=html_module.escape(name, quote=True), owner=user)
         TeamMembership.objects.create(user=user, team=team, role="LEADER")
 
         # UserActivity.objects.create(
@@ -66,13 +83,19 @@ def create_team(request):
             status=status.HTTP_201_CREATED,
         )
     except Exception as e:
-        logger.error(f"Team creation error: {e}")
+        logger.error("Team creation failed (%s)", type(e).__name__)
         return Response(
             {"error": "Team creation failed."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
+@extend_schema(
+    summary="Join a team with an invite code",
+    request=JoinTeamRequestSerializer,
+    responses={200: MessageResponseSerializer},
+    tags=["Teams"],
+)
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -122,17 +145,24 @@ def join_team(request):
         #     link='/teams'
         # )
 
-        return Response(
-            {"message": f"Successfully joined {team.name}."}, status=status.HTTP_200_OK
-        )
+        return Response({"message": f"Successfully joined {team.name}."}, status=status.HTTP_200_OK)
+    except Http404:
+        # Preserve the API's client-error semantics. A missing invite code is
+        # not an internal failure and must not be hidden behind a 500 response.
+        raise
     except Exception as e:
-        logger.error(f"Team join error: {e}")
+        logger.error("Team join failed (%s)", type(e).__name__)
         return Response(
             {"error": "Failed to join team."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
+@extend_schema(
+    summary="Get the current user's team",
+    responses={200: TeamInfoResponseSerializer},
+    tags=["Teams"],
+)
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -140,9 +170,7 @@ def get_team_info(request):
     """Retrieves intelligence feed and member details for the current team."""
     try:
         user = request.user
-        membership = (
-            TeamMembership.objects.filter(user=user).select_related("team").first()
-        )
+        membership = TeamMembership.objects.filter(user=user).select_related("team").first()
         if not membership:
             return Response({"active": False})
 
@@ -182,13 +210,19 @@ def get_team_info(request):
             }
         )
     except Exception as e:
-        logger.error(f"Team info error: {e}")
+        logger.error("Team info failed (%s)", type(e).__name__)
         return Response(
             {"error": "Failed to fetch team info."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
+@extend_schema(
+    summary="Leave the current team",
+    request=None,
+    responses={200: MessageResponseSerializer},
+    tags=["Teams"],
+)
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -202,35 +236,50 @@ def leave_team(request):
             count = TeamMembership.objects.filter(team=team).count()
             if count == 1:
                 team.delete()
-                return Response(
-                    {"message": "Unit decommissioned (no remaining operators)."}
-                )
+                return Response({"message": "Unit decommissioned (no remaining operators)."})
 
             # Transfer command hierarchy
             next_member = (
-                TeamMembership.objects.filter(team=team)
-                .exclude(user=request.user)
-                .order_by("joined_at")
-                .first()
+                TeamMembership.objects.filter(team=team).exclude(user=request.user).order_by("joined_at").first()
             )
             if next_member:
                 next_member.role = "LEADER"
                 next_member.save()
             membership.delete()
-            return Response(
-                {"message": "Command hierarchy transferred. Operator extracted."}
-            )
+            return Response({"message": "Command hierarchy transferred. Operator extracted."})
 
         membership.delete()
         return Response({"message": f"Successfully detached from unit {team.name}."})
     except Exception as e:
-        logger.error(f"Team leave error: {e}")
+        logger.error("Team leave failed (%s)", type(e).__name__)
         return Response(
             {"error": "Failed to leave team."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
+@extend_schema(
+    methods=["GET"],
+    summary="List team chat messages",
+    parameters=[
+        OpenApiParameter(
+            name="after",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="Return messages with an ID greater than this value.",
+        )
+    ],
+    responses={200: TeamChatMessageSerializer(many=True)},
+    tags=["Teams"],
+)
+@extend_schema(
+    methods=["POST"],
+    summary="Send a team chat message",
+    request=TeamChatRequestSerializer,
+    responses={201: TeamChatMessageSerializer},
+    tags=["Teams"],
+)
 @api_view(["GET", "POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -247,9 +296,9 @@ def team_chat_messages(request):
 
     if request.method == "GET":
         after_id = int(request.query_params.get("after", 0))
-        msgs = TeamMessage.objects.filter(team=team, id__gt=after_id).select_related('sender').order_by(
-            "timestamp"
-        )[:100]
+        msgs = (
+            TeamMessage.objects.filter(team=team, id__gt=after_id).select_related("sender").order_by("timestamp")[:100]
+        )
         return Response(
             [
                 {
@@ -265,13 +314,9 @@ def team_chat_messages(request):
 
     content = request.data.get("content", "").strip()
     if not content:
-        return Response(
-            {"error": "Empty signal transmissions are restricted."}, status=400
-        )
+        return Response({"error": "Empty signal transmissions are restricted."}, status=400)
     if len(content) > 2000:
-        return Response(
-            {"error": "Signal transmission exceeds limit (2000 chars)."}, status=400
-        )
+        return Response({"error": "Signal transmission exceeds limit (2000 chars)."}, status=400)
 
     content = html_module.escape(content, quote=True)
 

@@ -1,14 +1,17 @@
+from typing import Any
+
 from django.conf import settings
+from django.http import HttpRequest
 
 
-def safe_float(val, default=999.0):
+def safe_float(val: Any, default: float = 999.0) -> float:
     try:
         return float(val) if val is not None and val != "" else default
     except (ValueError, TypeError):
         return default
 
 
-def get_client_ip(request, trusted_proxy_count=None):
+def get_client_ip(request: HttpRequest, trusted_proxy_count: int | None = None) -> str | None:
     """Best-effort client IP that resists X-Forwarded-For spoofing.
 
     Each proxy appends the address that connected to *it* to the right of

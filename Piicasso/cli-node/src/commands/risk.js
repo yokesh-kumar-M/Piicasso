@@ -4,14 +4,10 @@
 'use strict';
 
 const api = require('../api/client');
-const { ok, err, dim, label, out } = require('../ui/theme');
+const { ok, dim, label, out } = require('../ui/theme');
 
-async function run({ target, json }) {
-  if (!target) {
-    console.error(err('error: usage: piicasso risk <target>'));
-    process.exit(1);
-  }
-  const data = await api.call({ method: 'POST', url: 'operations/financial-risk/', data: { target } });
+async function run({ json } = {}) {
+  const data = await api.call({ method: 'GET', url: 'operations/financial-risk/' });
   if (json) {
     console.log(JSON.stringify(data, null, 2));
     return;
@@ -20,19 +16,19 @@ async function run({ target, json }) {
     console.log(dim('no data.'));
     return;
   }
-  console.log(label(`financial-risk for "${target}"`));
-  if (typeof data.score === 'number' || typeof data.risk_score === 'number') {
-    const score = data.score != null ? data.score : data.risk_score;
-    console.log(ok(`score: ${score}`));
+  console.log(label('financial-risk snapshot'));
+  if (data.severity) console.log(ok(`severity: ${data.severity}`));
+  if (typeof data.total_exposure === 'number') {
+    console.log(out(`total exposure: $${data.total_exposure.toLocaleString('en-US')}`));
   }
-  if (data.summary) console.log(out(String(data.summary)));
-  if (Array.isArray(data.signals)) {
-    console.log(dim(`signals (${data.signals.length}):`));
-    for (const s of data.signals) {
-      console.log(dim('  - ') + out(typeof s === 'string' ? s : JSON.stringify(s)));
+  if (typeof data.breach_probability === 'number') {
+    console.log(out(`breach probability: ${data.breach_probability}%`));
+  }
+  if (Array.isArray(data.recommendations)) {
+    console.log(dim(`recommendations (${data.recommendations.length}):`));
+    for (const item of data.recommendations) {
+      console.log(dim('  - ') + out(item.title || String(item)));
     }
-  } else if (!('score' in data) && !('risk_score' in data)) {
-    console.log(JSON.stringify(data, null, 2));
   }
 }
 

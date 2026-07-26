@@ -9,13 +9,10 @@ const Logo = ({ className }) => {
   return (
     <Link
       to="/"
-      className={`select-none flex items-baseline ${className}`}
+      className={`flex select-none items-baseline ${className}`}
       style={{ fontFamily: "'Space Grotesk', sans-serif" }}
     >
-      <span
-        className="font-black tracking-tighter text-white"
-        style={{ fontSize: '1.2em' }}
-      >
+      <span className="font-black tracking-tighter text-white" style={{ fontSize: '1.2em' }}>
         P
       </span>
       <span
@@ -28,10 +25,7 @@ const Logo = ({ className }) => {
       >
         II
       </span>
-      <span
-        className="font-black tracking-tighter text-white"
-        style={{ fontSize: '1.2em' }}
-      >
+      <span className="font-black tracking-tighter text-white" style={{ fontSize: '1.2em' }}>
         CASSO
       </span>
     </Link>

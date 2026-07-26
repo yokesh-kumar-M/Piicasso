@@ -6,6 +6,7 @@ query parameter on the WebSocket URL), not a Django session cookie, so the
 default ``AuthMiddlewareStack`` would always see an anonymous user here.
 This middleware validates the access token and populates ``scope["user"]``.
 """
+
 from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async

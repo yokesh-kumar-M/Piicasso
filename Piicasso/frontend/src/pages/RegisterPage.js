@@ -11,7 +11,7 @@ const ROLES = [
   {
     value: 'individual',
     title: 'Individual',
-    desc: "I want to check if my own passwords are crackable.",
+    desc: 'I want to check if my own passwords are crackable.',
     color: 'var(--usr-500)',
   },
   {
@@ -40,17 +40,10 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
 
   // Live password score using piiEngine
-  const result = useMemo(
-    () => scorePassword(password, { name, email }),
-    [password, name, email]
-  );
+  const result = useMemo(() => scorePassword(password, { name, email }), [password, name, email]);
 
   const scoreColor =
-    result.score < 45
-      ? 'var(--accent-500)'
-      : result.score < 70
-      ? 'var(--warn)'
-      : 'var(--good)';
+    result.score < 45 ? 'var(--accent-500)' : result.score < 70 ? 'var(--warn)' : 'var(--good)';
 
   const handleSsoError = (msg) => setErr(msg || 'Google sign-in failed.');
 
@@ -59,14 +52,21 @@ const RegisterPage = () => {
     setLoading(true);
 
     // Get location — preserved from original
-    let lat = null, lng = null;
+    let lat = null,
+      lng = null;
     try {
       const pos = await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('timeout')), 3000);
         navigator.geolocation.getCurrentPosition(
-          (p) => { clearTimeout(timer); resolve(p); },
-          (e) => { clearTimeout(timer); reject(e); },
-          { timeout: 3000, maximumAge: 10000 }
+          (p) => {
+            clearTimeout(timer);
+            resolve(p);
+          },
+          (e) => {
+            clearTimeout(timer);
+            reject(e);
+          },
+          { timeout: 3000, maximumAge: 10000 },
         );
       });
       lat = pos.coords.latitude;
@@ -76,7 +76,7 @@ const RegisterPage = () => {
     }
 
     // Simulate provisioning delay — preserved from original
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
 
     try {
       const payload = {
@@ -103,7 +103,7 @@ const RegisterPage = () => {
     <AuthShell>
       {/* Progress bars */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 32 }}>
-        {[1, 2, 3].map(s => (
+        {[1, 2, 3].map((s) => (
           <div
             key={s}
             style={{
@@ -142,7 +142,7 @@ const RegisterPage = () => {
             Create your account
           </h1>
           <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
-            It's free for individuals — forever.
+            It&apos;s free for individuals — forever.
           </p>
 
           <SsoButtons onError={handleSsoError} />
@@ -196,14 +196,14 @@ const RegisterPage = () => {
       {step === 2 && (
         <>
           <h1 className="h-display" style={{ fontSize: 32, marginBottom: 8, lineHeight: 1.2 }}>
-            Pick a password.<br />We'll grade it as you type.
+            Pick a password.
+            <br />
+            We&apos;ll grade it as you type.
           </h1>
           <p style={{ color: 'var(--fg-2)', marginBottom: 28, fontSize: 14 }}>
             Anything with{' '}
-            <strong style={{ color: 'var(--fg-0)' }}>
-              {name.split(' ')[0] || 'your name'}
-            </strong>{' '}
-            in it? We'll know.
+            <strong style={{ color: 'var(--fg-0)' }}>{name.split(' ')[0] || 'your name'}</strong> in
+            it? We&apos;ll know.
           </p>
 
           <Field
@@ -244,8 +244,7 @@ const RegisterPage = () => {
                 RESILIENCE
               </span>
               <span style={{ fontSize: 22, fontWeight: 500, color: scoreColor }}>
-                {result.score}{' '}
-                <span style={{ fontSize: 12, color: 'var(--fg-2)' }}>/ 100</span>
+                {result.score} <span style={{ fontSize: 12, color: 'var(--fg-2)' }}>/ 100</span>
               </span>
             </div>
             {/* Animated progress bar */}

@@ -20,8 +20,8 @@ from .. import config
 class Palette:
     name: str
     prompt: str
-    accent: str            # main mode color (rich style name)
-    accent_soft: str       # softer / brighter variant
+    accent: str  # main mode color (rich style name)
+    accent_soft: str  # softer / brighter variant
     banner: str
 
 
@@ -54,6 +54,7 @@ console = Console(highlight=False, soft_wrap=False)
 
 # Convenience styled-text helpers. Each returns a rich ``Text`` so it composes
 # cleanly with ``console.print(...)``.
+
 
 def err_text(message: str) -> Text:
     return Text(message, style="bold red")
@@ -93,7 +94,10 @@ def banner_lines(mode: Optional[str] = None):
     border = "═" * 58
     yield Text(f"╔{border}╗", style=p.banner)
     yield Text("║              PIIcasso Interactive Terminal              ║", style=p.banner)
-    yield Text(f"║                Mode: {p.name.upper().ljust(8)}                          ║", style=p.banner)
+    yield Text(
+        f"║                Mode: {p.name.upper().ljust(8)}                          ║",
+        style=p.banner,
+    )
     yield Text(f"╚{border}╝", style=p.banner)
     yield dim_text("Type 'help' to list available commands.")
     yield Text("")
