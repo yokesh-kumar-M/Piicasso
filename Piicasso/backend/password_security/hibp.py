@@ -20,6 +20,22 @@ _TIMEOUT = 10
 _CACHE_TTL = 86_400  # 24 hours
 
 
+def _hibp_digest(password: str) -> str:
+    """Return the SHA-1 digest mandated by HIBP's k-anonymity protocol.
+
+    This digest is never used for authentication or password storage. HIBP's
+    range API requires SHA-1, and only its first five characters leave the
+    process.
+    """
+    return (
+        hashlib.sha1(  # lgtm[py/weak-sensitive-data-hashing]
+            password.encode("utf-8"), usedforsecurity=False
+        )
+        .hexdigest()
+        .upper()
+    )
+
+
 def k_anonymity_breach_count(password: str) -> int:
     """
     Return the number of times *password* appears in HIBP's Pwned Passwords
@@ -34,7 +50,7 @@ def k_anonymity_breach_count(password: str) -> int:
     if cached is not None:
         return cached
 
-    sha1 = hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()
+    sha1 = _hibp_digest(password)
     prefix, suffix = sha1[:5], sha1[5:]
 
     try:
@@ -69,7 +85,7 @@ def k_anonymity_breach_count(password: str) -> int:
 
 
 def _cache_key(password: str) -> str:
-    sha1 = hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()
+    sha1 = _hibp_digest(password)
     return f"hibp_breach:{sha1}"
 
 

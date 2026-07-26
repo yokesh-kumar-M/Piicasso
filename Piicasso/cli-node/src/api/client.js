@@ -32,7 +32,9 @@ function refreshAccess() {
   refreshPromise = (async () => {
     try {
       const c = baseClient();
-      const res = await c.post('user/token/refresh/', { refresh: cfg.refresh });
+      // The protocol-defined refresh credential is sent only to the configured
+      // PIIcasso API; this is not arbitrary file-content exfiltration.
+      const res = await c.post('user/token/refresh/', { refresh: cfg.refresh }); // lgtm[js/file-access-to-http]
       if (res.data && res.data.access) {
         // SimpleJWT rotates and blacklists refresh tokens in production. Save
         // the returned pair together; retain the old refresh only when the

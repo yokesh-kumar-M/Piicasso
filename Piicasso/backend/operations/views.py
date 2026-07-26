@@ -1,8 +1,9 @@
 import html as html_module
-import re
 from urllib.parse import quote
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
@@ -292,9 +293,13 @@ class BreachSearchView(APIView):
         if len(query) > 254:
             return Response({"error": "Query too long (max 254 characters)."}, status=400)
 
-        # Validate email format for HIBP lookup
-        if "@" in query and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", query):
-            return Response({"error": "Invalid email format."}, status=400)
+        # Use Django's bounded validator instead of applying a custom regular
+        # expression to attacker-controlled input.
+        if "@" in query:
+            try:
+                validate_email(query)
+            except ValidationError:
+                return Response({"error": "Invalid email format."}, status=400)
         # Prevent injection in URL path
         if any(c in query for c in ["\n", "\r", "\x00", "/", "\\", "..", "<", ">"]):
             return Response({"error": "Invalid characters in query."}, status=400)
@@ -316,6 +321,8 @@ class BreachSearchView(APIView):
                         "hibp-api-key": hibp_api_key,
                     }
                     resp = http_requests.get(
+                        # lgtm[py/partial-ssrf] -- fixed origin plus validated,
+                        # percent-encoded account path.
                         f"https://haveibeenpwned.com/api/v3/breachedaccount/{quote(query, safe='')}",
                         params={"truncateResponse": "true"},
                         headers=headers,
