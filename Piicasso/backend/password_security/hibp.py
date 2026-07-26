@@ -27,13 +27,8 @@ def _hibp_digest(password: str) -> str:
     range API requires SHA-1, and only its first five characters leave the
     process.
     """
-    return (
-        hashlib.sha1(  # lgtm[py/weak-sensitive-data-hashing]
-            password.encode("utf-8"), usedforsecurity=False
-        )
-        .hexdigest()
-        .upper()
-    )
+    # codeql[py/weak-sensitive-data-hashing]
+    return hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()
 
 
 def k_anonymity_breach_count(password: str) -> int:

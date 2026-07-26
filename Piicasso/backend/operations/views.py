@@ -320,9 +320,9 @@ class BreachSearchView(APIView):
                         "User-Agent": "PIIcasso-SecurityAudit",
                         "hibp-api-key": hibp_api_key,
                     }
+                    # Fixed origin plus a validated, percent-encoded account.
+                    # codeql[py/partial-ssrf]
                     resp = http_requests.get(
-                        # lgtm[py/partial-ssrf] -- fixed origin plus validated,
-                        # percent-encoded account path.
                         f"https://haveibeenpwned.com/api/v3/breachedaccount/{quote(query, safe='')}",
                         params={"truncateResponse": "true"},
                         headers=headers,
