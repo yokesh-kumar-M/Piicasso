@@ -1,6 +1,0 @@
-# PIIcasso application
-
-This directory contains the Django API, React application, Node and Python
-CLIs, and the production-style self-hosting stack. Start with the
-[repository README](../README.md) for setup, architecture, verification, and
-deployment instructions.

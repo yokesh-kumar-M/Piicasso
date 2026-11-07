@@ -1,12 +1,12 @@
 services:
-  # ─── Main Django Backend ─────────────────────────────────────────────────────
+  # ─── Pantheon Backend Services ───────────────────────────────────────────────
   - type: web
-    name: core-engine
+    name: pantheon
     env: docker
     plan: free
     region: singapore
     branch: main
-    rootDir: Piicasso/backend
+    rootDir: pantheon
     dockerfilePath: Dockerfile
     autoDeploy: true
     healthCheckPath: /api/health/
@@ -30,15 +30,12 @@ services:
         sync: false # Set manually in Render dashboard
       - key: DJANGO_SECRET_KEY
         generateValue: true
-      # Fernet key used by EncryptedJSONField. NEVER auto-generate (rotating it
-      # would orphan existing ciphertext). Set once in the Render dashboard and
-      # back up out-of-band; sync: false keeps render.yaml from overwriting it.
       - key: FIELD_ENCRYPTION_KEY
         sync: false
       - key: ALLOWED_HOSTS
-        value: core-engine-woeg.onrender.com,.onrender.com,localhost
+        value: core-engine-woeg.onrender.com,pantheon-woeg.onrender.com,.onrender.com,localhost
       - key: CORS_ALLOWED_ORIGINS
-        value: https://core-engine-woeg.onrender.com,https://pii-casso.vercel.app
+        value: https://core-engine-woeg.onrender.com,https://pantheon-woeg.onrender.com,https://pii-casso.vercel.app
       - key: GOOGLE_CLIENT_ID
         sync: false # Set manually in Render dashboard
       - key: SENTRY_TRACES_SAMPLE_RATE
