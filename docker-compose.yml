@@ -1,23 +1,23 @@
-# ─── PIIcasso Platform — Development Stack ───────────────────────────────────
+# ─── PIIcasso Platform — Pantheon & Chameleon Stack ─────────────────────────
 # Runs all PIIcasso services for local development.
 #
 # Service URLs:
-#   Backend (Django)  → http://localhost:8000
-#   Frontend (React)  → http://localhost:3000
-#   Redis             → localhost:6379
+#   Backend (Pantheon) → http://localhost:8000
+#   Frontend (Chameleon) → http://localhost:3000
+#   Redis              → localhost:6379
 #
 # ─────────────────────────────────────────────────────────────────────────────
 
 name: piicasso-platform-dev
 
 services:
-  # ─── 1. Django Backend ───────────────────────────────────────────────────────
-  core-engine:
+  # ─── 1. Pantheon Backend Cluster ─────────────────────────────────────────────
+  pantheon:
     build:
-      context: ./Piicasso/backend
+      context: ./pantheon
       dockerfile: Dockerfile.dev
     volumes:
-      - ./Piicasso/backend:/app
+      - ./pantheon:/app
     ports:
       - "8000:8000"
     init: true
@@ -26,24 +26,24 @@ services:
       - DEBUG=True
       - DATABASE_URL=
       - REDIS_URL=redis://redis:6379/0
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost
-      - ALLOWED_HOSTS=localhost,core-engine,127.0.0.1
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost
+      - ALLOWED_HOSTS=localhost,pantheon,127.0.0.1
     env_file:
-      - ./Piicasso/backend/.env
+      - ./pantheon/.env
     networks:
       - piicasso_net
     depends_on:
       redis:
         condition: service_healthy
 
-  # ─── 2. React Frontend ───────────────────────────────────────────────────────
-  frontend:
+  # ─── 2. Chameleon Frontend UI ────────────────────────────────────────────────
+  chameleon:
     build:
-      context: ./Piicasso/frontend
+      context: ./chameleon
       dockerfile: Dockerfile.dev
     volumes:
-      - ./Piicasso/frontend/src:/app/src
-      - ./Piicasso/frontend/public:/app/public
+      - ./chameleon/src:/app/src
+      - ./chameleon/public:/app/public
     ports:
       - "3000:3000"
     init: true
@@ -56,12 +56,12 @@ services:
   # ─── 3. Celery Worker ────────────────────────────────────────────────────────
   celery-worker:
     build:
-      context: ./Piicasso/backend
+      context: ./pantheon
       dockerfile: Dockerfile.dev
-    command: ["celery", "-A", "backend", "worker", "-l", "info"]
+    command: ["celery", "-A", "nexus", "worker", "-l", "info"]
     init: true
     volumes:
-      - ./Piicasso/backend:/app
+      - ./pantheon:/app
     environment:
       - ENV=development
       - DEBUG=True
@@ -69,7 +69,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     env_file:
-      - ./Piicasso/backend/.env
+      - ./pantheon/.env
     networks:
       - piicasso_net
     depends_on:
